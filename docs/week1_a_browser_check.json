@@ -1,0 +1,16 @@
+{
+  "verification_type": "automated_browser",
+  "invalid_token_rejected": true,
+  "imported_papers_per_batch": 20,
+  "batch_ids": [
+    3,
+    4
+  ],
+  "paper_totals_after_import": [
+    20,
+    20
+  ],
+  "rendered_batch_rows": 20,
+  "csv_download": true,
+  "javascript_errors": []
+}

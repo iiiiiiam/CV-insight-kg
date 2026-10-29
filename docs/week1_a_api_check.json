@@ -1,0 +1,25 @@
+{
+  "verified_at": "2026-10-29T04:38:46.587440+00:00",
+  "verification_type": "automated",
+  "dataset_id": "week1-cvpr2024-detection-v1",
+  "source": "openalex",
+  "venue": "CVPR",
+  "year": 2024,
+  "baseline_sha256": "4715282cc7e1df2c476f4e244129ab75dd64146e18f3a05a957a42cac9f090f7",
+  "expected_count": 20,
+  "anonymous_import_status": 401,
+  "invalid_token_status": 403,
+  "total_before": 0,
+  "total_after_first": 20,
+  "total_after_second": 20,
+  "batch_ids": [
+    1,
+    2
+  ],
+  "linked_papers_per_batch": [
+    20,
+    20
+  ],
+  "stable_paper_ids": true,
+  "non_owner_manual_acceptance": "pending"
+}
