@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from dataclasses import asdict, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from .extraction import fingerprint, validate_result
 from .models import (
@@ -56,6 +56,58 @@ class ReviewSession:
     @property
     def history(self) -> tuple[ReviewEvent, ...]:
         return tuple(self._history)
+
+    @property
+    def items(self) -> tuple[ReviewItem, ...]:
+        return tuple(self._items.values())
+
+    @classmethod
+    def replay(
+        cls,
+        paper: PaperInput,
+        result: ExtractionResult,
+        events: tuple[ReviewEvent, ...],
+    ) -> "ReviewSession":
+        """用同一套业务方法重放历史，验证前后快照及撤回联动，保留原时间。"""
+        session = cls(paper, result)
+        index = 0
+        while index < len(events):
+            event = events[index]
+            if not isinstance(event, ReviewEvent):
+                raise ValueError("Invalid review event")
+            try:
+                timestamp = datetime.fromisoformat(event.occurred_at)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("Invalid event time") from exc
+            if timestamp.utcoffset() != timedelta(0):
+                raise ValueError("Event time must include UTC timezone")
+            kwargs = {"reviewer": event.reviewer, "reason": event.reason}
+            identifier = event.before.candidate_id
+            if event.action in {"confirm", "reject", "reopen"}:
+                getattr(session, event.action)(identifier, **kwargs)
+            elif event.action == "correct":
+                content = event.after.content
+                session.correct(
+                    identifier,
+                    name=content.name if isinstance(content, Entity) else None,
+                    evidence=event.after.evidence,
+                    **kwargs,
+                )
+            else:
+                raise ValueError("Unexpected event action or orphan dependency event")
+            generated = session.history[index:]
+            expected = events[index : index + len(generated)]
+            if len(expected) != len(generated):
+                raise ValueError("Missing dependent review events")
+            for actual, saved in zip(generated, expected):
+                if (
+                    saved.occurred_at != event.occurred_at
+                    or replace(actual, occurred_at=event.occurred_at) != saved
+                ):
+                    raise ValueError("Review event sequence or snapshots do not match")
+            session._history[index:] = expected
+            index += len(generated)
+        return session
 
     def get(self, candidate_id: str) -> ReviewItem:
         try:

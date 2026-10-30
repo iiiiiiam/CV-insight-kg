@@ -12,7 +12,8 @@ python -m scripts.review_b_candidates --paper-index 1 --reviewer "你的姓名"
 ```
 
 paper-index 从 1 开始，当前有效范围 1—20；它不是数据库 paper_id。
-该入口不会自动确认候选。所有决定只在进程内保存，退出后丢失，不写样本、文件或数据库。
+该入口不会自动确认候选。当前默认自动保存到被忽略的 data/b_reviews/ 并恢复已有进度，
+详见 [b_review_storage.md](b_review_storage.md)。加 `--memory-only` 可使用原来的不落盘临时模式。
 
 | 命令 | 作用 |
 | --- | --- |
@@ -24,7 +25,7 @@ paper-index 从 1 开始，当前有效范围 1—20；它不是数据库 paper_
 | reopen N | 已决定候选退回待审；若是实体，相关已确认关系也退回待审 |
 | summary | 分别统计 pending、confirmed、rejected |
 | history | 查看操作人、UTC 时间、理由、前后状态及改名内容 |
-| quit | 结束内存审核，当前决定不会保存 |
+| quit | 退出；默认保留自动存档，memory-only 模式的决定会丢失 |
 
 先 list，再 show，读完证据再决定。编号来自本次候选顺序，不是长期稳定 ID。
 
@@ -54,6 +55,7 @@ events = session.history
 主要接口是 confirm、reject、correct、reopen、get、select、check_input。
 所有操作要求 reviewer 和非空 reason。调用者提供的 reviewer 只是记录值，没有身份认证功能。
 会话建立时绑定论文和原抽取结果的副本；外部输入更新时应 check_input 检查并新建审核，不能沿用旧决定。
+核心仍使用内存对象；独立 review_storage 模块负责保存和恢复，不把文件路径绑进审核操作。
 
 ## 状态与纠正范围
 
@@ -75,5 +77,5 @@ session.original 返回原抽取结果副本；session.history 返回审核事�
 测试里的自动确认只是检验函数，不能充当真实人工确认或项目演示标注。
 终端入口完成了读取、列出、统计、退出的只读冒烟验证。
 
-没有实现文件存储、恢复审核、正式 JSON 导出、UI、API 写回、身份合并、分类/方向纠正。
-下一步可为这个稳定的内存核心补本地保存和恢复，避免退出后丢失决定。
+后续已实现版本化文件保存、恢复及历史重放校验。尚未实现正式业务 JSON 导出、UI、API 写回、身份合并、分类/方向纠正。
+审核是原型检查/演示与质量校验能力，不是要求所有网站用户或 B 负责人逐条检查所有候选。
