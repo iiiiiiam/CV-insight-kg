@@ -111,6 +111,35 @@ def load_review(
     return StoredReview(session, hashlib.sha256(body).hexdigest())
 
 
+def load_review_sessions(directory: str | Path, papers, results) -> dict:
+    """扫描专用目录并验证每份存档；重复、损坏或不属于本次样本时拒绝。"""
+    directory = Path(directory)
+    if directory.exists() and not directory.is_dir():
+        raise ValueError("Reviews path must be a directory")
+    if len(papers) != len(results):
+        raise ValueError("Paper and result counts differ")
+    inputs = {
+        paper.openalex_id: (paper, result) for paper, result in zip(papers, results)
+    }
+    if len(inputs) != len(papers):
+        raise ValueError("Duplicate input papers")
+    sessions = {}
+    for path in sorted(directory.glob("*.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(document, dict) or not isinstance(
+            document.get("payload"), dict
+        ):
+            raise ValueError(f"Invalid review archive: {path}")
+        paper_id = document["payload"].get("paper_id")
+        if not isinstance(paper_id, str) or paper_id not in inputs:
+            raise ValueError(f"Archive refers to a paper outside this sample: {path}")
+        if paper_id in sessions:
+            raise ValueError(f"Multiple review archives for one paper: {path}")
+        paper, result = inputs[paper_id]
+        sessions[paper_id] = load_review(path, paper, result).session
+    return sessions
+
+
 @contextmanager
 def _write_lock(path):
     lock = path.open("x", encoding="utf-8")

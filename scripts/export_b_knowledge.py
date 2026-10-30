@@ -1,7 +1,6 @@
 """一次导出真实样本及可用审核决定；不创建任何人工确认。"""
 
 import argparse
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,7 +8,7 @@ from src.knowledge_builder.export import build_exports
 from src.knowledge_builder.export_io import write_exports
 from src.knowledge_builder.extraction import extract_candidates, load_vocabulary
 from src.knowledge_builder.input_adapter import load_openalex_sample
-from src.knowledge_builder.review_storage import load_review
+from src.knowledge_builder.review_storage import load_review_sessions
 
 
 def main():
@@ -36,27 +35,7 @@ def main():
         papers = load_openalex_sample(args.manifest)
         vocabulary = load_vocabulary(args.vocabulary)
         results = [extract_candidates(paper, vocabulary) for paper in papers]
-        inputs = {
-            paper.openalex_id: (paper, result) for paper, result in zip(papers, results)
-        }
-        sessions = {}
-        if args.reviews_dir.exists() and not args.reviews_dir.is_dir():
-            raise ValueError("Reviews path must be a directory")
-        for path in sorted(args.reviews_dir.glob("*.json")):
-            document = json.loads(path.read_text(encoding="utf-8"))
-            if not isinstance(document, dict) or not isinstance(
-                document.get("payload"), dict
-            ):
-                raise ValueError(f"Invalid review archive: {path}")
-            paper_id = document["payload"].get("paper_id")
-            if not isinstance(paper_id, str) or paper_id not in inputs:
-                raise ValueError(
-                    f"Archive refers to a paper outside this sample: {path}"
-                )
-            if paper_id in sessions:
-                raise ValueError(f"Multiple review archives for one paper: {path}")
-            paper, result = inputs[paper_id]
-            sessions[paper_id] = load_review(path, paper, result).session
+        sessions = load_review_sessions(args.reviews_dir, papers, results)
         bundle = build_exports(papers, results, sessions)
         output = args.output or root / "data" / "b_exports" / datetime.now(
             timezone.utc
