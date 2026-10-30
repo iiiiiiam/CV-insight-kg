@@ -1,0 +1,23 @@
+export interface MenuItem { id:string; group:string; section:string; label:string; path:string; implemented:boolean; owner:string }
+export const MENU:MenuItem[]=[
+ {id:'NAV01',group:'文献调研',section:'论文检索',label:'组合检索',path:'/research/papers',implemented:true,owner:'D / C'},
+ {id:'NAV02',group:'文献调研',section:'论文检索',label:'论文列表',path:'/research/papers?view=list',implemented:true,owner:'D / C'},
+ {id:'NAV03',group:'文献调研',section:'论文检索',label:'论文详情',path:'/research/papers/first',implemented:true,owner:'A / D'},
+ {id:'NAV04',group:'文献调研',section:'图谱探索',label:'元数据关系图',path:'/research/graph',implemented:true,owner:'A / D；C 正式图谱待接入'},
+ {id:'NAV05',group:'文献调研',section:'图谱探索',label:'多跳展开（C 待接入）',path:'/research/graph/expand',implemented:false,owner:'C'},
+ {id:'NAV06',group:'文献调研',section:'结果导出',label:'当前论文集导出',path:'/research/exports/new',implemented:false,owner:'D 后续'},
+ {id:'NAV07',group:'文献调研',section:'结果导出',label:'导出进度与下载',path:'/research/exports/demo-export',implemented:false,owner:'D 后续'},
+ {id:'NAV08',group:'研究分析',section:'趋势分析',label:'年度趋势与对比',path:'/research/trends',implemented:false,owner:'D 后续'},
+ {id:'NAV09',group:'研究分析',section:'趋势分析',label:'年份下钻与联动',path:'/research/trends/linked',implemented:false,owner:'D 后续'},
+ {id:'NAV10',group:'研究分析',section:'作者调研',label:'作者画像与合作',path:'/research/authors/author-001',implemented:false,owner:'C'},
+ {id:'NAV11',group:'研究分析',section:'机构调研',label:'机构画像与论文',path:'/research/institutions/institution-001',implemented:false,owner:'C'},
+ {id:'NAV12',group:'数据管理',section:'数据集',label:'基准清单',path:'/admin/datasets',implemented:true,owner:'A / D'},
+ {id:'NAV13',group:'数据管理',section:'导入任务',label:'创建固定样本导入',path:'/admin/imports',implemented:true,owner:'A / D'},
+ {id:'NAV14',group:'数据管理',section:'导入任务',label:'任务进度与批次论文',path:'/admin/jobs',implemented:true,owner:'A / D'},
+ {id:'NAV15',group:'数据管理',section:'导入任务',label:'错误与原批次重试',path:'/admin/jobs?view=errors',implemented:true,owner:'A / D'},
+ {id:'NAV16',group:'数据管理',section:'质量审核',label:'候选与证据查看',path:'/admin/reviews',implemented:true,owner:'B 草案 / D'},
+ {id:'NAV17',group:'数据管理',section:'质量审核',label:'审核与关系修正',path:'/admin/reviews/demo-review',implemented:false,owner:'B'},
+ {id:'NAV18',group:'数据管理',section:'批次发布',label:'质量与发布校验',path:'/admin/batches/pending',implemented:false,owner:'C'},
+ {id:'NAV19',group:'数据管理',section:'批次发布',label:'发布确认与状态',path:'/admin/batches/pending/publish',implemented:false,owner:'C'},
+ {id:'NAV20',group:'系统管理',section:'管理员会话',label:'会话与权限验证',path:'/admin/access-check',implemented:true,owner:'D'},
+]
