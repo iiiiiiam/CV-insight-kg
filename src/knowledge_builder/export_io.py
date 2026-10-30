@@ -36,16 +36,21 @@ def _manifest(bundle, files, papers):
     }
 
 
-def write_exports(destination: str | Path, bundle: dict, papers) -> Path:
+def export_files(bundle: dict, papers) -> dict[str, bytes]:
     validate_exports(bundle, papers)
+    files = {status + ".json": _encode(bundle[status]) for status in EXPORT_KINDS}
+    files["schema.json"] = _encode(export_schema())
+    files["manifest.json"] = _encode(_manifest(bundle, files, papers))
+    return files
+
+
+def write_exports(destination: str | Path, bundle: dict, papers) -> Path:
+    files = export_files(bundle, papers)
     destination = Path(destination).resolve()
     if destination.exists():
         raise FileExistsError(
             "Export destination exists; choose a new output directory"
         )
-    files = {status + ".json": _encode(bundle[status]) for status in EXPORT_KINDS}
-    files["schema.json"] = _encode(export_schema())
-    files["manifest.json"] = _encode(_manifest(bundle, files, papers))
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(
         tempfile.mkdtemp(dir=destination.parent, prefix=".knowledge-export-")

@@ -111,7 +111,7 @@ def load_review(
     return StoredReview(session, hashlib.sha256(body).hexdigest())
 
 
-def load_review_sessions(directory: str | Path, papers, results) -> dict:
+def load_review_records(directory: str | Path, papers, results) -> dict:
     """扫描专用目录并验证每份存档；重复、损坏或不属于本次样本时拒绝。"""
     directory = Path(directory)
     if directory.exists() and not directory.is_dir():
@@ -136,8 +136,17 @@ def load_review_sessions(directory: str | Path, papers, results) -> dict:
         if paper_id in sessions:
             raise ValueError(f"Multiple review archives for one paper: {path}")
         paper, result = inputs[paper_id]
-        sessions[paper_id] = load_review(path, paper, result).session
+        sessions[paper_id] = (path, load_review(path, paper, result))
     return sessions
+
+
+def load_review_sessions(directory: str | Path, papers, results) -> dict:
+    return {
+        identifier: stored.session
+        for identifier, (_, stored) in load_review_records(
+            directory, papers, results
+        ).items()
+    }
 
 
 @contextmanager

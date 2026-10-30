@@ -3,6 +3,9 @@
 从真实论文中整理实体、关系和原文证据，支持按需审核、本地恢复、分状态导出与开发质量检查。
 当前模块属于本地原型，正式评估和团队接口尚未冻结。
 
+快速看页面：`python -m scripts.knowledge_builder.workbench`，浏览器打开 http://127.0.0.1:8501 。
+只在需要原型时使用可选 Streamlit 依赖，原有纯 Python 命令继续有效。
+
 ## 目录职责
 
 ```text
@@ -13,6 +16,7 @@ docs/knowledge_builder/         使用说明与本地规范
 examples/knowledge_builder/     旧词表及开发评估清单
 data/knowledge_builder/         运行结果，被 Git 忽略
 reports/                       阶段学习报告，被 Git 忽略
+prototypes/knowledge_builder/   可选 Streamlit 本地原型
 ```
 
 ## 从仓库根目录运行
@@ -48,6 +52,9 @@ python -m unittest discover -s tests -v
 测试会导入 A 的数据库模块；建议在单独终端先设置 `$env:DATABASE_URL = 'sqlite://'`，结束后关闭该终端或恢复原值。
 
 ## 使用说明
+
+- [本地原型](../../prototypes/knowledge_builder/README.md)：页面运行与试用顺序。
+- [第一周盘点](week_one.md)：已有能力、待真人验证和待团队对接的部分。
 
 - [输入](input.md)：如何读 A 的固定样本。
 - [候选抽取](candidates.md)、[词表](vocabulary.md)：找到什么、依据在哪里、版本如何选择。

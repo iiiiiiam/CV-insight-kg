@@ -15,7 +15,13 @@ class LayoutTests(unittest.TestCase):
     def test_functional_command_modules_are_importable_and_help_does_not_start_services(
         self,
     ):
-        for command in ("preview", "review", "export", "prepare_validation"):
+        for command in (
+            "preview",
+            "review",
+            "export",
+            "prepare_validation",
+            "workbench",
+        ):
             with self.subTest(command=command):
                 result = subprocess.run(
                     [
