@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import unittest
+from contextlib import ExitStack
 from pathlib import Path
 from unittest.mock import patch
 
@@ -187,10 +188,14 @@ class MigrationTests(unittest.TestCase):
             with engine.begin() as connection:
                 connection.exec_driver_sql("CREATE TABLE jobs (id INTEGER PRIMARY KEY, venue VARCHAR(20), year INTEGER)")
             engine.dispose()
-            session_factory = database(url)
-            with session_factory() as db:
-                db.execute(select(Job.source).limit(1))
-            database(url)
+            # Release both database engines before deleting the temporary file.
+            with ExitStack() as cleanup:
+                session_factory = database(url)
+                cleanup.callback(session_factory.kw["bind"].dispose)
+                with session_factory() as db:
+                    db.execute(select(Job.source).limit(1))
+                second_factory = database(url)
+                cleanup.callback(second_factory.kw["bind"].dispose)
 
 
 if __name__ == "__main__":
