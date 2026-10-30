@@ -10,15 +10,16 @@ from pathlib import Path
 
 from .extraction import fingerprint
 from .models import (
-    Entity,
-    Evidence,
     ExtractionResult,
     PaperInput,
-    Relation,
     ReviewEvent,
-    ReviewItem,
 )
 from .review import REVIEW_VERSION, ReviewSession
+from .serialization import (
+    nonempty_text,
+    require_fields,
+    review_item_from_dict,
+)
 
 FILE_VERSION = "b-review-file/0.1-draft"
 
@@ -45,90 +46,29 @@ def review_to_dict(session: ReviewSession) -> dict:
     return {"payload": payload, "sha256": fingerprint(payload)}
 
 
-def _record(data, keys):
-    if not isinstance(data, dict) or set(data) != set(keys):
-        raise ValueError("Invalid archive fields")
-
-
-def _text(value):
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError("Expected nonempty archive text")
-    return value
-
-
-def _evidence(data):
-    _record(data, [field.name for field in fields(Evidence)])
-    for key in (
-        "paper_id",
-        "dataset_id",
-        "source_url",
-        "input_fingerprint",
-        "field",
-        "quote",
-    ):
-        _text(data[key])
-    if not isinstance(data["path"], list) or any(
-        type(part) not in (str, int) for part in data["path"]
-    ):
-        raise ValueError("Invalid evidence path")
-    if any(
-        data[key] is not None and type(data[key]) is not int for key in ("start", "end")
-    ):
-        raise ValueError("Invalid evidence offsets")
-    return Evidence(**{**data, "path": tuple(data["path"])})
-
-
-def _item(data):
-    _record(data, [field.name for field in fields(ReviewItem)])
-    _text(data["candidate_id"])
-    content = data["content"]
-    if isinstance(content, dict) and "key" in content:
-        _record(content, [field.name for field in fields(Entity)])
-        for key in ("key", "kind", "name"):
-            _text(content[key])
-        if content["source_id"] is not None:
-            _text(content["source_id"])
-        content = Entity(**content)
-    else:
-        _record(content, [field.name for field in fields(Relation)])
-        for value in content.values():
-            _text(value)
-        content = Relation(**content)
-    if not isinstance(data["status"], str) or data["status"] not in {
-        "pending",
-        "confirmed",
-        "rejected",
-    }:
-        raise ValueError("Invalid review status")
-    if not isinstance(data["evidence"], list) or not data["evidence"]:
-        raise ValueError("Missing evidence")
-    return ReviewItem(
-        data["candidate_id"],
-        content,
-        tuple(_evidence(e) for e in data["evidence"]),
-        data["status"],
-    )
-
-
 def _event(data):
-    _record(data, [field.name for field in fields(ReviewEvent)])
+    require_fields(data, [field.name for field in fields(ReviewEvent)])
     if type(data["sequence"]) is not int or data["sequence"] < 1:
         raise ValueError("Invalid event sequence")
     for key in ("action", "reviewer", "reason", "occurred_at"):
-        _text(data[key])
+        nonempty_text(data[key])
     return ReviewEvent(
-        **{**data, "before": _item(data["before"]), "after": _item(data["after"])}
+        **{
+            **data,
+            "before": review_item_from_dict(data["before"]),
+            "after": review_item_from_dict(data["after"]),
+        }
     )
 
 
 def restore_review(
     document: dict, paper: PaperInput, result: ExtractionResult
 ) -> ReviewSession:
-    _record(document, ("payload", "sha256"))
+    require_fields(document, ("payload", "sha256"))
     payload = document["payload"]
     if fingerprint(payload) != document["sha256"]:
         raise ValueError("Archive checksum mismatch")
-    _record(
+    require_fields(
         payload,
         (
             "format_version",
@@ -157,7 +97,7 @@ def restore_review(
         raise ValueError("Archive requires item and event lists")
     events = tuple(_event(event) for event in payload["events"])
     session = ReviewSession.replay(paper, result, events)
-    items = tuple(_item(item) for item in payload["items"])
+    items = tuple(review_item_from_dict(item) for item in payload["items"])
     if items != session.items:
         raise ValueError("Archive current state does not match replayed events")
     return session

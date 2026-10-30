@@ -59,6 +59,7 @@ B 对负数、重复、非整数或不连续的位置直接报错，避免默默
 
 候选模型、词表提及抽取与证据校验已经完成，使用说明见 [b_candidates.md](b_candidates.md)。
 人工审核、纠正及已确认结果分离也已完成，见 [b_review.md](b_review.md)；
-本地保存与恢复见 [b_review_storage.md](b_review_storage.md)。后续推进正式业务导出及质量校验。
+本地保存与恢复见 [b_review_storage.md](b_review_storage.md)。
+带版本业务导出草案见 [b_export.md](b_export.md)；后续推进评估与质量准备。
 之后接 API 或任务时，在输入适配处转换为相同的论文输入，抽取逻辑不依赖页面或数据库。
 当前固定样本是 A 的原型样本，不能直接宣称是正式封存评估集。
