@@ -1,19 +1,19 @@
-# B：内存人工审核核心
+# 内存人工审核核心
 
 版本：`b-review/0.1-draft`，B 本地原型，不是正式团队接口。
-前置能力见 [候选抽取](b_candidates.md)。本阶段保留抽取结果，另行记录人工决定。
+前置能力见 [候选抽取](candidates.md)。本阶段保留抽取结果，另行记录人工决定。
 
 ## 运行
 
 从仓库根目录使用已有 insight 环境：
 
 ```powershell
-python -m scripts.review_b_candidates --paper-index 1 --reviewer "你的姓名"
+python -m scripts.knowledge_builder.review --paper-index 1 --reviewer "你的姓名"
 ```
 
 paper-index 从 1 开始，当前有效范围 1—20；它不是数据库 paper_id。
-该入口不会自动确认候选。当前默认自动保存到被忽略的 data/b_reviews/ 并恢复已有进度，
-详见 [b_review_storage.md](b_review_storage.md)。加 `--memory-only` 可使用原来的不落盘临时模式。
+该入口不会自动确认候选。当前默认自动保存到被忽略的 data/knowledge_builder/reviews/ 并恢复已有进度，
+详见 [storage.md](storage.md)。加 `--memory-only` 可使用原来的不落盘临时模式。
 
 | 命令 | 作用 |
 | --- | --- |
@@ -77,6 +77,6 @@ session.original 返回原抽取结果副本；session.history 返回审核事�
 测试里的自动确认只是检验函数，不能充当真实人工确认或项目演示标注。
 终端入口完成了读取、列出、统计、退出的只读冒烟验证。
 
-后续已实现版本化文件保存、恢复、历史重放校验及[业务 JSON 导出草案](b_export.md)。
+后续已实现版本化文件保存、恢复、历史重放校验及[业务 JSON 导出草案](export.md)。
 尚未实现团队正式契约冻结、UI、API 写回、身份合并、分类/方向纠正。
 审核是原型检查/演示与质量校验能力，不是要求所有网站用户或 B 负责人逐条检查所有候选。

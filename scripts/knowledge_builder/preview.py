@@ -1,4 +1,4 @@
-"""离线演示 B 候选抽取：从仓库根目录 python -m scripts.demo_b_candidates。"""
+"""离线演示 B 候选抽取：从仓库根目录 python -m scripts.knowledge_builder.preview。"""
 
 import argparse
 from collections import Counter
@@ -9,8 +9,8 @@ from src.knowledge_builder.input_adapter import load_openalex_sample
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
-    parser = argparse.ArgumentParser(description="Show B extraction candidates")
+    root = Path(__file__).resolve().parents[2]
+    parser = argparse.ArgumentParser(description="Show extraction candidates")
     parser.add_argument("--vocabulary", type=Path, help="Optional vocabulary JSON")
     args = parser.parse_args()
     vocabulary = load_vocabulary(args.vocabulary)

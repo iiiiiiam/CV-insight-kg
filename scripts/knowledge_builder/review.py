@@ -11,14 +11,13 @@ from src.knowledge_builder.extraction import (
 )
 from src.knowledge_builder.input_adapter import load_openalex_sample
 from src.knowledge_builder.models import Entity
+from src.knowledge_builder.paths import default_review_directory
 from src.knowledge_builder.review import ReviewSession
 from src.knowledge_builder.review_storage import load_review, save_review
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Review and resume B candidates locally"
-    )
+    parser = argparse.ArgumentParser(description="Review and resume candidates locally")
     parser.add_argument(
         "--paper-index", type=int, default=1, help="Paper number, starting at 1"
     )
@@ -36,7 +35,7 @@ def main():
     args = parser.parse_args()
     if not args.reviewer.strip():
         parser.error("Reviewer name cannot be blank")
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     papers = load_openalex_sample(root / "examples/week1_baseline.json")
     if not 1 <= args.paper_index <= len(papers):
         parser.error(f"Paper number must be between 1 and {len(papers)}")
@@ -44,14 +43,17 @@ def main():
     vocabulary = load_vocabulary(args.vocabulary)
     result = extract_candidates(paper, vocabulary)
     session = ReviewSession(paper, result)
-    archive = (
-        None
-        if args.memory_only
-        else (
-            args.archive
-            or root / "data" / "b_reviews" / (fingerprint(paper.openalex_id) + ".json")
-        )
-    )
+    archive = None
+    if not args.memory_only:
+        try:
+            archive = (
+                args.archive
+                if args.archive is not None
+                else default_review_directory(root)
+                / (fingerprint(paper.openalex_id) + ".json")
+            )
+        except ValueError as exc:
+            parser.exit(2, f"Cannot select review archive: {exc}\n")
     revision = None
     if archive is not None:
         try:

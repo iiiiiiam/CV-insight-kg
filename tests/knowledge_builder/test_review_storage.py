@@ -19,7 +19,7 @@ from src.knowledge_builder.review_storage import (
     save_review,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class ReviewStorageTests(unittest.TestCase):
@@ -242,7 +242,7 @@ class ReviewStorageTests(unittest.TestCase):
             command = [
                 sys.executable,
                 "-m",
-                "scripts.review_b_candidates",
+                "scripts.knowledge_builder.review",
                 "--reviewer",
                 "program-test",
                 "--archive",

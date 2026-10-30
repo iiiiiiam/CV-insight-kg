@@ -23,7 +23,7 @@ from src.knowledge_builder.extraction import extract_candidates
 from src.knowledge_builder.input_adapter import load_openalex_sample
 from src.knowledge_builder.models import PaperInput
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class AssessmentTests(unittest.TestCase):
@@ -210,7 +210,9 @@ class AssessmentTests(unittest.TestCase):
     ):
         papers = load_openalex_sample(ROOT / "examples/week1_baseline.json")
         manifest = json.loads(
-            (ROOT / "examples/b_evaluation_manifest.json").read_text(encoding="utf-8")
+            (ROOT / "examples/knowledge_builder/evaluation_manifest.json").read_text(
+                encoding="utf-8"
+            )
         )
         validate_evaluation_manifest(manifest, papers)
         template = build_annotation_template(papers)
@@ -233,7 +235,7 @@ class AssessmentTests(unittest.TestCase):
             command = [
                 sys.executable,
                 "-m",
-                "scripts.prepare_b_validation",
+                "scripts.knowledge_builder.prepare_validation",
                 "--reviews-dir",
                 str(Path(directory) / "no-reviews"),
                 "--output",

@@ -1,10 +1,10 @@
-# B：词表版本与开发参考
+# 词表版本与开发参考
 
 当前默认词表为 `cv-terms/0.2`，共 53 个词条；原 `cv-terms/0.1` 的 8 条保存在
-[examples/b_vocabulary_v0.1.json](../examples/b_vocabulary_v0.1.json)。
+[examples/knowledge_builder/vocabulary_v0.1.json](../../examples/knowledge_builder/vocabulary_v0.1.json)。
 新版本增加真实样本中明确出现的方法、任务、数据集和主题，不改既有类型与提及关系含义。
 
-45 个新增词条的每个别名都在 [b_vocabulary_sources.json](b_vocabulary_sources.json) 中记录真实论文 ID、
+45 个新增词条的每个别名都在 [vocabulary_sources.json](vocabulary_sources.json) 中记录真实论文 ID、
 字段、字符位置、原文和输入指纹。这些是开发参考，不是人工金标准或独立评估结果。
 例如 YOLO-World 与 YOLO 分开；不把 CAT 这样的常见短词直接作为方法别名，Class-Aware Teacher 只按完整名称匹配。
 
@@ -15,9 +15,9 @@
 三个入口均支持指定词表：
 
 ```powershell
-python -m scripts.demo_b_candidates --vocabulary examples/b_vocabulary_v0.1.json
-python -m scripts.export_b_knowledge --vocabulary examples/b_vocabulary_v0.1.json
-python -m scripts.review_b_candidates --paper-index 1 --reviewer "你的姓名" --vocabulary examples/b_vocabulary_v0.1.json
+python -m scripts.knowledge_builder.preview --vocabulary examples/knowledge_builder/vocabulary_v0.1.json
+python -m scripts.knowledge_builder.export --vocabulary examples/knowledge_builder/vocabulary_v0.1.json
+python -m scripts.knowledge_builder.review --paper-index 1 --reviewer "你的姓名" --vocabulary examples/knowledge_builder/vocabulary_v0.1.json
 ```
 
 旧版可重现 238 个实体和 294 条关系。旧审核存档须配旧词表；新版抽取指纹不同，不自动继承旧确认。

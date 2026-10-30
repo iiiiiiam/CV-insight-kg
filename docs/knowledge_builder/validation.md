@@ -1,16 +1,16 @@
-# B：自动质量盘点与评估准备
+# 自动质量盘点与评估准备
 
 版本：`b-assessment/0.1-draft`。现有 20 篇都已用于开发，不作为独立测试集。
-[开发评估清单](../examples/b_evaluation_manifest.json) 列出论文、来源、输入指纹；development 为 20，test 为空。
+[开发评估清单](../../examples/knowledge_builder/evaluation_manifest.json) 列出论文、来源、输入指纹；development 为 20，test 为空。
 这是诚实的准备状态，不是已经封存的正式评估集。
 
 ## 运行
 
 ```powershell
-python -m scripts.prepare_b_validation
+python -m scripts.knowledge_builder.prepare_validation
 ```
 
-输出到 data/b_validation 下的新目录：
+输出到 data/knowledge_builder/validation 下的新目录：
 
 | 文件 | 内容 |
 | --- | --- |
@@ -44,7 +44,7 @@ cv-terms/0.2 下：20 篇，285 实体候选、341 关系候选；18 篇找到�
 填完后另生成一个新包：
 
 ```powershell
-python -m scripts.prepare_b_validation --annotations data/b_validation/某次输出/annotations.json
+python -m scripts.knowledge_builder.prepare_validation --annotations data/knowledge_builder/validation/某次输出/annotations.json
 ```
 
 只有所选案例全部完成才计算开发集分数；部分未完成时不偷偷只算完成部分。

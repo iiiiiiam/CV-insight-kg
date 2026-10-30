@@ -11,7 +11,7 @@ from .assessment import ASSESSMENT_VERSION
 
 def quality_markdown(report):
     lines = [
-        "# B 自动质量盘点",
+        "# 知识构建自动质量盘点",
         "",
         "这是开发样本的自动统计，不是准确率评估或真人审核。",
         "",
@@ -46,7 +46,7 @@ def quality_markdown(report):
 
 def demo_markdown(papers, results, *, vocabulary_path=None):
     lines = [
-        "# B 五篇开发样本检查材料",
+        "# 五篇开发样本检查材料",
         "",
         "以下是程序候选，不是已完成人工确认的演示。原文保留输入内容，可能含上游断词或数值错误。",
         "",
@@ -89,7 +89,7 @@ def demo_markdown(papers, results, *, vocabulary_path=None):
             "来源诊断："
             + ("；".join(result.diagnostics) or "未发现当前规则覆盖的来源缺失"),
             "",
-            f"需要实际确认时可运行：`python -m scripts.review_b_candidates --paper-index {index} --reviewer 你的姓名{vocabulary_option}`。",
+            f"需要实际确认时可运行：`python -m scripts.knowledge_builder.review --paper-index {index} --reviewer 你的姓名{vocabulary_option}`。",
             "",
         ]
     return "\n".join(lines)
@@ -126,7 +126,7 @@ def write_assessment(destination, documents):
         json.dumps(manifest, indent=2, sort_keys=True) + "\n"
     ).encode("utf-8")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    temporary = Path(tempfile.mkdtemp(dir=destination.parent, prefix=".b-validation-"))
+    temporary = Path(tempfile.mkdtemp(dir=destination.parent, prefix=".validation-"))
     try:
         for name, body in files.items():
             with (temporary / name).open("wb") as output:

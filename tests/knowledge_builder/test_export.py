@@ -17,7 +17,7 @@ from src.knowledge_builder.models import PaperInput
 from src.knowledge_builder.review import ReviewSession
 from src.knowledge_builder.review_storage import save_review
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class ExportTests(unittest.TestCase):
@@ -251,7 +251,9 @@ class ExportTests(unittest.TestCase):
         ]
         before = [p.read_bytes() for p in paths]
         papers = load_openalex_sample(paths[0])
-        vocabulary = load_vocabulary(ROOT / "examples/b_vocabulary_v0.1.json")
+        vocabulary = load_vocabulary(
+            ROOT / "examples/knowledge_builder/vocabulary_v0.1.json"
+        )
         results = [extract_candidates(paper, vocabulary) for paper in papers]
         bundle = build_exports(papers, results)
         self.assertEqual(
@@ -278,7 +280,7 @@ class ExportTests(unittest.TestCase):
             command = [
                 sys.executable,
                 "-m",
-                "scripts.export_b_knowledge",
+                "scripts.knowledge_builder.export",
                 "--reviews-dir",
                 str(reviews),
                 "--output",
@@ -303,7 +305,7 @@ class ExportTests(unittest.TestCase):
             command = [
                 sys.executable,
                 "-m",
-                "scripts.export_b_knowledge",
+                "scripts.knowledge_builder.export",
                 "--reviews-dir",
                 str(reviews),
                 "--output",

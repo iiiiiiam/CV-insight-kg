@@ -176,7 +176,7 @@ class ReviewTests(unittest.TestCase):
     def test_real_paper_review_flow_uses_real_evidence_without_claiming_human_review(
         self,
     ):
-        root = Path(__file__).resolve().parents[1]
+        root = Path(__file__).resolve().parents[2]
         paper = load_openalex_sample(root / "examples/week1_baseline.json")[0]
         result = extract_candidates(paper)
         session = ReviewSession(paper, result)

@@ -20,19 +20,20 @@ from src.knowledge_builder.evaluation import (
 )
 from src.knowledge_builder.extraction import extract_candidates, load_vocabulary
 from src.knowledge_builder.input_adapter import load_openalex_sample
+from src.knowledge_builder.paths import default_review_directory, workspace_data
 from src.knowledge_builder.review_storage import load_review_sessions
 
 
 def main():
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(
-        description="Prepare B validation materials without inventing human answers"
+        description="Prepare validation materials without inventing human answers"
     )
     parser.add_argument(
         "--manifest", type=Path, default=root / "examples/week1_baseline.json"
     )
     parser.add_argument("--vocabulary", type=Path)
-    parser.add_argument("--reviews-dir", type=Path, default=root / "data/b_reviews")
+    parser.add_argument("--reviews-dir", type=Path)
     parser.add_argument(
         "--annotations",
         type=Path,
@@ -44,7 +45,12 @@ def main():
         papers = load_openalex_sample(args.manifest)
         vocabulary = load_vocabulary(args.vocabulary)
         results = [extract_candidates(paper, vocabulary) for paper in papers]
-        sessions = load_review_sessions(args.reviews_dir, papers, results)
+        review_directory = (
+            args.reviews_dir
+            if args.reviews_dir is not None
+            else default_review_directory(root)
+        )
+        sessions = load_review_sessions(review_directory, papers, results)
         quality = build_quality_report(papers, results, sessions)
         annotations = (
             json.loads(args.annotations.read_text(encoding="utf-8"))
@@ -66,7 +72,7 @@ def main():
                 papers, results, vocabulary_path=args.vocabulary
             ),
         }
-        output = args.output or root / "data/b_validation" / datetime.now(
+        output = args.output or workspace_data(root) / "validation" / datetime.now(
             timezone.utc
         ).strftime("%Y%m%dT%H%M%S%fZ")
         destination = write_assessment(output, documents)

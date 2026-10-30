@@ -1,24 +1,24 @@
-# B：带版本的业务 JSON 导出
+# 带版本的业务 JSON 导出
 
 版本：`b-knowledge-export/0.1-draft`。这是 B 的集成草案，尚未与 C/D 冻结正式接口。
-前置：[候选抽取](b_candidates.md)、[审核](b_review.md)、[进度存档](b_review_storage.md)。
+前置：[候选抽取](candidates.md)、[审核](review.md)、[进度存档](storage.md)。
 
 ## 一条命令运行
 
 从仓库根目录、已有 insight 环境执行：
 
 ```powershell
-python -m scripts.export_b_knowledge
+python -m scripts.knowledge_builder.export
 ```
 
-默认读取 A 的 20 篇固定样本和 `data/b_reviews/` 中已有的 JSON 存档；没有存档时保持全待审。
+默认读取 A 的 20 篇固定样本和 `data/knowledge_builder/reviews/` 中已有的 JSON 存档；没有存档时保持全待审。
 自定义文件名的存档同样支持，但每篇只能有一个；损坏、版本不符、重复或超出本次样本范围的存档会报错。
 读取存档会复用历史重放校验，不修改存档、不创建人工决定。
 
-默认输出到 `data/b_exports/<UTC时间>/`，也可指定一个尚不存在的目录：
+默认输出到 `data/knowledge_builder/exports/<UTC时间>/`，也可指定一个尚不存在的目录：
 
 ```powershell
-python -m scripts.export_b_knowledge --output data/b_exports/first-delivery
+python -m scripts.knowledge_builder.export --output data/knowledge_builder/exports/first-delivery
 ```
 
 输出目录不覆盖，重复执行请换新目录或使用默认自动生成路径。
@@ -36,8 +36,8 @@ python -m scripts.export_b_knowledge --output data/b_exports/first-delivery
 | manifest.json | 文件 SHA256、处理范围、分组计数、诊断数 | 检查文件是否完整；不代表准确率评估 |
 
 导出阶段 cv-terms/0.1 实测为待审 20 篇、238 实体、294 关系；已确认及驳回均为 0。
-后续默认词表已更新为 cv-terms/0.2，候选为 285 实体、341 关系，详见 [b_vocabulary.md](b_vocabulary.md)。
-旧存档请通过 --vocabulary examples/b_vocabulary_v0.1.json 指定原词表，不自动继承确认。
+后续默认词表已更新为 cv-terms/0.2，候选为 285 实体、341 关系，详见 [vocabulary.md](vocabulary.md)。
+旧存档请通过 --vocabulary examples/knowledge_builder/vocabulary_v0.1.json 指定原词表，不自动继承确认。
 空的已确认文件是正确结果，不自动补成“至少 5 篇人工确认”。
 
 ## 业务结构
@@ -69,8 +69,8 @@ papers = load_openalex_sample("examples/week1_baseline.json")
 results = [extract_candidates(paper) for paper in papers]
 bundle = build_exports(papers, results)  # 这里没传审核会话，所以全部待审。
 validate_exports(bundle, papers)
-write_exports("data/b_exports/python-example", bundle, papers)
-restored = load_exports("data/b_exports/python-example", papers)
+write_exports("data/knowledge_builder/exports/python-example", bundle, papers)
+restored = load_exports("data/knowledge_builder/exports/python-example", papers)
 ```
 
 有审核会话时，用第三个参数传 `{openalex_id: session}`。导出前重新重放历史并核对当前快照。

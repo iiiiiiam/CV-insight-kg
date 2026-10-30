@@ -47,7 +47,9 @@ def write_exports(destination: str | Path, bundle: dict, papers) -> Path:
     files["schema.json"] = _encode(export_schema())
     files["manifest.json"] = _encode(_manifest(bundle, files, papers))
     destination.parent.mkdir(parents=True, exist_ok=True)
-    temporary = Path(tempfile.mkdtemp(dir=destination.parent, prefix=".b-export-"))
+    temporary = Path(
+        tempfile.mkdtemp(dir=destination.parent, prefix=".knowledge-export-")
+    )
     try:
         for name, body in files.items():
             with (temporary / name).open("wb") as output:

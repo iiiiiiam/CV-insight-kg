@@ -1,27 +1,27 @@
-# B：审核进度保存与恢复
+# 审核进度保存与恢复
 
 本地存档格式：`b-review-file/0.1-draft`。这是 B 的开发存档，不是 C/D 的正式知识导出接口。
-默认词表后续更新为 cv-terms/0.2；旧存档可加 --vocabulary examples/b_vocabulary_v0.1.json 恢复，详见 [词表兼容说明](b_vocabulary.md)。
-配套核心见 [b_review.md](b_review.md)。没有要求每位用户或 B 负责人现在逐条审核全部候选。
+默认词表后续更新为 cv-terms/0.2；旧存档可加 --vocabulary examples/knowledge_builder/vocabulary_v0.1.json 恢复，详见 [词表兼容说明](vocabulary.md)。
+配套核心见 [review.md](review.md)。没有要求每位用户或 B 负责人现在逐条审核全部候选。
 
 ## 运行
 
 从仓库根目录、已有 insight 环境运行：
 
 ```powershell
-python -m scripts.review_b_candidates --paper-index 1 --reviewer "你的姓名"
+python -m scripts.knowledge_builder.review --paper-index 1 --reviewer "你的姓名"
 ```
 
-现在默认在 `data/b_reviews/` 按论文 ID 的 SHA256 命名保存 JSON；已有文件会先校验并恢复。
+现在默认在 `data/knowledge_builder/reviews/` 按论文 ID 的 SHA256 命名保存 JSON；已有文件会先校验并恢复。
 新文件的初始候选全部 pending。只有真实输入的操作才改变审核决定，不预置确认。
 每次成功修改后自动保存，再次运行同一命令即可继续。data/ 已被 Git 忽略。
 仅想临时试用，不创建或恢复文件时：
 
 ```powershell
-python -m scripts.review_b_candidates --paper-index 1 --reviewer "你的姓名" --memory-only
+python -m scripts.knowledge_builder.review --paper-index 1 --reviewer "你的姓名" --memory-only
 ```
 
-也可通过 `--archive data/b_reviews/my-review.json` 指定存档。不要将不同论文或不同抽取版本写到同一个存档。
+也可通过 `--archive data/knowledge_builder/reviews/my-review.json` 指定存档。不要将不同论文或不同抽取版本写到同一个存档。
 确认、驳回等命令与上一阶段相同；保存失败时当前操作不生效，已有存档不被部分覆盖。
 
 ## Python 接口
@@ -30,12 +30,12 @@ python -m scripts.review_b_candidates --paper-index 1 --reviewer "你的姓名" 
 from src.knowledge_builder.review_storage import save_review, load_review
 
 # session 是与 paper、result 对应的 ReviewSession。
-revision = save_review("data/b_reviews/example.json", session)
-stored = load_review("data/b_reviews/example.json", paper, result)
+revision = save_review("data/knowledge_builder/reviews/example.json", session)
+stored = load_review("data/knowledge_builder/reviews/example.json", paper, result)
 session = stored.session
 
 # 后续通过原有核心方法作真实决定，再使用读取时的版本指纹更新。
-revision = save_review("data/b_reviews/example.json", session,
+revision = save_review("data/knowledge_builder/reviews/example.json", session,
                        expected_revision=stored.revision)
 ```
 
@@ -63,6 +63,6 @@ review_to_dict / restore_review 则只转换 Python 数据，可供未来其他�
 正常失败会清理本次临时文件及自己创建的锁；别人的锁不删除。
 
 存档阶段没有做旧版本迁移、多个标注者合并、API/UI 对接或准确率评估。
-后续已新增独立的[业务 JSON 导出草案](b_export.md)，不把存档本身当作知识文件。
+后续已新增独立的[业务 JSON 导出草案](export.md)，不把存档本身当作知识文件。
 新增 14 项存档测试，全套现为 69 项通过；CLI 跨进程保存恢复测试只在临时目录自动模拟，
 不能当真实人工审核记录或 5 篇人工确认演示。

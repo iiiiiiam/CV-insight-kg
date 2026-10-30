@@ -1,4 +1,4 @@
-# B：读取 A 的论文样本
+# 读取 A 的论文样本
 
 ## 当前完成范围
 
@@ -12,7 +12,7 @@ B 的第一个功能块是读取 A 的固定 OpenAlex 样本，得到可供抽�
 
 ```powershell
 conda activate insight
-python -m unittest discover -s tests -p test_b_input_adapter.py -v
+python -m unittest discover -s tests -p test_input_adapter.py -v
 python -m unittest discover -s tests -v
 python -c "from src.knowledge_builder.input_adapter import load_openalex_sample; papers = load_openalex_sample('examples/week1_baseline.json'); print(len(papers)); print(papers[0].title); print(papers[0].abstract)"
 ```
@@ -27,7 +27,7 @@ python -c "from src.knowledge_builder.input_adapter import load_openalex_sample;
 - `src/knowledge_builder/input_adapter.py`：
   - `adapt_openalex_work` 转换一篇记录。
   - `load_openalex_sample` 读取清单和相邻的 JSONL，校验后返回论文列表。
-- `tests/test_b_input_adapter.py`：验证转换、坏数据拒绝、真实样本与 A 摘要还原结果一致。
+- `tests/knowledge_builder/test_input_adapter.py`：验证转换、坏数据拒绝、真实样本与 A 摘要还原结果一致。
 
 读取器检查文件 SHA256、数量、唯一论文 ID、清单中的标题/年份/DOI 和会议来源。
 这是检查与 A 的固定清单一致，并不独立证明上游数据正确。
@@ -57,9 +57,9 @@ B 对负数、重复、非整数或不连续的位置直接报错，避免默默
 
 ## 下一功能块
 
-候选模型、词表提及抽取与证据校验已经完成，使用说明见 [b_candidates.md](b_candidates.md)。
-人工审核、纠正及已确认结果分离也已完成，见 [b_review.md](b_review.md)；
-本地保存与恢复见 [b_review_storage.md](b_review_storage.md)。
-带版本业务导出草案见 [b_export.md](b_export.md)；后续推进评估与质量准备。
+候选模型、词表提及抽取与证据校验已经完成，使用说明见 [candidates.md](candidates.md)。
+人工审核、纠正及已确认结果分离也已完成，见 [review.md](review.md)；
+本地保存与恢复见 [storage.md](storage.md)。
+带版本业务导出草案见 [export.md](export.md)；后续推进评估与质量准备。
 之后接 API 或任务时，在输入适配处转换为相同的论文输入，抽取逻辑不依赖页面或数据库。
 当前固定样本是 A 的原型样本，不能直接宣称是正式封存评估集。

@@ -12,15 +12,17 @@ from src.knowledge_builder.extraction import (
 )
 from src.knowledge_builder.input_adapter import load_openalex_sample
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class VocabularyTests(unittest.TestCase):
     def test_new_terms_and_aliases_have_traceable_real_input_examples(self):
         vocabulary = load_vocabulary()
-        old = load_vocabulary(ROOT / "examples/b_vocabulary_v0.1.json")
+        old = load_vocabulary(ROOT / "examples/knowledge_builder/vocabulary_v0.1.json")
         sources = json.loads(
-            (ROOT / "docs/b_vocabulary_sources.json").read_text(encoding="utf-8")
+            (ROOT / "docs/knowledge_builder/vocabulary_sources.json").read_text(
+                encoding="utf-8"
+            )
         )
         self.assertEqual(sources["vocabulary_fingerprint"], fingerprint(vocabulary))
         by_key = {(term["kind"], term["key"]): term for term in vocabulary["terms"]}
@@ -70,7 +72,7 @@ class VocabularyTests(unittest.TestCase):
 
     def test_original_vocabulary_remains_usable_without_changing_its_terms(self):
         papers = load_openalex_sample(ROOT / "examples/week1_baseline.json")
-        old = load_vocabulary(ROOT / "examples/b_vocabulary_v0.1.json")
+        old = load_vocabulary(ROOT / "examples/knowledge_builder/vocabulary_v0.1.json")
         self.assertEqual(old["version"], "cv-terms/0.1")
         results = [extract_candidates(paper, old) for paper in papers]
         self.assertEqual(sum(len(r.entities) for r in results), 238)
