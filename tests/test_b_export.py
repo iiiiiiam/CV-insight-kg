@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from src.knowledge_builder.export import build_exports, validate_exports
 from src.knowledge_builder.export_io import load_exports, write_exports
-from src.knowledge_builder.extraction import extract_candidates
+from src.knowledge_builder.extraction import extract_candidates, load_vocabulary
 from src.knowledge_builder.input_adapter import load_openalex_sample
 from src.knowledge_builder.models import PaperInput
 from src.knowledge_builder.review import ReviewSession
@@ -251,7 +251,8 @@ class ExportTests(unittest.TestCase):
         ]
         before = [p.read_bytes() for p in paths]
         papers = load_openalex_sample(paths[0])
-        results = [extract_candidates(paper) for paper in papers]
+        vocabulary = load_vocabulary(ROOT / "examples/b_vocabulary_v0.1.json")
+        results = [extract_candidates(paper, vocabulary) for paper in papers]
         bundle = build_exports(papers, results)
         self.assertEqual(
             bundle["pending"]["counts"],

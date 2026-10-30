@@ -1,16 +1,22 @@
 """离线演示 B 候选抽取：从仓库根目录 python -m scripts.demo_b_candidates。"""
 
+import argparse
 from collections import Counter
 from pathlib import Path
 
-from src.knowledge_builder.extraction import extract_candidates
+from src.knowledge_builder.extraction import extract_candidates, load_vocabulary
 from src.knowledge_builder.input_adapter import load_openalex_sample
 
 
 def main():
     root = Path(__file__).resolve().parents[1]
+    parser = argparse.ArgumentParser(description="Show B extraction candidates")
+    parser.add_argument("--vocabulary", type=Path, help="Optional vocabulary JSON")
+    args = parser.parse_args()
+    vocabulary = load_vocabulary(args.vocabulary)
     papers = load_openalex_sample(root / "examples" / "week1_baseline.json")
-    results = [extract_candidates(paper) for paper in papers]
+    results = [extract_candidates(paper, vocabulary) for paper in papers]
+    print("Vocabulary:", vocabulary["version"])
     print(f"Papers: {len(results)}")
     print(
         "Entity candidates (summed per paper):", sum(len(r.entities) for r in results)

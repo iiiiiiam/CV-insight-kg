@@ -1,13 +1,439 @@
 {
-  "version": "cv-terms/0.1",
+  "version": "cv-terms/0.2",
   "terms": [
-    {"key": "computer-vision", "kind": "topic", "name": "Computer Vision", "aliases": ["computer vision"]},
-    {"key": "object-detection", "kind": "task", "name": "Object Detection", "aliases": ["object detection"]},
-    {"key": "rt-detr", "kind": "method", "name": "RT-DETR", "aliases": ["RT-DETR", "RT-DETRs"]},
-    {"key": "detr", "kind": "method", "name": "DETR", "aliases": ["DETR", "DETRs"]},
-    {"key": "yolo", "kind": "method", "name": "YOLO", "aliases": ["YOLO", "YOLOs"]},
-    {"key": "knowledge-distillation", "kind": "method", "name": "Knowledge Distillation", "aliases": ["knowledge distillation"]},
-    {"key": "coco", "kind": "dataset", "name": "COCO", "aliases": ["COCO", "MS COCO"]},
-    {"key": "objects365", "kind": "dataset", "name": "Objects365", "aliases": ["Objects365"]}
+    {
+      "key": "computer-vision",
+      "kind": "topic",
+      "name": "Computer Vision",
+      "aliases": [
+        "computer vision"
+      ]
+    },
+    {
+      "key": "object-detection",
+      "kind": "task",
+      "name": "Object Detection",
+      "aliases": [
+        "object detection"
+      ]
+    },
+    {
+      "key": "rt-detr",
+      "kind": "method",
+      "name": "RT-DETR",
+      "aliases": [
+        "RT-DETR",
+        "RT-DETRs"
+      ]
+    },
+    {
+      "key": "detr",
+      "kind": "method",
+      "name": "DETR",
+      "aliases": [
+        "DETR",
+        "DETRs"
+      ]
+    },
+    {
+      "key": "yolo",
+      "kind": "method",
+      "name": "YOLO",
+      "aliases": [
+        "YOLO",
+        "YOLOs"
+      ]
+    },
+    {
+      "key": "knowledge-distillation",
+      "kind": "method",
+      "name": "Knowledge Distillation",
+      "aliases": [
+        "knowledge distillation"
+      ]
+    },
+    {
+      "key": "coco",
+      "kind": "dataset",
+      "name": "COCO",
+      "aliases": [
+        "COCO",
+        "MS COCO"
+      ]
+    },
+    {
+      "key": "objects365",
+      "kind": "dataset",
+      "name": "Objects365",
+      "aliases": [
+        "Objects365"
+      ]
+    },
+    {
+      "kind": "topic",
+      "key": "autonomous-driving",
+      "name": "Autonomous Driving",
+      "aliases": [
+        "autonomous driving"
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "3d-object-detection",
+      "name": "3D Object Detection",
+      "aliases": [
+        "3D object detection",
+        "Three-dimensional object detection"
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "oriented-object-detection",
+      "name": "Oriented Object Detection",
+      "aliases": [
+        "oriented object detection"
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "few-shot-object-detection",
+      "name": "Few-Shot Object Detection",
+      "aliases": [
+        "few-shot object detection"
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "open-vocabulary-object-detection",
+      "name": "Open-Vocabulary Object Detection",
+      "aliases": [
+        "open-vocabulary object detection",
+        "open-vocabulary detection"
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "salient-object-detection",
+      "name": "Salient Object Detection",
+      "aliases": [
+        "salient object detection"
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "camouflaged-object-detection",
+      "name": "Camouflaged Object Detection",
+      "aliases": [
+        "camouflaged object detection"
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "depth-estimation",
+      "name": "Depth Estimation",
+      "aliases": [
+        "depth estimation"
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "domain-adaptive-object-detection",
+      "name": "Domain Adaptive Object Detection",
+      "aliases": [
+        "domain adaptive object detection"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "yolo-world",
+      "name": "YOLO-World",
+      "aliases": [
+        "YOLO-World"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "crosskd",
+      "name": "CrossKD",
+      "aliases": [
+        "CrossKD"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "rcbevdet",
+      "name": "RCBEVDet",
+      "aliases": [
+        "RCBEVDet"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "vscode",
+      "name": "VSCode",
+      "aliases": [
+        "VSCode",
+        "VS-Code"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "salience-detr",
+      "name": "Salience DETR",
+      "aliases": [
+        "Salience DETR",
+        "Salience-DETR"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "is-fusion",
+      "name": "IS-Fusion",
+      "aliases": [
+        "IS-Fusion"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "oafa",
+      "name": "OAFA",
+      "aliases": [
+        "OAFA",
+        "Offset-guided Adaptive Feature Alignment"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "ms-detr",
+      "name": "MS-DETR",
+      "aliases": [
+        "MS-DETR"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "safdnet",
+      "name": "SAFDNet",
+      "aliases": [
+        "SAFDNet"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "sfs-cnet",
+      "name": "SFS-CNet",
+      "aliases": [
+        "SFS-CNet"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "sfs-conv",
+      "name": "SFS-Conv",
+      "aliases": [
+        "SFS-Conv"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "monocd",
+      "name": "MonoCD",
+      "aliases": [
+        "MonoCD"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "dinov2",
+      "name": "DINOv2",
+      "aliases": [
+        "DINOv2"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "fm-fsod",
+      "name": "FM-FSOD",
+      "aliases": [
+        "FM-FSOD"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "bevnext",
+      "name": "BEVNeXt",
+      "aliases": [
+        "BEVNeXt"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "pointobb",
+      "name": "PointOBB",
+      "aliases": [
+        "PointOBB"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "unbiased-faster-rcnn",
+      "name": "Unbiased Faster R-CNN",
+      "aliases": [
+        "Unbiased Faster R-CNN",
+        "UFR"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "class-aware-teacher",
+      "name": "Class-Aware Teacher",
+      "aliases": [
+        "Class-Aware Teacher"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "3d-lrf",
+      "name": "3D-LRF",
+      "aliases": [
+        "3D-LRF"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "group-detr",
+      "name": "Group DETR",
+      "aliases": [
+        "Group DETR"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "hybrid-detr",
+      "name": "Hybrid DETR",
+      "aliases": [
+        "Hybrid DETR"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "dn-detr",
+      "name": "DN-DETR",
+      "aliases": [
+        "DN-DETR"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "lvis",
+      "name": "LVIS",
+      "aliases": [
+        "LVIS"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "nuscenes",
+      "name": "nuScenes",
+      "aliases": [
+        "nuScenes"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "view-of-delft",
+      "name": "View-of-Delft",
+      "aliases": [
+        "view-of-delft"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "waymo-open",
+      "name": "Waymo Open",
+      "aliases": [
+        "Waymo Open"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "argoverse2",
+      "name": "Argoverse2",
+      "aliases": [
+        "Argoverse2"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "kitti",
+      "name": "KITTI",
+      "aliases": [
+        "KITTI"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "exdark",
+      "name": "ExDark",
+      "aliases": [
+        "ExDark"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "dark-face",
+      "name": "DARK FACE",
+      "aliases": [
+        "DARK FACE"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "codan",
+      "name": "CODaN",
+      "aliases": [
+        "CODaN"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "imagenet",
+      "name": "ImageNet",
+      "aliases": [
+        "ImageNet"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "dior-r",
+      "name": "DIOR-R",
+      "aliases": [
+        "DIOR-R"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "dota-v1.0",
+      "name": "DOTA-v1.0",
+      "aliases": [
+        "DOTA-v1.0"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "cityscapes",
+      "name": "Cityscapes",
+      "aliases": [
+        "Cityscapes"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "foggy-cityscapes",
+      "name": "Foggy Cityscapes",
+      "aliases": [
+        "Foggy Cityscapes"
+      ]
+    }
   ]
 }

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from src.knowledge_builder.export import build_exports
 from src.knowledge_builder.export_io import write_exports
-from src.knowledge_builder.extraction import extract_candidates
+from src.knowledge_builder.extraction import extract_candidates, load_vocabulary
 from src.knowledge_builder.input_adapter import load_openalex_sample
 from src.knowledge_builder.review_storage import load_review
 
@@ -22,6 +22,11 @@ def main():
     )
     parser.add_argument("--reviews-dir", type=Path, default=root / "data" / "b_reviews")
     parser.add_argument(
+        "--vocabulary",
+        type=Path,
+        help="Optional vocabulary JSON, including an older version",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         help="New output directory; existing directories are not overwritten",
@@ -29,7 +34,8 @@ def main():
     args = parser.parse_args()
     try:
         papers = load_openalex_sample(args.manifest)
-        results = [extract_candidates(paper) for paper in papers]
+        vocabulary = load_vocabulary(args.vocabulary)
+        results = [extract_candidates(paper, vocabulary) for paper in papers]
         inputs = {
             paper.openalex_id: (paper, result) for paper, result in zip(papers, results)
         }

@@ -4,7 +4,11 @@ import argparse
 from copy import deepcopy
 from pathlib import Path
 
-from src.knowledge_builder.extraction import extract_candidates, fingerprint
+from src.knowledge_builder.extraction import (
+    extract_candidates,
+    fingerprint,
+    load_vocabulary,
+)
 from src.knowledge_builder.input_adapter import load_openalex_sample
 from src.knowledge_builder.models import Entity
 from src.knowledge_builder.review import ReviewSession
@@ -19,6 +23,11 @@ def main():
         "--paper-index", type=int, default=1, help="Paper number, starting at 1"
     )
     parser.add_argument("--reviewer", required=True, help="Your reviewer name")
+    parser.add_argument(
+        "--vocabulary",
+        type=Path,
+        help="Optional vocabulary JSON; needed for archives made with an older version",
+    )
     storage = parser.add_mutually_exclusive_group()
     storage.add_argument("--archive", type=Path, help="Use this local archive file")
     storage.add_argument(
@@ -32,7 +41,8 @@ def main():
     if not 1 <= args.paper_index <= len(papers):
         parser.error(f"Paper number must be between 1 and {len(papers)}")
     paper = papers[args.paper_index - 1]
-    result = extract_candidates(paper)
+    vocabulary = load_vocabulary(args.vocabulary)
+    result = extract_candidates(paper, vocabulary)
     session = ReviewSession(paper, result)
     archive = (
         None

@@ -35,7 +35,9 @@ python -m scripts.export_b_knowledge --output data/b_exports/first-delivery
 | schema.json | JSON Schema 结构说明 | 机器读取的字段、类型、枚举、必填项及状态约束 |
 | manifest.json | 文件 SHA256、处理范围、分组计数、诊断数 | 检查文件是否完整；不代表准确率评估 |
 
-输入目前无真实审核存档的实际输出：待审 20 篇、238 实体、294 关系；已确认及驳回均为 0。
+导出阶段 cv-terms/0.1 实测为待审 20 篇、238 实体、294 关系；已确认及驳回均为 0。
+后续默认词表已更新为 cv-terms/0.2，候选为 285 实体、341 关系，详见 [b_vocabulary.md](b_vocabulary.md)。
+旧存档请通过 --vocabulary examples/b_vocabulary_v0.1.json 指定原词表，不自动继承确认。
 空的已确认文件是正确结果，不自动补成“至少 5 篇人工确认”。
 
 ## 业务结构

@@ -1,5 +1,8 @@
 # B 候选抽取：从论文资料卡到待审核清单
 
+后续更新：默认词表已为 cv-terms/0.2，53 个词条，真实样本 285 个实体、341 条关系。
+本文 238/294、8 个词条等属于 cv-terms/0.1 的历史结果；旧词表与复现方式见 [b_vocabulary.md](b_vocabulary.md)。
+
 ## 现在能做什么
 
 之前 PaperInput 只是论文资料卡。现在把它交给 `extract_candidates`，会返回：

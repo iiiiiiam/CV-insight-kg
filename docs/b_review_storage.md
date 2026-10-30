@@ -1,6 +1,7 @@
 # B：审核进度保存与恢复
 
 本地存档格式：`b-review-file/0.1-draft`。这是 B 的开发存档，不是 C/D 的正式知识导出接口。
+默认词表后续更新为 cv-terms/0.2；旧存档可加 --vocabulary examples/b_vocabulary_v0.1.json 恢复，详见 [词表兼容说明](b_vocabulary.md)。
 配套核心见 [b_review.md](b_review.md)。没有要求每位用户或 B 负责人现在逐条审核全部候选。
 
 ## 运行
