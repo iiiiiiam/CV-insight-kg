@@ -1,0 +1,13 @@
+{
+  "version": "cv-terms/0.1",
+  "terms": [
+    {"key": "computer-vision", "kind": "topic", "name": "Computer Vision", "aliases": ["computer vision"]},
+    {"key": "object-detection", "kind": "task", "name": "Object Detection", "aliases": ["object detection"]},
+    {"key": "rt-detr", "kind": "method", "name": "RT-DETR", "aliases": ["RT-DETR", "RT-DETRs"]},
+    {"key": "detr", "kind": "method", "name": "DETR", "aliases": ["DETR", "DETRs"]},
+    {"key": "yolo", "kind": "method", "name": "YOLO", "aliases": ["YOLO", "YOLOs"]},
+    {"key": "knowledge-distillation", "kind": "method", "name": "Knowledge Distillation", "aliases": ["knowledge distillation"]},
+    {"key": "coco", "kind": "dataset", "name": "COCO", "aliases": ["COCO", "MS COCO"]},
+    {"key": "objects365", "kind": "dataset", "name": "Objects365", "aliases": ["Objects365"]}
+  ]
+}
