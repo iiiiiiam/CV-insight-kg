@@ -16,6 +16,8 @@ export const router=createRouter({
     {path:'/admin/imports',component:()=>import('./views/DataManagementView.vue'),meta:{title:'创建固定样本导入',requiresAuth:true}},
     {path:'/admin/jobs',component:()=>import('./views/DataManagementView.vue'),meta:{title:'任务与批次论文',requiresAuth:true}},
     {path:'/admin/reviews',component:()=>import('./views/CandidateView.vue'),meta:{title:'候选与证据预览',requiresAuth:true}},
+    {path:'/admin/reviews/edit',component:()=>import('./views/CandidateView.vue'),meta:{title:'审核与改名',requiresAuth:true,reviewEnabled:true}},
+    {path:'/admin/reviews/demo-review',redirect:'/admin/reviews/edit'},
     ...MENU.filter(n=>!n.implemented).map(n=>({path:n.path,component:placeholder,meta:{title:n.label,navId:n.id,requiresAuth:n.path.startsWith('/admin/')}})),
     {path:'/:pathMatch(.*)*',component:placeholder,meta:{title:'页面不存在',notFound:true}},
   ],

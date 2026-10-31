@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 import secrets
+from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -10,9 +11,11 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from server.api.schemas import ImportRequest, LoginRequest
+from server.api.schemas import ImportRequest, LoginRequest, KnowledgeReviewRequest
 from server.application.a_gateway import AServiceClient, AServiceUnavailable
-from server.application.knowledge import KnowledgeSnapshot, UnknownSnapshotPaper
+from server.application.knowledge import (KnowledgeSnapshot, UnknownSnapshotPaper,
+                                          KnowledgeSnapshotInvalid, KnowledgeSnapshotChanged,
+                                          KnowledgeReviewRejected, KnowledgeReviewStorageError)
 from server.configuration.settings import Settings
 from server.domain.auth import AuthService, Session, require_admin, require_admin_write
 
@@ -39,13 +42,12 @@ def create_app(settings: Settings | None = None):
     async def lifespan(app: FastAPI):
         app.state.auth = AuthService(settings)
         app.state.a_service = AServiceClient(settings)
-        app.state.knowledge = KnowledgeSnapshot()
         yield
         app.state.auth.sessions.clear()
 
     app = FastAPI(
         title='CVKG D Gateway',
-        version='0.3.0',
+        version='0.5.0',
         lifespan=lifespan,
         docs_url='/api/docs',
         openapi_url='/api/openapi.json',
@@ -98,6 +100,30 @@ def create_app(settings: Settings | None = None):
             'request_id': request.state.request_id,
         })
 
+    @app.exception_handler(KnowledgeSnapshotInvalid)
+    @app.exception_handler(KnowledgeSnapshotChanged)
+    async def handle_knowledge_error(request: Request, exc):
+        code = 'KNOWLEDGE_SNAPSHOT_CHANGED' if isinstance(exc, KnowledgeSnapshotChanged) else 'KNOWLEDGE_SNAPSHOT_INVALID'
+        return JSONResponse(status_code=409, headers={'Cache-Control': 'no-store'}, content={
+            'error': {'code': code, 'message': ('已确认知识暂不可用，请管理员检查 B 的数据版本和审核存档。'
+                                                if request.url.path == '/api/knowledge/confirmed' else str(exc))},
+            'request_id': request.state.request_id,
+        })
+
+    @app.exception_handler(KnowledgeReviewRejected)
+    @app.exception_handler(KnowledgeReviewStorageError)
+    async def handle_review_error(request: Request, exc):
+        storage = isinstance(exc, KnowledgeReviewStorageError)
+        return JSONResponse(status_code=503 if storage else 422, content={
+            'error': {'code': 'KNOWLEDGE_SAVE_FAILED' if storage else 'KNOWLEDGE_REVIEW_REJECTED', 'message': str(exc)},
+            'request_id': request.state.request_id,
+        })
+
+    def read_knowledge():
+        # Fresh and local to this request: invalid archives do not disable login/A APIs.
+        return KnowledgeSnapshot(vocabulary_path=settings.b_vocabulary_path,
+                                 reviews_directory=settings.b_reviews_directory)
+
     async def call_a(method: str, path: str, *, params=None, body=None):
         upstream = await app.state.a_service.request(method, path, params=params, body=body)
         return upstream_response(upstream)
@@ -147,14 +173,15 @@ def create_app(settings: Settings | None = None):
         return await call_a('GET', f'/api/papers/{paper_id}/graph')
 
     @app.get('/api/admin/knowledge/snapshot')
-    async def knowledge_snapshot(_session: Session = Depends(require_admin)):
-        return app.state.knowledge.overview()
+    def knowledge_snapshot(_session: Session = Depends(require_admin)):
+        return read_knowledge().overview()
 
     @app.get('/api/admin/knowledge/candidates')
-    async def knowledge_candidates(paper_id: str = Query(min_length=1, max_length=300),
-                                   _session: Session = Depends(require_admin)):
+    def knowledge_candidates(paper_id: str = Query(min_length=1, max_length=300),
+                             snapshot_revision: str | None = Query(default=None, pattern='^[0-9a-f]{64}$'),
+                             _session: Session = Depends(require_admin)):
         try:
-            return app.state.knowledge.candidates(paper_id)
+            return read_knowledge().candidates(paper_id, snapshot_revision)
         except UnknownSnapshotPaper as exc:
             raise HTTPException(404, str(exc)) from exc
 
@@ -166,6 +193,27 @@ def create_app(settings: Settings | None = None):
             if name in upstream.headers:
                 response.headers[name] = upstream.headers[name]
         return response
+
+    @app.post('/api/admin/knowledge/reviews')
+    def review_knowledge(body: KnowledgeReviewRequest, session: Session = Depends(require_admin_write)):
+        try:
+            return read_knowledge().apply_review(body.paper_id, body.candidate_id, body.action,
+                                                reviewer=session.username, reason=body.reason,
+                                                snapshot_revision=body.snapshot_revision, name=body.name)
+        except UnknownSnapshotPaper as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @app.get('/api/admin/knowledge/exports/{filename}')
+    def download_knowledge(filename: Literal['confirmed.json', 'pending.json', 'rejected.json', 'bundle.zip'],
+                           snapshot_revision: str = Query(pattern='^[0-9a-f]{64}$'),
+                           _session: Session = Depends(require_admin)):
+        body, media_type, name = read_knowledge().download(filename, snapshot_revision)
+        return Response(content=body, media_type=media_type,
+                        headers={'Content-Disposition': f'attachment; filename="{name}"'})
+
+    @app.get('/api/knowledge/confirmed')
+    def confirmed_knowledge(paper_id: str = Query(min_length=1, max_length=300)):
+        return JSONResponse(content=read_knowledge().confirmed(paper_id), headers={'Cache-Control': 'no-store'})
 
     @app.get('/api/admin/datasets')
     async def list_datasets(_session: Session = Depends(require_admin)):

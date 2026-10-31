@@ -16,7 +16,7 @@ export const MENU:MenuItem[]=[
  {id:'NAV14',group:'数据管理',section:'导入任务',label:'任务进度与批次论文',path:'/admin/jobs',implemented:true,owner:'A / D'},
  {id:'NAV15',group:'数据管理',section:'导入任务',label:'错误与原批次重试',path:'/admin/jobs?view=errors',implemented:true,owner:'A / D'},
  {id:'NAV16',group:'数据管理',section:'质量审核',label:'候选与证据查看',path:'/admin/reviews',implemented:true,owner:'B 草案 / D'},
- {id:'NAV17',group:'数据管理',section:'质量审核',label:'审核与关系修正',path:'/admin/reviews/demo-review',implemented:false,owner:'B'},
+ {id:'NAV17',group:'数据管理',section:'质量审核',label:'审核与改名',path:'/admin/reviews/edit',implemented:true,owner:'B / D'},
  {id:'NAV18',group:'数据管理',section:'批次发布',label:'质量与发布校验',path:'/admin/batches/pending',implemented:false,owner:'C'},
  {id:'NAV19',group:'数据管理',section:'批次发布',label:'发布确认与状态',path:'/admin/batches/pending/publish',implemented:false,owner:'C'},
  {id:'NAV20',group:'系统管理',section:'管理员会话',label:'会话与权限验证',path:'/admin/access-check',implemented:true,owner:'D'},
