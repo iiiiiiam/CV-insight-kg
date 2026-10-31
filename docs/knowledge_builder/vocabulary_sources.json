@@ -1,0 +1,738 @@
+{
+  "format_version": "b-vocabulary-sources/0.1-draft",
+  "vocabulary_version": "cv-terms/0.2",
+  "vocabulary_fingerprint": "223f27cf8da6003cb6e07d6935e6974c599168e11e89f7ad0dba5efd07f615b5",
+  "purpose": "development_references_not_human_gold",
+  "dataset_id": "week1-cvpr2024-detection-v1",
+  "terms": [
+    {
+      "kind": "topic",
+      "key": "autonomous-driving",
+      "examples": [
+        {
+          "alias": "autonomous driving",
+          "paper_id": "https://openalex.org/W4402754159",
+          "field": "abstract",
+          "start": 62,
+          "end": 80,
+          "quote": "autonomous driving",
+          "input_fingerprint": "19724101d56317aec68126f7cdf12a29e5b4ce2d836a90df8907d8badbcfc9ae"
+        }
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "3d-object-detection",
+      "examples": [
+        {
+          "alias": "3D object detection",
+          "paper_id": "https://openalex.org/W4402754159",
+          "field": "title",
+          "start": 53,
+          "end": 72,
+          "quote": "3D Object Detection",
+          "input_fingerprint": "19724101d56317aec68126f7cdf12a29e5b4ce2d836a90df8907d8badbcfc9ae"
+        },
+        {
+          "alias": "Three-dimensional object detection",
+          "paper_id": "https://openalex.org/W4402754159",
+          "field": "abstract",
+          "start": 0,
+          "end": 34,
+          "quote": "Three-dimensional object detection",
+          "input_fingerprint": "19724101d56317aec68126f7cdf12a29e5b4ce2d836a90df8907d8badbcfc9ae"
+        }
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "oriented-object-detection",
+      "examples": [
+        {
+          "alias": "oriented object detection",
+          "paper_id": "https://openalex.org/W4402754284",
+          "field": "title",
+          "start": 19,
+          "end": 44,
+          "quote": "Oriented Object Detection",
+          "input_fingerprint": "c43b21f95f0af1ec03df649f55307be2247da790bdb7df20fc0deab4640a2540"
+        }
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "few-shot-object-detection",
+      "examples": [
+        {
+          "alias": "few-shot object detection",
+          "paper_id": "https://openalex.org/W4402754181",
+          "field": "title",
+          "start": 0,
+          "end": 25,
+          "quote": "Few-Shot Object Detection",
+          "input_fingerprint": "813f15717749d85e430767f409dcc5eaabefcc744a45a567c646cfd9673ca846"
+        }
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "open-vocabulary-object-detection",
+      "examples": [
+        {
+          "alias": "open-vocabulary object detection",
+          "paper_id": "https://openalex.org/W4402716047",
+          "field": "title",
+          "start": 22,
+          "end": 54,
+          "quote": "Open-Vocabulary Object Detection",
+          "input_fingerprint": "266fbd1c953d0a41b565af175c19ab8b5bf189b89c5692f9e0c8e72ae6f85cdb"
+        },
+        {
+          "alias": "open-vocabulary detection",
+          "paper_id": "https://openalex.org/W4402716047",
+          "field": "abstract",
+          "start": 326,
+          "end": 351,
+          "quote": "open-vocabulary detection",
+          "input_fingerprint": "266fbd1c953d0a41b565af175c19ab8b5bf189b89c5692f9e0c8e72ae6f85cdb"
+        }
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "salient-object-detection",
+      "examples": [
+        {
+          "alias": "salient object detection",
+          "paper_id": "https://openalex.org/W4402727868",
+          "field": "abstract",
+          "start": 0,
+          "end": 24,
+          "quote": "Salient object detection",
+          "input_fingerprint": "6445043ac6f3522d2b8770b075614605273f6a48dd713eb8e392dba02cf6be29"
+        }
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "camouflaged-object-detection",
+      "examples": [
+        {
+          "alias": "camouflaged object detection",
+          "paper_id": "https://openalex.org/W4402727868",
+          "field": "title",
+          "start": 35,
+          "end": 63,
+          "quote": "Camouflaged Object Detection",
+          "input_fingerprint": "6445043ac6f3522d2b8770b075614605273f6a48dd713eb8e392dba02cf6be29"
+        }
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "depth-estimation",
+      "examples": [
+        {
+          "alias": "depth estimation",
+          "paper_id": "https://openalex.org/W4402704555",
+          "field": "abstract",
+          "start": 165,
+          "end": 181,
+          "quote": "Depth estimation",
+          "input_fingerprint": "1d914546509ad88eb1288d81bf9113e2d74ebd7e72746f4b08d61478875e95cc"
+        }
+      ]
+    },
+    {
+      "kind": "task",
+      "key": "domain-adaptive-object-detection",
+      "examples": [
+        {
+          "alias": "domain adaptive object detection",
+          "paper_id": "https://openalex.org/W4402716116",
+          "field": "title",
+          "start": 41,
+          "end": 73,
+          "quote": "Domain Adaptive Object Detection",
+          "input_fingerprint": "27a27a19c786615ef111f78b2d20059eb1029be6a1552896e4fc6afa4b82f483"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "yolo-world",
+      "examples": [
+        {
+          "alias": "YOLO-World",
+          "paper_id": "https://openalex.org/W4402716047",
+          "field": "title",
+          "start": 0,
+          "end": 10,
+          "quote": "YOLO-World",
+          "input_fingerprint": "266fbd1c953d0a41b565af175c19ab8b5bf189b89c5692f9e0c8e72ae6f85cdb"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "crosskd",
+      "examples": [
+        {
+          "alias": "CrossKD",
+          "paper_id": "https://openalex.org/W4402772396",
+          "field": "title",
+          "start": 0,
+          "end": 7,
+          "quote": "CrossKD",
+          "input_fingerprint": "224b8b528c3126296be180243bc848a44efcfa4953067659d645c0b34326022e"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "rcbevdet",
+      "examples": [
+        {
+          "alias": "RCBEVDet",
+          "paper_id": "https://openalex.org/W4402754159",
+          "field": "title",
+          "start": 0,
+          "end": 8,
+          "quote": "RCBEVDet",
+          "input_fingerprint": "19724101d56317aec68126f7cdf12a29e5b4ce2d836a90df8907d8badbcfc9ae"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "vscode",
+      "examples": [
+        {
+          "alias": "VSCode",
+          "paper_id": "https://openalex.org/W4402727868",
+          "field": "title",
+          "start": 0,
+          "end": 6,
+          "quote": "VSCode",
+          "input_fingerprint": "6445043ac6f3522d2b8770b075614605273f6a48dd713eb8e392dba02cf6be29"
+        },
+        {
+          "alias": "VS-Code",
+          "paper_id": "https://openalex.org/W4402727868",
+          "field": "abstract",
+          "start": 343,
+          "end": 350,
+          "quote": "VS-Code",
+          "input_fingerprint": "6445043ac6f3522d2b8770b075614605273f6a48dd713eb8e392dba02cf6be29"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "salience-detr",
+      "examples": [
+        {
+          "alias": "Salience DETR",
+          "paper_id": "https://openalex.org/W4402702923",
+          "field": "title",
+          "start": 0,
+          "end": 13,
+          "quote": "Salience DETR",
+          "input_fingerprint": "8cc50a1ea3f12aff2f96921b43443c1b0150f2cd55dc8f3bf45c8a1772cb5880"
+        },
+        {
+          "alias": "Salience-DETR",
+          "paper_id": "https://openalex.org/W4402702923",
+          "field": "abstract",
+          "start": 1323,
+          "end": 1336,
+          "quote": "Salience-DETR",
+          "input_fingerprint": "8cc50a1ea3f12aff2f96921b43443c1b0150f2cd55dc8f3bf45c8a1772cb5880"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "is-fusion",
+      "examples": [
+        {
+          "alias": "IS-Fusion",
+          "paper_id": "https://openalex.org/W4402703030",
+          "field": "title",
+          "start": 0,
+          "end": 9,
+          "quote": "IS-Fusion",
+          "input_fingerprint": "789a5e7ab6fe89d4bd44c29fa7cd9243d1e73162d5644994f767df51c8b5442b"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "oafa",
+      "examples": [
+        {
+          "alias": "OAFA",
+          "paper_id": "https://openalex.org/W4402775842",
+          "field": "abstract",
+          "start": 524,
+          "end": 528,
+          "quote": "OAFA",
+          "input_fingerprint": "60ba49f56732c2f4fa656fc11628abc3d662841c2e7ab431b56fae6fd828d5c1"
+        },
+        {
+          "alias": "Offset-guided Adaptive Feature Alignment",
+          "paper_id": "https://openalex.org/W4402775842",
+          "field": "abstract",
+          "start": 482,
+          "end": 522,
+          "quote": "Offset-guided Adaptive Feature Alignment",
+          "input_fingerprint": "60ba49f56732c2f4fa656fc11628abc3d662841c2e7ab431b56fae6fd828d5c1"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "ms-detr",
+      "examples": [
+        {
+          "alias": "MS-DETR",
+          "paper_id": "https://openalex.org/W4402702961",
+          "field": "title",
+          "start": 0,
+          "end": 7,
+          "quote": "MS-DETR",
+          "input_fingerprint": "45de3f923f26a3159a60e624dffd9861a1a818332a3fdfc3ea34cf1319044a0c"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "safdnet",
+      "examples": [
+        {
+          "alias": "SAFDNet",
+          "paper_id": "https://openalex.org/W4402716222",
+          "field": "title",
+          "start": 0,
+          "end": 7,
+          "quote": "SAFDNet",
+          "input_fingerprint": "ea0d414844f3e8ef88e9506b74bd27c072f4985160c1f2d537c71d529cdd14da"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "sfs-cnet",
+      "examples": [
+        {
+          "alias": "SFS-CNet",
+          "paper_id": "https://openalex.org/W4402727805",
+          "field": "abstract",
+          "start": 1204,
+          "end": 1212,
+          "quote": "SFS-CNet",
+          "input_fingerprint": "d93f07a8522081e2aab99506eb901ad026c7a33381fbcf5c7aa3765609b9404b"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "sfs-conv",
+      "examples": [
+        {
+          "alias": "SFS-Conv",
+          "paper_id": "https://openalex.org/W4402727805",
+          "field": "abstract",
+          "start": 531,
+          "end": 539,
+          "quote": "SFS-Conv",
+          "input_fingerprint": "d93f07a8522081e2aab99506eb901ad026c7a33381fbcf5c7aa3765609b9404b"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "monocd",
+      "examples": [
+        {
+          "alias": "MonoCD",
+          "paper_id": "https://openalex.org/W4402704555",
+          "field": "title",
+          "start": 0,
+          "end": 6,
+          "quote": "MonoCD",
+          "input_fingerprint": "1d914546509ad88eb1288d81bf9113e2d74ebd7e72746f4b08d61478875e95cc"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "dinov2",
+      "examples": [
+        {
+          "alias": "DINOv2",
+          "paper_id": "https://openalex.org/W4402754181",
+          "field": "abstract",
+          "start": 504,
+          "end": 510,
+          "quote": "DINOv2",
+          "input_fingerprint": "813f15717749d85e430767f409dcc5eaabefcc744a45a567c646cfd9673ca846"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "fm-fsod",
+      "examples": [
+        {
+          "alias": "FM-FSOD",
+          "paper_id": "https://openalex.org/W4402754181",
+          "field": "abstract",
+          "start": 1077,
+          "end": 1084,
+          "quote": "FM-FSOD",
+          "input_fingerprint": "813f15717749d85e430767f409dcc5eaabefcc744a45a567c646cfd9673ca846"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "bevnext",
+      "examples": [
+        {
+          "alias": "BEVNeXt",
+          "paper_id": "https://openalex.org/W4402727763",
+          "field": "title",
+          "start": 0,
+          "end": 7,
+          "quote": "BEVNeXt",
+          "input_fingerprint": "c27d314a974e28a9262da762af2c3dd8070c91d9bec3c1adab33dc4d417ffaed"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "pointobb",
+      "examples": [
+        {
+          "alias": "PointOBB",
+          "paper_id": "https://openalex.org/W4402754284",
+          "field": "title",
+          "start": 0,
+          "end": 8,
+          "quote": "PointOBB",
+          "input_fingerprint": "c43b21f95f0af1ec03df649f55307be2247da790bdb7df20fc0deab4640a2540"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "unbiased-faster-rcnn",
+      "examples": [
+        {
+          "alias": "Unbiased Faster R-CNN",
+          "paper_id": "https://openalex.org/W4402716350",
+          "field": "title",
+          "start": 0,
+          "end": 21,
+          "quote": "Unbiased Faster R-CNN",
+          "input_fingerprint": "4e99086e6c07d908295aa1d700ce788c167e1147a146c32c9b17971072681760"
+        },
+        {
+          "alias": "UFR",
+          "paper_id": "https://openalex.org/W4402716350",
+          "field": "abstract",
+          "start": 441,
+          "end": 444,
+          "quote": "UFR",
+          "input_fingerprint": "4e99086e6c07d908295aa1d700ce788c167e1147a146c32c9b17971072681760"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "class-aware-teacher",
+      "examples": [
+        {
+          "alias": "Class-Aware Teacher",
+          "paper_id": "https://openalex.org/W4402716116",
+          "field": "abstract",
+          "start": 508,
+          "end": 527,
+          "quote": "Class-Aware Teacher",
+          "input_fingerprint": "27a27a19c786615ef111f78b2d20059eb1029be6a1552896e4fc6afa4b82f483"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "3d-lrf",
+      "examples": [
+        {
+          "alias": "3D-LRF",
+          "paper_id": "https://openalex.org/W4402727857",
+          "field": "abstract",
+          "start": 591,
+          "end": 597,
+          "quote": "3D-LRF",
+          "input_fingerprint": "04ada9330e6a35cac54c056a6cd56f232a539859d0f858606fd43fc14827b4ad"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "group-detr",
+      "examples": [
+        {
+          "alias": "Group DETR",
+          "paper_id": "https://openalex.org/W4402702961",
+          "field": "abstract",
+          "start": 739,
+          "end": 749,
+          "quote": "Group DETR",
+          "input_fingerprint": "45de3f923f26a3159a60e624dffd9861a1a818332a3fdfc3ea34cf1319044a0c"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "hybrid-detr",
+      "examples": [
+        {
+          "alias": "Hybrid DETR",
+          "paper_id": "https://openalex.org/W4402702961",
+          "field": "abstract",
+          "start": 754,
+          "end": 765,
+          "quote": "Hybrid DETR",
+          "input_fingerprint": "45de3f923f26a3159a60e624dffd9861a1a818332a3fdfc3ea34cf1319044a0c"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "dn-detr",
+      "examples": [
+        {
+          "alias": "DN-DETR",
+          "paper_id": "https://openalex.org/W4402702961",
+          "field": "abstract",
+          "start": 1087,
+          "end": 1094,
+          "quote": "DN-DETR",
+          "input_fingerprint": "45de3f923f26a3159a60e624dffd9861a1a818332a3fdfc3ea34cf1319044a0c"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "lvis",
+      "examples": [
+        {
+          "alias": "LVIS",
+          "paper_id": "https://openalex.org/W4402716047",
+          "field": "abstract",
+          "start": 767,
+          "end": 771,
+          "quote": "LVIS",
+          "input_fingerprint": "266fbd1c953d0a41b565af175c19ab8b5bf189b89c5692f9e0c8e72ae6f85cdb"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "nuscenes",
+      "examples": [
+        {
+          "alias": "nuScenes",
+          "paper_id": "https://openalex.org/W4402754159",
+          "field": "abstract",
+          "start": 1466,
+          "end": 1474,
+          "quote": "nuScenes",
+          "input_fingerprint": "19724101d56317aec68126f7cdf12a29e5b4ce2d836a90df8907d8badbcfc9ae"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "view-of-delft",
+      "examples": [
+        {
+          "alias": "view-of-delft",
+          "paper_id": "https://openalex.org/W4402754159",
+          "field": "abstract",
+          "start": 1479,
+          "end": 1492,
+          "quote": "view-of-delft",
+          "input_fingerprint": "19724101d56317aec68126f7cdf12a29e5b4ce2d836a90df8907d8badbcfc9ae"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "waymo-open",
+      "examples": [
+        {
+          "alias": "Waymo Open",
+          "paper_id": "https://openalex.org/W4402716222",
+          "field": "abstract",
+          "start": 862,
+          "end": 872,
+          "quote": "Waymo Open",
+          "input_fingerprint": "ea0d414844f3e8ef88e9506b74bd27c072f4985160c1f2d537c71d529cdd14da"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "argoverse2",
+      "examples": [
+        {
+          "alias": "Argoverse2",
+          "paper_id": "https://openalex.org/W4402716222",
+          "field": "abstract",
+          "start": 888,
+          "end": 898,
+          "quote": "Argoverse2",
+          "input_fingerprint": "ea0d414844f3e8ef88e9506b74bd27c072f4985160c1f2d537c71d529cdd14da"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "kitti",
+      "examples": [
+        {
+          "alias": "KITTI",
+          "paper_id": "https://openalex.org/W4402704555",
+          "field": "abstract",
+          "start": 1249,
+          "end": 1254,
+          "quote": "KITTI",
+          "input_fingerprint": "1d914546509ad88eb1288d81bf9113e2d74ebd7e72746f4b08d61478875e95cc"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "exdark",
+      "examples": [
+        {
+          "alias": "ExDark",
+          "paper_id": "https://openalex.org/W4402704573",
+          "field": "abstract",
+          "start": 1183,
+          "end": 1189,
+          "quote": "ExDark",
+          "input_fingerprint": "c982c7dee908da469f28649c5cda0e54bd9afc85f8ee58f666877c76c2b40789"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "dark-face",
+      "examples": [
+        {
+          "alias": "DARK FACE",
+          "paper_id": "https://openalex.org/W4402704573",
+          "field": "abstract",
+          "start": 1191,
+          "end": 1200,
+          "quote": "DARK FACE",
+          "input_fingerprint": "c982c7dee908da469f28649c5cda0e54bd9afc85f8ee58f666877c76c2b40789"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "codan",
+      "examples": [
+        {
+          "alias": "CODaN",
+          "paper_id": "https://openalex.org/W4402704573",
+          "field": "abstract",
+          "start": 1206,
+          "end": 1211,
+          "quote": "CODaN",
+          "input_fingerprint": "c982c7dee908da469f28649c5cda0e54bd9afc85f8ee58f666877c76c2b40789"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "imagenet",
+      "examples": [
+        {
+          "alias": "ImageNet",
+          "paper_id": "https://openalex.org/W4402754181",
+          "field": "abstract",
+          "start": 234,
+          "end": 242,
+          "quote": "ImageNet",
+          "input_fingerprint": "813f15717749d85e430767f409dcc5eaabefcc744a45a567c646cfd9673ca846"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "dior-r",
+      "examples": [
+        {
+          "alias": "DIOR-R",
+          "paper_id": "https://openalex.org/W4402754284",
+          "field": "abstract",
+          "start": 1275,
+          "end": 1281,
+          "quote": "DIOR-R",
+          "input_fingerprint": "c43b21f95f0af1ec03df649f55307be2247da790bdb7df20fc0deab4640a2540"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "dota-v1.0",
+      "examples": [
+        {
+          "alias": "DOTA-v1.0",
+          "paper_id": "https://openalex.org/W4402754284",
+          "field": "abstract",
+          "start": 1286,
+          "end": 1295,
+          "quote": "DOTA-v1.0",
+          "input_fingerprint": "c43b21f95f0af1ec03df649f55307be2247da790bdb7df20fc0deab4640a2540"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "cityscapes",
+      "examples": [
+        {
+          "alias": "Cityscapes",
+          "paper_id": "https://openalex.org/W4402716116",
+          "field": "abstract",
+          "start": 1202,
+          "end": 1212,
+          "quote": "Cityscapes",
+          "input_fingerprint": "27a27a19c786615ef111f78b2d20059eb1029be6a1552896e4fc6afa4b82f483"
+        }
+      ]
+    },
+    {
+      "kind": "dataset",
+      "key": "foggy-cityscapes",
+      "examples": [
+        {
+          "alias": "Foggy Cityscapes",
+          "paper_id": "https://openalex.org/W4402716116",
+          "field": "abstract",
+          "start": 1225,
+          "end": 1241,
+          "quote": "Foggy Cityscapes",
+          "input_fingerprint": "27a27a19c786615ef111f78b2d20059eb1029be6a1552896e4fc6afa4b82f483"
+        }
+      ]
+    }
+  ]
+}

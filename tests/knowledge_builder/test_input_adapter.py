@@ -13,7 +13,7 @@ from src.knowledge_builder.input_adapter import (
     load_openalex_sample,
 )
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 class InputAdapterTests(unittest.TestCase):

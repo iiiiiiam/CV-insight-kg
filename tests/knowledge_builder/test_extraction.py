@@ -15,7 +15,7 @@ from src.knowledge_builder.extraction import (
 from src.knowledge_builder.input_adapter import load_openalex_sample
 from src.knowledge_builder.models import PaperInput
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class ExtractionTests(unittest.TestCase):

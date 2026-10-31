@@ -1,0 +1,226 @@
+{
+  "format_version": "b-assessment/0.1-draft",
+  "state": "draft_development_only",
+  "source_manifest": "examples/week1_baseline.json",
+  "split_policy": "All existing prototype papers have been exposed during development; no unseen test set is claimed.",
+  "splits": {
+    "development": [
+      "https://openalex.org/W4402754006",
+      "https://openalex.org/W4402716047",
+      "https://openalex.org/W4402772396",
+      "https://openalex.org/W4402754159",
+      "https://openalex.org/W4402727868",
+      "https://openalex.org/W4402702923",
+      "https://openalex.org/W4402703030",
+      "https://openalex.org/W4402775842",
+      "https://openalex.org/W4402702961",
+      "https://openalex.org/W4402716222",
+      "https://openalex.org/W4402727805",
+      "https://openalex.org/W4402704555",
+      "https://openalex.org/W4402704573",
+      "https://openalex.org/W4402754181",
+      "https://openalex.org/W4402727763",
+      "https://openalex.org/W4402754284",
+      "https://openalex.org/W4402716116",
+      "https://openalex.org/W4402716350",
+      "https://openalex.org/W4402727857",
+      "https://openalex.org/W4402754271"
+    ],
+    "test": []
+  },
+  "calibration_subset": [
+    "https://openalex.org/W4402754006",
+    "https://openalex.org/W4402716047",
+    "https://openalex.org/W4402772396",
+    "https://openalex.org/W4402754159",
+    "https://openalex.org/W4402727868"
+  ],
+  "test_ready": false,
+  "papers": [
+    {
+      "paper_id": "https://openalex.org/W4402754006",
+      "title": "DETRs Beat YOLOs on Real-time Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754006",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "101f46fd8190d3b441ad44b591082acc7e9cd61531ab01bf0a15f9b3bd98f516",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402716047",
+      "title": "YOLO-World: Real-Time Open-Vocabulary Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716047",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "266fbd1c953d0a41b565af175c19ab8b5bf189b89c5692f9e0c8e72ae6f85cdb",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402772396",
+      "title": "CrossKD: Cross-Head Knowledge Distillation for Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402772396",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "224b8b528c3126296be180243bc848a44efcfa4953067659d645c0b34326022e",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402754159",
+      "title": "RCBEVDet: Radar-Camera Fusion in Bird's Eye View for 3D Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754159",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "19724101d56317aec68126f7cdf12a29e5b4ce2d836a90df8907d8badbcfc9ae",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402727868",
+      "title": "VSCode: General Visual Salient and Camouflaged Object Detection with 2D Prompt Learning",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727868",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "6445043ac6f3522d2b8770b075614605273f6a48dd713eb8e392dba02cf6be29",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402702923",
+      "title": "Salience DETR: Enhancing Detection Transformer with Hierarchical Salience Filtering Refinement",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402702923",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "8cc50a1ea3f12aff2f96921b43443c1b0150f2cd55dc8f3bf45c8a1772cb5880",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402703030",
+      "title": "IS-Fusion: Instance-Scene Collaborative Fusion for Multimodal 3D Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402703030",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "789a5e7ab6fe89d4bd44c29fa7cd9243d1e73162d5644994f767df51c8b5442b",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402775842",
+      "title": "Weakly Misalignment-Free Adaptive Feature Alignment for UAVs-Based Multimodal Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402775842",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "60ba49f56732c2f4fa656fc11628abc3d662841c2e7ab431b56fae6fd828d5c1",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402702961",
+      "title": "MS-DETR: Efficient DETR Training with Mixed Supervision",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402702961",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "45de3f923f26a3159a60e624dffd9861a1a818332a3fdfc3ea34cf1319044a0c",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402716222",
+      "title": "SAFDNet: A Simple and Effective Network for Fully Sparse 3D Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716222",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "ea0d414844f3e8ef88e9506b74bd27c072f4985160c1f2d537c71d529cdd14da",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402727805",
+      "title": "Unleashing Channel Potential: Space-Frequency Selection Convolution for SAR Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727805",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "d93f07a8522081e2aab99506eb901ad026c7a33381fbcf5c7aa3765609b9404b",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402704555",
+      "title": "MonoCD: Monocular 3D Object Detection with Complementary Depths",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402704555",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "1d914546509ad88eb1288d81bf9113e2d74ebd7e72746f4b08d61478875e95cc",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402704573",
+      "title": "Boosting Object Detection with Zero-Shot Day-Night Domain Adaptation",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402704573",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "c982c7dee908da469f28649c5cda0e54bd9afc85f8ee58f666877c76c2b40789",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402754181",
+      "title": "Few-Shot Object Detection with Foundation Models",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754181",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "813f15717749d85e430767f409dcc5eaabefcc744a45a567c646cfd9673ca846",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402727763",
+      "title": "BEVNeXt: Reviving Dense BEV Frameworks for 3D Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727763",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "c27d314a974e28a9262da762af2c3dd8070c91d9bec3c1adab33dc4d417ffaed",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402754284",
+      "title": "PointOBB: Learning Oriented Object Detection via Single Point Supervision",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754284",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "c43b21f95f0af1ec03df649f55307be2247da790bdb7df20fc0deab4640a2540",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402716116",
+      "title": "CAT: Exploiting Inter-Class Dynamics for Domain Adaptive Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716116",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "27a27a19c786615ef111f78b2d20059eb1029be6a1552896e4fc6afa4b82f483",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402716350",
+      "title": "Unbiased Faster R-CNN for Single-source Domain Generalized Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716350",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "4e99086e6c07d908295aa1d700ce788c167e1147a146c32c9b17971072681760",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402727857",
+      "title": "Towards Robust 3D Object Detection with LiDAR and 4D Radar Fusion in Various Weather Conditions",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727857",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "04ada9330e6a35cac54c056a6cd56f232a539859d0f858606fd43fc14827b4ad",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    },
+    {
+      "paper_id": "https://openalex.org/W4402754271",
+      "title": "Rethinking Boundary Discontinuity Problem for Oriented Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754271",
+      "dataset_id": "week1-cvpr2024-detection-v1",
+      "input_fingerprint": "d9b7576230723ecaeb8498e2a4605c98a76e52318b72cdb5fbc5a33d7681b61c",
+      "exposure": "used_for_rule_and_vocabulary_development"
+    }
+  ],
+  "remaining": [
+    "Acquire unseen test papers",
+    "Complete small independent annotation calibration",
+    "Freeze evaluation protocol and test list before tuning on test papers"
+  ]
+}

@@ -75,3 +75,40 @@ class ExtractionResult:
     entities: list[EntityCandidate]
     relations: list[RelationCandidate]
     diagnostics: list[str]
+
+
+ReviewStatus = Literal["pending", "confirmed", "rejected"]
+
+
+@dataclass(frozen=True)
+class Relation:
+    source: str
+    kind: str
+    target: str
+
+
+@dataclass(frozen=True)
+class ReviewItem:
+    """某一时刻的审核快照；不修改抽取候选本身的 pending 状态。"""
+
+    candidate_id: str
+    content: Entity | Relation
+    evidence: tuple[Evidence, ...]
+    status: ReviewStatus
+
+
+@dataclass(frozen=True)
+class ReviewEvent:
+    sequence: int
+    action: str
+    reviewer: str
+    reason: str
+    occurred_at: str
+    before: ReviewItem
+    after: ReviewItem
+
+
+@dataclass(frozen=True)
+class ReviewSelection:
+    entities: tuple[ReviewItem, ...]
+    relations: tuple[ReviewItem, ...]
