@@ -1,0 +1,24 @@
+{
+  "combined_search": {
+    "samples": 10,
+    "median_ms": 15.07,
+    "max_ms": 35.92
+  },
+  "detail": {
+    "samples": 10,
+    "median_ms": 16.61,
+    "max_ms": 27.84
+  },
+  "two_hop": {
+    "samples": 10,
+    "median_ms": 19.16,
+    "max_ms": 48.45
+  },
+  "database": "Neo4j Harness 5.26.0 (actual Bolt/storage engine)",
+  "fixture": {
+    "papers": 5,
+    "entities": 46,
+    "relations": 54,
+    "provenance": "developer_fixture"
+  }
+}

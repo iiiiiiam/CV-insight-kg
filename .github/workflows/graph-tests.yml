@@ -1,0 +1,33 @@
+name: C graph contract and Neo4j integration
+on:
+  push:
+    paths: ['src/graph_query/**', 'tests/graph/**', 'sample_data/graph/**', 'requirements-graph*.txt', '.github/workflows/graph-tests.yml']
+  pull_request:
+    paths: ['src/graph_query/**', 'tests/graph/**', 'sample_data/graph/**', 'requirements-graph*.txt', '.github/workflows/graph-tests.yml']
+permissions:
+  contents: read
+jobs:
+  graph:
+    runs-on: ubuntu-latest
+    services:
+      neo4j:
+        image: neo4j:5.26-community
+        env:
+          NEO4J_AUTH: neo4j/test-password
+        ports:
+          - 17687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p test-password 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-graph-dev.txt
+      - run: python -m pytest tests/graph -q
+        env:
+          GRAPH_TEST_URI: bolt://127.0.0.1:17687
+          GRAPH_TEST_PASSWORD: test-password
