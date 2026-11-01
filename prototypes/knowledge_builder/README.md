@@ -13,8 +13,21 @@ python -m scripts.knowledge_builder.workbench
 ```
 
 浏览器打开 http://127.0.0.1:8501 。不会自动弹浏览器。
-端口被占用时用 `--port 8502`，再打开相应地址。自己启动的终端可按 Ctrl+C 停止。
+如果已经有工作台运行，可直接打开已有地址，不必重复启动。
+换端口启动：
+
+```powershell
+python -m scripts.knowledge_builder.workbench --port 8502
+```
+
+此时打开 http://127.0.0.1:8502 。自己启动的终端可按 Ctrl+C 停止。
 原 A 入口 `python run.py` 和端口 8000 不变，不需要为本原型启动它。
+
+本机 Conda 激活不可用时，也可指定已有解释器；这是本机路径，不要求其他成员使用相同盘符：
+
+```powershell
+& 'D:\Anaconda\envs\insight\python.exe' -m scripts.knowledge_builder.workbench
+```
 
 本轮已确认现有环境安装 Streamlit 1.66.1，无需重建环境。
 其他机器仅在需要此原型时安装可选 `requirements-prototype.txt`；核心命令不依赖 Streamlit，团队基础依赖文件未改。
@@ -51,3 +64,12 @@ python -m scripts.knowledge_builder.workbench
 已用 Streamlit AppTest 检查四个页面、空筛选、真实保存恢复、端点约束跳转、导出与验证材料按钮。
 测试存档只在临时目录，所有自动确认都标记为程序测试，不计作真人确认。
 本机启动与 HTTP 健康检查另行执行；没有把 AppTest 当成真实浏览器截图验收。
+
+只验证页面交互时，在已激活环境的仓库根目录运行：
+
+```powershell
+python -m unittest discover -s tests/knowledge_builder -p test_workbench_ui.py -v
+```
+
+全套、存档和格式检查统一见[测试命令](../../docs/knowledge_builder/testing.md)，不在这里重复维护。
+功能与开发阶段总览见[模块说明](../../docs/knowledge_builder/README.md)。
