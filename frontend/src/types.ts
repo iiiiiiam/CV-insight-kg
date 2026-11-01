@@ -7,17 +7,21 @@ export interface Paper {
   batch_ids?: Array<string | number>; batches?: unknown[];
   openalex_id: string; doi: string; canonical_key: string;
   sources: Array<{name: string; source_id: string; url: string | null; retrieved_at: string}>;
+  origin?: 'a' | 'c'; graph_detail?: CDetail;
 }
+export interface GraphEvidence {paper_id:string;source_url:string;field:string;quote:string;locator:string;reviewer:string;reviewed_at:string}
+export interface CNode {id:string;kind:string;type:EntityType;name:string;label:string;title?:string;year?:number;abstract?:string|null;source_id?:string|null;source_url?:string|null;updated_at?:string;missing_fields?:string[];batch_id?:string}
+export interface CDetail {node:CNode;related:CNode[];relations:GraphEdge[];truncated:boolean;batch_id:string;batch_provenance?:string}
 export interface GraphNode { id: string; label: string; type: EntityType }
-export interface GraphEdge { id: string; source: string; target: string; type: string; evidence: string }
-export interface GraphData { nodes: GraphNode[]; edges: GraphEdge[]; truncated: boolean; batch_id: string; basis?: 'paper_metadata' }
+export interface GraphEdge { id: string; source: string; target: string; type: string; evidence: string | GraphEvidence[];kind?:string;status?:string;batch_id?:string }
+export interface GraphData { nodes: GraphNode[]; edges: GraphEdge[]; truncated: boolean; batch_id: string; basis?: 'paper_metadata'|'published_graph' }
 export interface PaperPage { items: Paper[]; total: number; batch_id: string }
-export interface EntityDetail { node: GraphNode; papers: Paper[]; total?: number; batch_id: string }
+export interface EntityDetail { node: GraphNode; papers: Paper[]; total?: number; batch_id: string;graph_detail?:CDetail }
 export interface ResearchGateway {
   getPapers(filters: Filters, signal?: AbortSignal): Promise<PaperPage>;
-  getPaper(id: string, signal?: AbortSignal): Promise<Paper>;
+  getPaper(id: string, signal?: AbortSignal, batchId?:string): Promise<Paper>;
   getGraph(seed: string, hops: number, filters: Filters, signal?: AbortSignal): Promise<GraphData>;
-  getEntity(id: string, signal?: AbortSignal): Promise<EntityDetail>;
+  getEntity(id: string, signal?: AbortSignal, batchId?:string): Promise<EntityDetail>;
 }
 export interface AdminSession {
   authenticated: true; username: string; role: 'admin'; csrf_token: string; expires_at: string;

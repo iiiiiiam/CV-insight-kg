@@ -34,7 +34,7 @@ export function normalizePaper(value: unknown): Paper {
     source: sources.map((s: {name: string}) => s.name).join(' / ') || (raw.openalex_id ? 'OpenAlex' : '来源见 A 记录'),
     source_url: safeSourceUrl(raw.source_url), sources,
     openalex_id: text(raw.openalex_id, ''), doi: text(raw.doi, ''), canonical_key: text(raw.canonical_key, ''),
-    evidence: '当前展示 A 的论文元数据；B 提及候选须人工审核，C 正式图谱待接入。',
+    evidence: '当前展示 A 原始元数据；B 审核结果另行展示，C 已发布图谱位于独立研究入口。',
     batch_id: batchIds.length ? String(batchIds[0]) : '—', batch_ids: batchIds,
     batches: Array.isArray(raw.batches) ? raw.batches : [],
   }
@@ -65,7 +65,7 @@ export function normalizeMetadataGraph(value: unknown, filters: Filters): GraphD
 
 export class ApiResearchGateway implements ResearchGateway {
   async getPapers(filters: Filters, signal?: AbortSignal) {
-    if (filters.topic || filters.method) throw new Error('主题和方法筛选等待 B 审核与 C 查询接口接入，请重置条件。')
+    if (filters.topic || filters.method) throw new Error('A 原始接口不支持主题/方法筛选，请切换到已发布图谱入口。')
     const query = new URLSearchParams({ page_size: '100' })
     for (const key of ['q', 'year', 'batch_id'] as const) if (filters[key]) query.set(key, filters[key])
     const raw = record(await requestJson<unknown>(`${base}/papers?${query}`, { signal }))
@@ -76,11 +76,11 @@ export class ApiResearchGateway implements ResearchGateway {
     return normalizePaper(await requestJson(`${base}/papers/${encodeURIComponent(id)}`, { signal }))
   }
   async getGraph(seed: string, hops: number, filters: Filters, signal?: AbortSignal) {
-    if (hops !== 1) throw new Error('2 跳扩展等待 C 正式图谱接入。')
+    if (hops !== 1) throw new Error('A 元数据仅支持 1 跳；2 跳探索请切换到 C 已发布图谱。')
     return normalizeMetadataGraph(await requestJson(`${base}/papers/${encodeURIComponent(seed)}/graph`, { signal }), filters)
   }
   async getEntity(id: string, signal?: AbortSignal) {
-    if (!id.startsWith('venue:')) throw new Error('该类型实体详情等待 C 接入。')
+    if (!id.startsWith('venue:')) throw new Error('A 原始接口仅提供会议实体详情；其他类型请在 C 图谱中查看。')
     const venue = id.slice(6)
     const query = new URLSearchParams({ venue, page_size: '100' })
     const raw = record(await requestJson(`${base}/papers?${query}`, { signal }))
@@ -88,4 +88,4 @@ export class ApiResearchGateway implements ResearchGateway {
     return { node: { id, type: 'Venue' as const, label: venue }, papers: raw.items.map(normalizePaper), total: Number(raw.total), batch_id: 'A 当前数据库（会议范围）' }
   }
 }
-export const research: ResearchGateway = new ApiResearchGateway()
+export const rawResearch: ResearchGateway = new ApiResearchGateway()

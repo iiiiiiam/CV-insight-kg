@@ -50,8 +50,8 @@ test('Python Unicode evidence offsets highlight the exact code points',()=>{
 })
 test('unsupported topic filter and two-hop requests never fabricate responses',async()=>{
   const gateway=new ApiResearchGateway()
-  await assert.rejects(gateway.getPapers({...EMPTY_FILTERS,topic:'detection'}),/等待 B/)
-  await assert.rejects(gateway.getGraph('1',2,EMPTY_FILTERS),/等待 C/)
+  await assert.rejects(gateway.getPapers({...EMPTY_FILTERS,topic:'detection'}),/A 原始接口/)
+  await assert.rejects(gateway.getGraph('1',2,EMPTY_FILTERS),/A 元数据仅支持/)
 })
 test('list, metadata graph and venue detail use actual A API contracts',async()=>{
   const original=globalThis.fetch,calls:string[]=[]

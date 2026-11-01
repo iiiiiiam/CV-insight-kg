@@ -131,7 +131,7 @@ class KnowledgeSnapshot:
             },
             'snapshot_revision': self.snapshot_revision, 'loaded_at': self.loaded_at,
             'read_only': True, 'confirmed_count': sum(counts['confirmed'].values()), 'scope': 'fixed_snapshot',
-            'notice': '原始抽取候选始终待审；当前审核状态来自 B 校验后的存档。提及不等于使用或验证，C 正式图谱待接入。',
+            'notice': '原始抽取候选始终待审；审核结果需另行生成、导入并发布为 C 图谱快照。提及不等于使用或验证。',
         }
 
     def apply_review(self, paper_id, candidate_id, action, *, reviewer, reason, snapshot_revision, name=None):

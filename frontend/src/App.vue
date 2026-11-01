@@ -8,6 +8,8 @@ import AppIcon from './components/AppIcon.vue'
 
 const route=useRoute(),router=useRouter(),mobileOpen=ref(false),query=ref(''),notice=ref('')
 const collapsed=ref<string[]>(['数据管理','系统管理'])
+const loginStatus=computed(()=>auth.backend==='checking'?'正在检查登录':auth.backend==='offline'?'登录状态不可用':auth.session?`${auth.session.username} · 已登录`:'未登录')
+const loginHint=computed(()=>auth.backend==='checking'?'正在连接鉴权服务':auth.backend==='offline'?'请检查 D 后端连接':auth.session?'管理员会话有效':'访客模式 · 点击登录')
 const groups=computed(()=>[...new Set(MENU.map(n=>n.group))].map(group=>({name:group,
   sections:[...new Set(MENU.filter(n=>n.group===group).map(n=>n.section))].map(section=>({name:section,items:MENU.filter(n=>n.group===group&&n.section===section)}))})))
 function toggle(group:string){collapsed.value=collapsed.value.includes(group)?collapsed.value.filter(x=>x!==group):[...collapsed.value,group]}
@@ -26,7 +28,7 @@ watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAu
     <div v-if="mobileOpen" class="mobile-backdrop" @click="mobileOpen=false"></div>
     <aside class="sidebar" :class="{open:mobileOpen}">
       <RouterLink class="brand" to="/research/papers" @click="mobileOpen=false"><span class="brand-mark"><AppIcon name="graph" :size="27"/></span><span><strong>知域 <em>Atlas</em></strong><small>CV 知识图谱</small></span></RouterLink>
-      <div class="sidebar-caption">研究导航 <span>PROTOTYPE</span></div>
+      <div class="sidebar-caption">研究导航</div>
       <nav aria-label="三级功能菜单" class="nav-scroll">
         <section v-for="group in groups" :key="group.name" class="nav-group">
           <button class="nav-group-title" :aria-expanded="!collapsed.includes(group.name)" @click="toggle(group.name)"><AppIcon :name="group.name==='文献调研'?'book':group.name==='研究分析'?'graph':group.name==='数据管理'?'layers':'shield'"/><span>{{group.name}}</span><AppIcon name="down" :size="14" :class="{turned:collapsed.includes(group.name)}"/></button>
@@ -40,7 +42,7 @@ watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAu
           </div>
         </section>
       </nav>
-      <div class="sidebar-foot"><span class="member-avatar">D</span><div><strong>成员 D · 本轮原型</strong><small>A / B 已接入 · C 待接入</small></div><span class="online-dot"></span></div>
+      <RouterLink class="sidebar-foot" :to="auth.session?'/admin/access-check':'/admin/login'" aria-label="登录状态"><span class="member-avatar"><AppIcon name="user" :size="17"/></span><div role="status"><strong>{{loginStatus}}</strong><small>{{loginHint}}</small></div><span class="online-dot" :class="{'session-inactive':!auth.session||auth.backend!=='online'}"></span></RouterLink>
     </aside>
     <div class="main-shell">
       <header class="topbar">
@@ -53,7 +55,8 @@ watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAu
       </header>
       <div v-if="notice" class="global-notice" role="status">{{notice}}<button class="icon-button" aria-label="关闭提示" @click="notice=''"><AppIcon name="close" :size="14"/></button></div>
       <main id="main-content"><RouterView/></main>
-      <footer class="app-footer"><span>知域 Atlas · CV 研究探索原型</span><span>A 论文元数据 · B 待审核候选 · C 待接入</span></footer>
+      <footer class="app-footer"><span>知域 Atlas · CV 知识图谱研究平台</span><span>A 原始数据 · B 审核 · C 已发布图谱查询</span></footer>
     </div>
   </div>
 </template>
+<style scoped>.online-dot.session-inactive{background:#a0aeb7;border-color:#edf1f4}.sidebar-foot>div{min-width:0}.sidebar-foot strong{overflow-wrap:anywhere}.member-avatar{flex-shrink:0}</style>

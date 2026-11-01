@@ -70,7 +70,7 @@ onBeforeUnmount(()=>{overviewGeneration++;detailGeneration++;controller?.abort()
   <section class="standard-page candidate-page">
     <div class="page-heading"><div><div class="eyebrow">B · KNOWLEDGE & REVIEW</div><h1>{{reviewEnabled?'审核与改名':'候选与审核结果'}}</h1><p>{{reviewEnabled?'核对证据后，使用登录账号保存确认、驳回、改名或撤回决定。':'查看原始抽取、B 存档中的审核状态、纠正内容和操作历史。'}}</p></div><button class="button button-secondary" :disabled="loading||saving" @click="loadOverview"><AppIcon name="refresh"/>重新读取存档</button></div>
     <p v-if="notice" class="inline-success" role="status">{{notice}}</p>
-    <div class="mock-banner api-banner"><AppIcon name="info"/><span>B 固定样本与 A 当前数据库独立。已确认表示存档中的审核决定；提及不等于使用或验证，C 正式图谱待接入。</span></div>
+    <div class="mock-banner api-banner"><AppIcon name="info"/><span>B 审核结果与 C 发布快照独立；审核后须手动生成、导入、校验并发布，研究图谱才会更新。提及不等于使用或验证。</span></div>
     <StatePanel v-if="loading" kind="loading" title="正在校验 B 输入与审核存档"/>
     <StatePanel v-else-if="error" kind="error" title="B 数据读取或校验失败" :description="error" retry @retry="loadOverview"/>
     <template v-else-if="overview">

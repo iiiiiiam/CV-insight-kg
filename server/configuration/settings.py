@@ -17,6 +17,8 @@ class Settings:
     a_admin_token: str = ''
     b_vocabulary_path: str | None = None
     b_reviews_directory: str | None = None
+    c_base_url: str = 'http://127.0.0.1:8002'
+    c_admin_token: str = ''
 
     @classmethod
     def from_env(cls):
@@ -38,6 +40,8 @@ class Settings:
             origins=tuple(item.strip().rstrip('/') for item in origins.split(',') if item.strip()),
             a_base_url=os.getenv('A_API_BASE_URL', 'http://127.0.0.1:8000').rstrip('/'),
             a_admin_token=os.getenv('A_ADMIN_TOKEN', ''),
+            c_base_url=os.getenv('C_API_BASE_URL', 'http://127.0.0.1:8002').rstrip('/'),
+            c_admin_token=os.getenv('C_ADMIN_TOKEN') or os.getenv('GRAPH_ADMIN_TOKEN', ''),
             b_vocabulary_path=os.getenv('B_VOCABULARY_PATH') or None,
             b_reviews_directory=(os.getenv('B_REVIEWS_DIR') or
                                  (str(Path(os.environ['KNOWLEDGE_WORKBENCH_DATA']) / 'reviews')

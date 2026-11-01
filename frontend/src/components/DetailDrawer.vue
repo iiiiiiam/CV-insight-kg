@@ -1,26 +1,31 @@
 <script setup lang="ts">
 import {computed,nextTick,onBeforeUnmount,ref,watch} from 'vue'
-import type {EntityDetail,Paper} from '../types.ts'
+import type {CDetail,EntityDetail,Paper} from '../types.ts'
 import {TYPE_LABELS} from '../types.ts'
-import {research} from '../services/research.ts'
+import {rawResearch} from '../services/research.ts'
+import {graphResearch} from '../services/graph.ts'
+import CGraphDetail from './CGraphDetail.vue'
 import AppIcon from './AppIcon.vue'
 import StatePanel from './StatePanel.vue'
 import ConfirmedKnowledge from './ConfirmedKnowledge.vue'
 
-const props=defineProps<{id:string|null;type?:string}>()
-const emit=defineEmits<{close:[];paper:[id:string]}>()
+const props=defineProps<{id:string|null;type?:string;source?:'a'|'c';batchId?:string}>()
+const emit=defineEmits<{close:[];paper:[id:string];navigate:[id:string,type:string];explore:[id:string]}>()
 const loading=ref(false),error=ref(''),paper=ref<Paper|null>(null),entity=ref<EntityDetail|null>(null)
 const panel=ref<HTMLElement|null>(null)
+const cDetail=ref<CDetail|null>(null)
 let generation=0,controller:AbortController|undefined,previous:HTMLElement|null=null
-const title=computed(()=>paper.value?.title??entity.value?.node.label??'实体详情')
+const title=computed(()=>cDetail.value?.node.name??paper.value?.title??entity.value?.node.label??'实体详情')
 async function load(){
-  const current=++generation;controller?.abort();paper.value=null;entity.value=null;error.value=''
+  const current=++generation;controller?.abort();paper.value=null;entity.value=null;cDetail.value=null;error.value=''
   if(!props.id)return
   controller=new AbortController();loading.value=true
   try{
-    if(props.type==='Paper'){
-      const data=await research.getPaper(props.id,controller.signal);if(current===generation)paper.value=data
-    }else{const data=await research.getEntity(props.id,controller.signal);if(current===generation)entity.value=data}
+    if((props.source??(/^\d+$/.test(props.id)?'a':'c'))==='c'){
+      const data=await graphResearch.getDetail(props.id,controller.signal,props.batchId);if(current===generation)cDetail.value=data
+    }else if(props.type==='Paper'){
+      const data=await rawResearch.getPaper(props.id,controller.signal);if(current===generation)paper.value=data
+    }else{const data=await rawResearch.getEntity(props.id,controller.signal);if(current===generation)entity.value=data}
   }catch(e){if(current===generation&&!(e instanceof DOMException&&e.name==='AbortError'))error.value=e instanceof Error?e.message:'加载失败'}
   finally{if(current===generation)loading.value=false}
 }
@@ -34,7 +39,8 @@ function keydown(event:KeyboardEvent){
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
   }
 }
-watch(()=>props.id,async(id,old)=>{
+watch(()=>[props.id,props.batchId,props.source] as const,async(value,previousValue)=>{
+  const id=value[0],old=previousValue?.[0]
   if(id&&!old){previous=document.activeElement as HTMLElement;document.addEventListener('keydown',keydown);await nextTick();panel.value?.querySelector<HTMLButtonElement>('button')?.focus()}
   if(!id){document.removeEventListener('keydown',keydown);previous?.focus()}
   await load()
@@ -44,10 +50,11 @@ onBeforeUnmount(()=>{controller?.abort();document.removeEventListener('keydown',
 <template>
   <Teleport to="body">
     <div v-if="id" class="drawer-overlay" @click.self="emit('close')">
-      <aside ref="panel" class="detail-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <aside ref="panel" class="detail-drawer" role="dialog" aria-modal="true" :aria-label="title">
         <header class="drawer-header"><span class="eyebrow">DETAIL & EVIDENCE</span><button class="icon-button" aria-label="关闭详情" @click="emit('close')"><AppIcon name="close"/></button></header>
         <StatePanel v-if="loading" kind="loading" title="正在读取详情"/>
         <StatePanel v-else-if="error" kind="error" title="详情加载失败" :description="error" retry @retry="load"/>
+        <template v-else-if="cDetail"><span class="badge badge-teal">C 已审核发布批次 · {{cDetail.batch_id}}</span><CGraphDetail :detail="cDetail" @navigate="id=>emit('navigate',id,cDetail?.related.find(n=>n.id===id)?.type??'Paper')"/><button class="button button-secondary" @click="emit('explore',cDetail.node.id)">以此节点展开图谱</button></template>
         <template v-else>
           <span class="badge badge-teal">{{paper?'论文':entity?TYPE_LABELS[entity.node.type]:'详情'}}</span>
           <h2 id="drawer-title">{{title}}</h2>

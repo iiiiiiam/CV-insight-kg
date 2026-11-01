@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import secrets
 from typing import Literal
+from urllib.parse import quote
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
@@ -11,8 +12,12 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from server.api.schemas import ImportRequest, LoginRequest, KnowledgeReviewRequest
+from server.api.schemas import (ImportRequest, LoginRequest, KnowledgeReviewRequest,
+                                GraphImportRequest, GraphPublishRequest)
 from server.application.a_gateway import AServiceClient, AServiceUnavailable
+from server.application.c_gateway import CServiceClient
+from server.application.graph_policy import GraphBoundaryError, require_reviewed_batch
+from server.application.graph_batches import prepare_graph_batch
 from server.application.knowledge import (KnowledgeSnapshot, UnknownSnapshotPaper,
                                           KnowledgeSnapshotInvalid, KnowledgeSnapshotChanged,
                                           KnowledgeReviewRejected, KnowledgeReviewStorageError)
@@ -42,12 +47,13 @@ def create_app(settings: Settings | None = None):
     async def lifespan(app: FastAPI):
         app.state.auth = AuthService(settings)
         app.state.a_service = AServiceClient(settings)
+        app.state.c_service = CServiceClient(settings)
         yield
         app.state.auth.sessions.clear()
 
     app = FastAPI(
         title='CVKG D Gateway',
-        version='0.5.0',
+        version='0.6.0',
         lifespan=lifespan,
         docs_url='/api/docs',
         openapi_url='/api/openapi.json',
@@ -123,6 +129,62 @@ def create_app(settings: Settings | None = None):
         # Fresh and local to this request: invalid archives do not disable login/A APIs.
         return KnowledgeSnapshot(vocabulary_path=settings.b_vocabulary_path,
                                  reviews_directory=settings.b_reviews_directory)
+
+    @app.exception_handler(GraphBoundaryError)
+    async def handle_graph_error(request: Request, exc: GraphBoundaryError):
+        return JSONResponse(status_code=exc.status, content={
+            'error': {'code': exc.code, 'message': exc.message},
+            'request_id': request.state.request_id,
+        })
+
+    @app.get('/api/graph/health')
+    async def graph_health():
+        return upstream_response(await app.state.c_service.request('GET', '/api/health'))
+
+    @app.get('/api/research/{resource}')
+    async def c_research(resource: Literal['papers', 'entities', 'graph'], request: Request):
+        response = await app.state.c_service.research('/api/research/' + resource, request.query_params.multi_items())
+        return upstream_response(response)
+
+    @app.get('/api/research/{resource}/{entity_id:path}')
+    async def c_detail(resource: Literal['papers', 'entities', 'authors', 'institutions'], entity_id: str, request: Request):
+        path = '/api/research/' + resource + '/' + quote(entity_id, safe='')
+        return upstream_response(await app.state.c_service.research(path, request.query_params.multi_items()))
+
+    @app.get('/api/components/c-paper-detail.js', include_in_schema=False)
+    def c_component():
+        return FileResponse(Path(__file__).resolve().parents[2] / 'src/graph_query/paper-detail.js', media_type='text/javascript')
+
+    @app.get('/api/admin/graph/preview')
+    def graph_preview(batch_id: str = Query(pattern='^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$'),
+                      source_batch_id: str = Query(min_length=1, max_length=200),
+                      snapshot_revision: str = Query(pattern='^[0-9a-f]{64}$'),
+                      _session: Session = Depends(require_admin)):
+        _payload, summary = prepare_graph_batch(read_knowledge(), batch_id, source_batch_id, snapshot_revision)
+        return summary
+
+    @app.post('/api/admin/graph/import')
+    async def graph_import(body: GraphImportRequest, _session: Session = Depends(require_admin_write)):
+        payload, summary = prepare_graph_batch(read_knowledge(), body.batch_id, body.source_batch_id, body.snapshot_revision)
+        if summary['digest'] != body.digest:
+            raise GraphBoundaryError(409, 'GRAPH_PREVIEW_CHANGED', '批次内容与预览不一致，请重新生成预览。')
+        return upstream_response(await app.state.c_service.request('POST', '/api/admin/graph/batches', body=payload))
+
+    @app.get('/api/admin/graph/batches/{batch_id}')
+    async def graph_batch(batch_id: str, _session: Session = Depends(require_admin)):
+        return upstream_response(await app.state.c_service.batch(batch_id))
+
+    @app.post('/api/admin/graph/batches/{batch_id}/publish')
+    async def graph_publish(batch_id: str, body: GraphPublishRequest, _session: Session = Depends(require_admin_write)):
+        response = await app.state.c_service.batch(batch_id)
+        if not response.is_success:
+            return upstream_response(response)
+        metadata = require_reviewed_batch(response.json(), batch_id)
+        if not metadata.get('publishable'):
+            raise GraphBoundaryError(409, 'GRAPH_NOT_PUBLISHABLE', '批次完整性校验未通过，保留当前发布版本。')
+        path = '/api/admin/batches/' + quote(batch_id, safe='') + '/publish'
+        return upstream_response(await app.state.c_service.request('POST', path,
+            body={'expected_active_batch_id': body.expected_active_batch_id, 'allow_developer_fixture': False}))
 
     async def call_a(method: str, path: str, *, params=None, body=None):
         upstream = await app.state.a_service.request(method, path, params=params, body=body)
