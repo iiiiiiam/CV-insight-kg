@@ -1,110 +1,13 @@
-# ===================== Python 基础 =====================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-env/
-venv/
-.venv/
-env.bak/
-venv.bak/
-.pytest_cache/
-.tox/
-.hypothesis/
-.coverage
-htmlcov/
-
-# ===================== Jupyter Notebook =====================
-.ipynb_checkpoints/
-*/.ipynb_checkpoints/*
-
-# ===================== 爬虫 & 论文原始数据 =====================
-# 原始PDF、html网页、批量爬取raw数据
-raw_data/
-raw_papers/
-pdfs/
-downloads/
-crawl_cache/
-# 大批量导出的jsonl、原始元数据
-*.raw.json
-*.raw.jsonl
-# 你可以保留少量样例：比如样例放在 sample_data/ 想提交就注释掉这一行
-# sample_data/
-
-# ===================== 知识图谱、图数据库相关 =====================
-# Neo4j 数据库库文件、dump备份
-neo4j_data/
-neo4j_dump/
-*.dump
-# 其他图缓存、中间抽取结果
-embeddings/
-vector_cache/
-*.npy
-*.pth
-*.bin
-checkpoints/
-model_weights/
-
-# ===================== 中间处理结果（抽取后的大体积结构化数据） =====================
-processed_data/
-output/
-export/
-tmp/
-temp/
-*.log
-logs/
-
-# ===================== 前端可视化（如果有Vue/React前端） =====================
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.pnpm-debug.log*
-dist/
-build/
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# ===================== IDE、编辑器、系统文件 =====================
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.DS_Store
-Thumbs.db
-
-# ===================== 敏感配置 =====================
 .env
-.env.local
-.env.*.local
-config_secret.yaml
-secret.json
-
-# ===================== 数据库、缓存、本地服务 =====================
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
 *.db
-*.sqlite
-*.sqlite3
-cache/
+*.db-*
+backups/
+data/
+dist/
+.pytest_cache/
+.DS_Store

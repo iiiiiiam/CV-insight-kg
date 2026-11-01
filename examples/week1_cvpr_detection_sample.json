@@ -1,0 +1,187 @@
+{
+  "description": "CVPR 2024 object detection prototype sample; OpenAlex metadata, no manual entity labels",
+  "source": "https://api.openalex.org/works",
+  "count": 10,
+  "papers": [
+    {
+      "openalex_id": "https://openalex.org/W4402754006",
+      "doi": "10.1109/cvpr52733.2024.01605",
+      "title": "DETRs Beat YOLOs on Real-time Object Detection",
+      "authors": [
+        "Y. Zhao",
+        "Wenyu Lv",
+        "Shangliang Xu",
+        "Jinman Wei",
+        "Guanzhong Wang",
+        "Qingqing Dang",
+        "Yi Liu",
+        "Jie Chen"
+      ],
+      "abstract": "The YOLO series has become the most popular frame-work for real-time object detection due to its reasonable trade-off between speed and accuracy. However, we observe that the speed and accuracy of YOLOs are negatively affected by the NMS. Recently, end-to-end Transformer-based detectors (DETRs) have provided an alternative to eliminating NMS. Nevertheless, the high computational cost limits their practicality and hinders them from fully exploiting the advantage of excluding NMS. In this paper, we propose the Real-Time DEtection TRansformer (RT-DETR), the first real-time end-to-end object detector to our best knowledge that addresses the above dilemma. We build RT-DETR in two steps, drawing on the advanced DETR: first we focus on maintaining accuracy while improving speed, followed by maintaining speed while improving accuracy. Specifically, we design an efficient hybrid encoder to expeditiously process multi-scale features by decoupling intra-scale interaction and cross-scale fusion to improve speed. Then, we propose the uncertainty-minimal query selection to provide high-quality initial queries to the decoder, thereby improving accuracy. In addition, RT-DETR supports flexible speed tuning by adjusting the number of decoder layers to adapt to various scenarios without retraining. Our RT-DETR-R50 /R101 achieves 53.1% 154.3% AP on COCO and 108 /74 FPS on T4 GPU, outperforming previously advanced YOLOs in both speed and accuracy. Furthermore, RT-DETR-R50 outperforms DINO-R50 by 2.2% AP in accuracy and about 21 times in FPS. After pre-training with Objects365, RT-DETR-R50 / R101 achieves 55.3% 156.2% AP. The project page: https://zhao-yian.github.io/RTDEtr.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754006"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402716047",
+      "doi": "10.1109/cvpr52733.2024.01599",
+      "title": "YOLO-World: Real-Time Open-Vocabulary Object Detection",
+      "authors": [
+        "Tianheng Cheng",
+        "Lin Song",
+        "Yixiao Ge",
+        "Wenyu Liu",
+        "Xinggang Wang",
+        "Ying Shan"
+      ],
+      "abstract": "The You Only Look Once (YOLO) series of detectors have established themselves as efficient and practical tools. However, their reliance on predefined and trained object categories limits their applicability in open scenarios. Addressing this limitation, we introduce YOLO-World, an innovative approach that enhances YOLO with open-vocabulary detection capabilities through vision-language modeling and pre-training on large-scale datasets. Specifically, we propose a new Re-parameterizable Vision-Language Path Aggregation Network (RepVL-PAN) and region-text contrastive loss to facilitate the interaction between visual and linguistic information. Our method excels in detecting a wide range of objects in a zero-shot manner with high efficiency. On the challenging LVIS dataset, YOLO-World achieves 35.4 AP with 52.0 FPS on V100, which outperforms many state-of-the-art methods in terms of both accuracy and speed. Furthermore, the finetuned YOLO-World achieves remarkable performance on several downstream tasks, including object detection and open-vocabulary instance segmentation. Code and models are available at: https://github.com/AILab-eve/YOLO-World.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716047"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402772396",
+      "doi": "10.1109/cvpr52733.2024.01563",
+      "title": "CrossKD: Cross-Head Knowledge Distillation for Object Detection",
+      "authors": [
+        "Jiabao Wang",
+        "Yuming Chen",
+        "Zhaohui Zheng",
+        "Xiang Li",
+        "Ming‐Ming Cheng",
+        "Qibin Hou"
+      ],
+      "abstract": "Knowledge Distillation (KD) has been validated as an effective model compression technique for learning compact object detectors. Existing state-of-the-art KD methods for object detection are mostly based on feature imitation. In this paper, we present a general and effective prediction mimicking distillation scheme, called CrossKD, which delivers the intermediate features of the student's detection head to the teacher's detection head. The resulting crosshead predictions are then forced to mimic the teacher's predictions. This manner relieves the student's head from receiving contradictory supervision signals from the annotations and the teacher's predictions, greatly improving the student's detection performance. Moreover, as mimicking the teacher's predictions is the target of KD, CrossKD offers more task-oriented information in contrast with feature imitation. On MS COCO, with only prediction mimicking losses applied, our CrossKD boosts the average precision of GFL ResNet-50 with 1 × training schedule from 40.2 to 43.7, outperforming all existing KD methods. In addition, our method also works well when distilling detectors with heterogeneous backbones.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402772396"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402754159",
+      "doi": "10.1109/cvpr52733.2024.01414",
+      "title": "RCBEVDet: Radar-Camera Fusion in Bird's Eye View for 3D Object Detection",
+      "authors": [
+        "Zhiwei Lin",
+        "Zhe Liu",
+        "Zhongyu Xia",
+        "Xinhao Wang",
+        "Yongtao Wang",
+        "Shengxiang Qi",
+        "Dong Yang",
+        "Nan Dong",
+        "Le Zhang",
+        "Ce Zhu"
+      ],
+      "abstract": "Three-dimensional object detection is one of the key tasks in autonomous driving. To reduce costs in practice, low-cost multi-view cameras for 3D object detection are proposed to replace the expansive LiDAR sensors. However, relying solely on cameras is difficult to achieve highly accurate and robust 3D object detection. An effective solution to this issue is combining multi-view cameras with the economical millimeter-wave radar sensor to achieve more reliable multi-modal 3D object detection. In this paper, we introduce RCBEVDet, a radar-camera fusion 3D object detection method in the bird's eye view (BEV). Specifically, we first design RadarBEVNet for radar BEV feature extraction. RadarBEVNet consists of a dual-stream radar backbone and a Radar Cross-Section (RCS) aware BEV encoder. In the dual-stream radar backbone, a point-based encoder and a transformer-based encoder are proposed to extract radar features, with an injection and extraction module to facilitate communication between the two encoders. The RCS-aware BEV encoder takes RCS as the object size prior to scattering the point feature in BEV. Besides, we present the Cross-Attention Multi-layer Fusion module to automatically align the multi-modal BEV feature from radar and camera with the deformable attention mechanism, and then fuse the feature with channel and spatial fusion layers. Experimental results show that RCBEVDet achieves new state-of-the-art radar-camera fusion results on nuScenes and view-of-delft (VoD) 3D object detection benchmarks. Furthermore, RCBEVDet achieves better 3D detection results than all real-time camera-only and radar-camera 3D object detectors with a faster inference speed at 21∼28 FPS. The source code will be released at https://github.com/VDIGPKU/RCBEVDet.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754159"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402727868",
+      "doi": "10.1109/cvpr52733.2024.01625",
+      "title": "VSCode: General Visual Salient and Camouflaged Object Detection with 2D Prompt Learning",
+      "authors": [
+        "Ziyang Luo",
+        "Nian Liu",
+        "Wangbo Zhao",
+        "Xuguang Yang",
+        "Dingwen Zhang",
+        "Deng-Ping Fan",
+        "Fahad Shahbaz Khan",
+        "Junwei Han"
+      ],
+      "abstract": "Salient object detection (SOD) and camouflaged object detection (COD) are related yet distinct binary mapping tasks. These tasks involve multiple modalities, sharing commonalities and unique cues. Existing research often employs intricate task-specific specialist models, potentially leading to redundancy and suboptimal results. We introduce VS-Code, a generalist model with novel 2D prompt learning, to jointly address four SOD tasks and three COD tasks. We utilize VST as the foundation model and introduce 2D prompts within the encoder-decoder architecture to learn domain and task-specific knowledge on two separate dimensions. A prompt discrimination loss helps disentangle peculiarities to benefit model optimization. VSCode outperforms state-of-the-art methods across six tasks on 26 datasets and exhibits zero-shot generalization to unseen tasks by combining 2D prompts, such as RGB-D COD. Source code has been available at https://github.com/Sssssuperior/VSCode.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727868"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402702923",
+      "doi": "10.1109/cvpr52733.2024.01664",
+      "title": "Salience DETR: Enhancing Detection Transformer with Hierarchical Salience Filtering Refinement",
+      "authors": [
+        "Xiuquan Hou",
+        "Meiqin Liu",
+        "Senlin Zhang",
+        "Ping Wei",
+        "Badong Chen"
+      ],
+      "abstract": "DETR-like methods have significantly increased detection performance in an end-to-end manner. The main-stream two-stage frameworks of them perform dense self-attention and select a fraction of queries for sparse cross-attention, which is proven effective for improving performance but also introduces a heavy computational burden and high dependence on stable query selection. This paper demonstrates that suboptimal two-stage selection strategies result in scale bias and redundancy due to the mismatch between selected queries and objects in two-stage initial-ization. To address these issues, we propose hierarchical salience filtering refinement, which performs transformer encoding only on filtered discriminative queries, for a bet-ter trade-off between computational efficiency and precision. The filtering process overcomes scale bias through a novel scale-independent salience supervision. To com-pensate for the semantic misalignment among queries, we introduce elaborate query refinement modules for stable two-stage initialization. Based on above improvements, the proposed Salience DETR achieves significant improvements of +4.0% AP, +0.2% AP, +4.4% AP on three challenging task-specific detection datasets, as well as 49.2% AP on COCO 2017 with less FLOPs. The code is available at https://github.com/xiuqhou/Salience-DETR.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402702923"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402703030",
+      "doi": "10.1109/cvpr52733.2024.01412",
+      "title": "IS-Fusion: Instance-Scene Collaborative Fusion for Multimodal 3D Object Detection",
+      "authors": [
+        "Junbo Yin",
+        "Jianbing Shen",
+        "Runnan Chen",
+        "Wei Li",
+        "Ruigang Yang",
+        "Pascal Frossard B",
+        "Wenguan Wang"
+      ],
+      "abstract": "Bird's eye view (BEV) representation has emerged as a dominant solution for describing 3D space in autonomous driving scenarios. However, objects in the BEV representation typically exhibit small sizes, and the associated point cloud context is inherently sparse, which leads to great challenges for reliable 3D perception. In this paper, we propose IS-Fusion, an innovative multimodal fusion framework that jointly captures the Instance- and Scene-level contextual information. IS-Fusion essentially differs from existing approaches that only focus on the BEV scene-level fusion by explicitly incorporating instance-level multimodal information, thus facilitating the instance-centric tasks like 3D object detection. It comprises a Hierarchical Scene Fusion (HSF) module and an Instance-Guided Fusion (IGF) module. HSF applies Point-to-Grid and Grid-to-Region transformers to capture the multimodal scene context at different granularities. IGF mines instance candidates, explores their relationships, and aggregates the local multimodal context for each instance. These instances then serve as guidance to enhance the scene feature and yield an instance-aware BEV representation. On the challenging nuScenes benchmark, IS-Fusion outperforms all the published multimodal works to date. Code is available at: https://github.com/yinjunbo/IS-Fusion.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402703030"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402775842",
+      "doi": "10.1109/cvpr52733.2024.02534",
+      "title": "Weakly Misalignment-Free Adaptive Feature Alignment for UAVs-Based Multimodal Object Detection",
+      "authors": [
+        "Chen Chen",
+        "Jiahao Qi",
+        "Xingyue Liu",
+        "Kangcheng Bin",
+        "Ruigang Fu",
+        "Xikun Hu",
+        "Ping Zhong"
+      ],
+      "abstract": "Visible-infrared (RGB-IR) image fusion has shown great potentials in object detection based on unmanned aerial ve-hicles (UAVs). However, the weakly misalignment problem between multimodal image pairs limits its performance in object detection. Most existing methods often ignore the modality gap and emphasize a strict alignment, resulting in an upper bound of alignment quality and an increase of implementation costs. To address these challenges, we propose a novel method named Offset-guided Adaptive Feature Alignment (OAFA), which could adaptively adjust the relative positions between multimodal features. Considering the impact of modality gap on the cross-modality spa-tial matching, a Cross-modality Spatial Offset Modeling (CSOM) module is designed to establish a common sub-space to estimate the precise feature-level offsets. Then, an Offset-guided Deformable Alignment and Fusion (ODAF) module is utilized to implicitly capture optimal fusion po-sitions for detection task rather than conducting a strict alignment. Comprehensive experiments demonstrate that our method not only achieves state-of-the-art performance in the UAVs-based object detection task but also shows strong robustness to the weakly misalignment problem.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402775842"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402702961",
+      "doi": "10.1109/cvpr52733.2024.01611",
+      "title": "MS-DETR: Efficient DETR Training with Mixed Supervision",
+      "authors": [
+        "Chuyang Zhao",
+        "Yifan Sun",
+        "W. Wang",
+        "Qiang Chen",
+        "Errui Ding",
+        "Yi Yang",
+        "Jingdong Wang"
+      ],
+      "abstract": "DETR accomplishes end-to-end object detection through iteratively generating multiple object candidates based on image features and promoting one candidate for each ground-truth object. The traditional training procedure using one-to-one supervision in the original DETR lacks di-rect supervision for the object detection candidates. We aim at improving the DETR training efficiency by explicitly supervising the candidate generation procedure through mixing one-to-one supervision and one-to-many su-pervision. Our approach, namely MS-DETR, is simple, and places one-to-many supervision to the object queries of the primary decoder that is used for inference. In comparison to existing DETR variants with one-to-many supervision, such as Group DETR and Hybrid DETR, our approach does not need additional decoder branches or object queries; the object queries of the primary decoder in our approach di-rectly benefit from one-to-many supervision and thus are superior in object candidate prediction. Experimental results show that our approach outperforms related DETR variants, such as DN-DETR, Hybrid DETR, and Group DETR, and the combination with related DETR variants further improves the performance. Code is available at: https://github.com/Atten4Vis/MS-DETR.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402702961"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402716222",
+      "doi": "10.1109/cvpr52733.2024.01372",
+      "title": "SAFDNet: A Simple and Effective Network for Fully Sparse 3D Object Detection",
+      "authors": [
+        "Gang Zhang",
+        "Junnan Chen",
+        "Guohuan Gao",
+        "Jianmin Li",
+        "Si Liu",
+        "Xiaolin Hu"
+      ],
+      "abstract": "LiDAR-based 3D object detection plays an essential role in autonomous driving. Existing high-performing 3D object detectors usually build dense feature maps in the backbone network and prediction head. However, the computational costs introduced by the dense feature maps grow quadratically as the perception range increases, making these models hard to scale up to long-range detection. Some recent works have attempted to construct fully sparse detectors to solve this issue; nevertheless, the resulting models either rely on a complex multi-stage pipeline or exhibit inferior performance. In this work, we propose a fully sparse adaptive feature diffusion network (SAFDNet) for LiDAR-based 3D object detection. In SAFDNet, an adaptive feature diffusion strategy is designed to address the center feature missing problem. We conducted extensive experiments on Waymo Open, nuScenes, and Argoverse2 datasets. SAFDNet performed slightly better than the previous SOTA on the first two datasets but much better on the last dataset, which features long-range detection, verifying the efficacy of SAFDNet in scenarios where long-range detection is required. Notably, on Argoverse2, SAFDNet surpassed the previous best hybrid detector HEDNet by 2.6% mAP while being 2.1 × faster, and yielded 2.1% mAP gains over the previous best sparse detector FSDv2 while being 1.3 × faster. The code will be available at https://github.com/zhanggang001/HEDNet.",
+      "venue": "CVPR",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716222"
+    }
+  ]
+}
