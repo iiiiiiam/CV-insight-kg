@@ -1,149 +1,314 @@
-# D 端本轮原型
+# CV Insight KG · D 前端与集成网关
 
-## 0. 当前启动与 503 排查
+D 提供 Vue 3 前端、FastAPI 网关和管理员会话，将 A 的原始论文、B 的知识审核、C 的图谱查询与批次发布接入统一界面。
 
-D 的默认研究页现在读取 C（8002）的已发布图谱；A 的原始 20 篇论文仍通过 `/research/raw-papers` 查看。研究页请求失败时数量显示“—”，只有成功查询且确实无匹配结果时才显示 0。匿名访问 `/api/admin/session` 返回 401 是未登录状态，不会阻止公开论文查询。
+本文是 **D 整合环境的运行与操作说明**。命令默认在 Windows PowerShell 中执行；除注明外，工作目录均为仓库根目录。安装、启动和验收由使用者自行执行。
 
-若日志出现 `C_SERVICE_UNAVAILABLE`，先检查 C 的 8002 是否启动。D 的 8001 正常启动并不代表 C 或 Neo4j 已就绪。还可能遇到 Neo4j 不可用、服务令牌未配置/不匹配等 503；应查看响应中的具体错误代码。服务正常但没有发布批次时，C 返回 `PUBLISHED_BATCH_NOT_FOUND`（404），这与连接失败不同。
+## 1. 职责与当前范围
 
-整合后的运行依赖入口为 `server/requirements.txt`，已包含 `requirements-graph.txt`；开发测试使用 `server/requirements-dev.txt`。本次不代装依赖。已有环境缺少 `neo4j` 时，由使用者执行：
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r server/requirements.txt
-.\.venv\Scripts\python.exe -m server.init_c
-```
-
-`server.init_c` 只补齐缺失/空的 C 网关配置，不覆盖已有非空账号和配置；服务令牌写入被忽略的 `server/.env`，不会输出到终端。D 和 `server.run_c` 复用这一令牌。若 D 已启动，初始化后只需重启 D；不需要终止所有进程。
-
-将 `graph.env.example` 复制为根目录 `graph.env`（已有文件不要覆盖），按实际 Neo4j 配置填写 `NEO4J_URI`、`NEO4J_USER`、`NEO4J_PASSWORD`、`NEO4J_DATABASE`。该本地文件已被 Git 忽略。`server.run_c` 自动读取它，管理令牌使用 D 的 `C_ADMIN_TOKEN`。先启动可用的 Neo4j，再额外打开一个终端执行：
-
-```powershell
-.\.venv\Scripts\python.exe -m server.run_c
-```
-
-C 监听 `127.0.0.1:8002`。保留 A（8000）、D（8001）、前端（5173）三个现有终端；也可双击 `start-c.cmd`。不要同时使用 README-C 中占用 8001 的独立演示启动命令，也不要导入/允许发布开发夹具来填充正式研究页。
-
-检查 D 的 `/api/graph/health` 后，在 D 管理页完成“B 人工审核 → 生成批次预览 → 导入 → 校验 → 手动发布”。每个有确认知识的论文分区需要确认对应论文实体，关系端点也必须已确认。导入不等于发布；没有发布时研究页保持提示，不回退到 A 冒充图谱。已打开研究页固定原批次，点击“读取最新发布”才切换。
-
-## 1. 交付范围
-
-在原仓库新增 Vue 3 前端和 FastAPI D 网关；A 的 `app/`、B 的 `src/knowledge_builder/`、样本及既有文档保持不变。
-
-| 功能 | 当前实际实现 | 对应需求 |
+| 部分 | 负责内容 | D 的接入方式 |
 | --- | --- | --- |
-| 研究工作台 | A 真实论文列表；标题/摘要关键词、年份、导入批次筛选；详情、作者、稳定 ID、来源、批次 | FR01、FR02 的现有 A 数据部分 |
-| 元数据关系图 | 转发 A 的 `paper_metadata` 图；论文—`PUBLISHED_IN`→会议；选中联动、高亮、点击详情、缩放与节点类型显隐 | FR03、FR06 的元数据交互部分 |
-| B 候选与审核 | 原始/审核结果分开；管理员可确认、驳回、改实体显示名和撤回，记录登录账号与理由；证据只读 | FR09、FR12 |
-| B 业务下载与已确认展示 | 管理端下载三状态 JSON 和完整 ZIP；论文详情匿名展示已确认实体、关系及证据，不显示待审、驳回和私有审核历史 | FR09 的结果交付、FR02 的知识详情部分 |
-| 管理员会话 | 服务端验密、登录、查询会话、退出、会话撤销、Cookie、CSRF、权限验证 | FR12 |
-| 数据管理 | 基准清单、创建真实导入、任务/批次论文/错误、A 允许的原批次重试；D 网关保护管理接口 | FR08、FR12 的集成部分 |
-| 菜单与组件 | 全部 20 个三级菜单入口；未实现项有明确占位；加载、空态、失败重试、抽屉与图谱组件 | 第 1 周 M0、NFR10 |
+| A | 原始论文、基准清单、导入任务、导入批次和元数据关系 | 后端通过 HTTP 调用 A，保留 A 的业务规则 |
+| B | 候选抽取、证据、人工审核、存档和业务导出 | 复用 `src/knowledge_builder/`，读取固定样本及审核存档 |
+| C | Neo4j 存储、检索、节点详情、1—2 跳、批次导入与发布 | 后端通过 HTTP 调用 C，复用其 B 转换器和详情组件 |
+| D | 页面、交互、展示适配、登录权限、统一管理入口 | `frontend/` 与 `server/` |
 
-**C 接入代码已增加，完整端到端验收尚未完成。** 默认研究页通过 D 代理 C，接入已发布批次的论文检索、主题/方法筛选、1—2 跳、节点详情与只读证据；作者/机构仅有证据邻居骨架。管理页支持从 B 已确认结果手动预览、导入、校验和发布。A 原始论文入口保留，两个来源不自动混用。仍未实现 D 页面证据编辑及复杂身份/类别/方向纠正。B 原始抽取保持 `pending`，审核决定单独保存；没有存档时不自动确认。提及不代表使用或验证。关联洞察扩展留待基础任务完成后进行。此版本不能作为整个团队第一周全部功能已验收的证明。
+```text
+浏览器
+  └─ Vue 前端（开发时 5173；构建后也可由 D 的 8001 提供）
+      └─ D 网关（8001）：会话、权限、请求转发和展示适配
+          ├─ A 服务（8000）→ A 数据库
+          ├─ B Python 模块 → 固定样本、词表和审核存档
+          └─ C 服务（8002）→ Neo4j Bolt（7687）
+```
 
-## 2. 依赖与配置
+主要接入代码已提供，但不能据此宣布完整项目或新增 C 链路已全部验收。真实 B 人工确认结果从审核到入库、发布、研究查询的全过程，仍需在实际环境中验证。
 
-- Python 3.11 或更高版本；Node.js 22.18 或更高版本。
-- Python 运行依赖：`server/requirements.txt`，复用 A 原始依赖清单并增加 D 依赖。
-- Python 测试依赖：`server/requirements-dev.txt`。
-- 前端依赖：`frontend/package.json`。以下由使用者自行安装，本次未代装依赖。
+### 1.1 三种数据状态
 
-在仓库根目录执行：
+| 状态 | 含义 | 是否进入正式研究图谱 |
+| --- | --- | --- |
+| A 已导入 | 原始论文已保存，可以查来源和导入批次 | 不会仅因导入而进入 |
+| B 已确认 | 候选实体或关系经人工核对，决定保存到 B 存档 | 还需要生成、导入并发布图谱批次 |
+| C 已发布 | 某一版确认结果已发布为图谱快照 | D 只接受 `reviewed_export` 来源的发布批次 |
+
+**默认研究页查询 C，不查询 A。** A 原始论文保留独立入口。C 不可用或尚无正式发布时，不回退到 A，也不使用开发夹具补足。
+
+## 2. 环境与端口
+
+### 2.1 环境要求
+
+- Python 3.10 或更高版本；已有且可用的 `.venv` 可以继续使用。
+- Node.js 22.18 或更高版本。
+- Neo4j **5.26 Community**，数据库名 `neo4j`。
+- ZIP 部署 Neo4j 时，需要兼容 Java，建议 JDK 21。
+- Docker 是可选方式；已有 ZIP 数据库时无需再启动 Docker 数据库。
+
+| 用途 | 依赖清单 |
+| --- | --- |
+| 整合运行的 Python 依赖 | `server/requirements.txt`，包含根目录及 C 的依赖清单 |
+| Python 开发测试 | `server/requirements-dev.txt` |
+| 前端运行、构建和测试 | `frontend/package.json` |
+
+### 2.2 端口用途
+
+| 端口 | 服务 | 用途 |
+| --- | --- | --- |
+| 5173 | Vue 开发服务器 | 日常前端页面，将 `/api` 代理到 D |
+| 8001 | D 网关 | 登录、权限、A/C 代理、B 操作；有构建产物时也提供页面 |
+| 8000 | A 服务 | 原始论文、导入管理和任务接口 |
+| 8002 | C 服务 | 图谱查询、详情、批次导入和发布 |
+| 7687 | Neo4j Bolt | C 的 Python 驱动连接数据库，不是网页地址 |
+| 7474 | Neo4j Browser / HTTP | 登录数据库、手动执行 Cypher |
+
+
+同一轮操作统一使用 `127.0.0.1`，避免与 `localhost` 混用产生不同的浏览器会话。第一周各自在本机部署；`127.0.0.1` 指当前电脑。
+
+## 3. 首次安装与配置
+
+### 3.1 安装依赖
+
+进入仓库根目录：
+
+```powershell
+cd D:\codex_data\insight\CV-insight-kg
+```
+
+只有没有虚拟环境时才需要创建：
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r server/requirements-dev.txt
-.\.venv\Scripts\python.exe -m server.init_local
 ```
 
-`server.init_local` 从 `server/.env.example` 生成本地 `server/.env`，已有配置不会覆盖。默认账号为 `admin`，随机密码在该文件的 `ADMIN_PASSWORD` 中；`SESSION_SECRET` 与 `A_ADMIN_TOKEN` 同时随机生成。该文件已被 Git 忽略，不需要更改 A 根目录的 `.env`。
+安装运行依赖，初始化本地配置：
 
-B 数据默认复用 `data/knowledge_builder/reviews/`，并沿用 B 对旧 `data/b_reviews/` 目录的检测规则。新旧目录同时有记录时明确报错，不混读。可在 `server/.env` 选填 `B_REVIEWS_DIR` 指定审核目录、`B_VOCABULARY_PATH` 指定词表，路径相对于仓库根目录或使用绝对路径。若未显式设置审核目录且环境中已有 `KNOWLEDGE_WORKBENCH_DATA`，则读取该目录的 `reviews/`，与 B 原型一致。
-
-旧版词表存档请配 `B_VOCABULARY_PATH=examples/knowledge_builder/vocabulary_v0.1.json`，同时选择对应审核目录。新版默认词表为 `cv-terms/0.2`；不会迁移或套用旧版确认。修改配置后仅需重启 D 网关。样本、词表和存档会在每次请求中重读，B 审核后点击页面“重新读取存档”即可查看，无需重启 D。
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r server/requirements.txt
+.\.venv\Scripts\python.exe -m server.init_local
+.\.venv\Scripts\python.exe -m server.init_c
+```
 
 安装前端依赖：
 
 ```powershell
 cd frontend
 npm install
+cd ..
 ```
 
-## 3. 启动
+`server.init_local` 在不存在时生成 `server/.env`，已有文件不会覆盖；`server.init_c` 补齐缺失或空的 C 地址及服务令牌，保留已有非空配置。
 
-先按第 0 节完成 C / Neo4j 配置并启动 C（8002），再从仓库根目录分别打开以下三个终端：
+### 3.2 D 配置：`server/.env`
+
+| 配置项 | 含义 |
+| --- | --- |
+| `ADMIN_USERNAME` | D 管理员账号，初始为 `admin` |
+| `ADMIN_PASSWORD` | D 登录密码，初始化时随机生成，在本地文件中查看 |
+| `SESSION_SECRET` | D 会话签名密钥 |
+| `SESSION_TTL_SECONDS` | 会话有效期，默认 3600 秒 |
+| `COOKIE_SECURE` | 本地 HTTP 使用 `false` |
+| `ALLOWED_ORIGINS` | 允许的前端来源；改端口时同步调整 |
+| `A_API_BASE_URL` | 默认 `http://127.0.0.1:8000` |
+| `A_ADMIN_TOKEN` | D 与 A 包装启动入口复用的服务令牌 |
+| `C_API_BASE_URL` | 默认 `http://127.0.0.1:8002` |
+| `C_ADMIN_TOKEN` | D 调用 C 管理接口的服务令牌 |
+| `B_REVIEWS_DIR`（可选） | B 审核目录，相对路径按仓库根目录解析 |
+| `B_VOCABULARY_PATH`（可选） | 与审核存档匹配的 B 词表版本 |
+
+真实密码和令牌只保留在本地配置，不写进 README 或提交到仓库。修改配置后重启相关服务。
+
+### 3.3 Neo4j 配置：根目录 `graph.env`
+
+新建根目录 `graph.env`，或参考 `graph.env.example`；已有文件直接编辑，不覆盖实际配置。
+
+```dotenv
+NEO4J_URI=bolt://127.0.0.1:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=替换为本机数据库实际密码
+NEO4J_DATABASE=neo4j
+```
+
+`graph.env` 与 `server/.env` 是不同文件，均已被 Git 忽略。数据库密码、D 登录密码、D/C 服务令牌是三种不同凭据。
+
+整合入口 `server.run_c` 自动读取 `graph.env`，并将 D 的 `C_ADMIN_TOKEN` 用于 C 管理鉴权，无需另行生成一套 `GRAPH_ADMIN_TOKEN`。若手动启动独立 C 服务，必须保证其 `GRAPH_ADMIN_TOKEN` 与 D 的 `C_ADMIN_TOKEN` 一致。
+
+配置加载不覆盖已有进程环境变量；若当前终端以前设置过相关变量，应确保它们与配置文件一致。
+
+### 3.4 B 的样本与存档
+
+B 默认读取 `examples/week1_baseline.json` 的固定 20 篇样本及引用文件，使用当前默认词表；审核目录遵循 B 的规则，通常为 `data/knowledge_builder/reviews/`。
+
+- 存在旧 `data/b_reviews/` 时沿用 B 的检测规则；新旧目录同时有记录会报错，不混读。
+- 未指定 `B_REVIEWS_DIR` 时，兼容已有的 `KNOWLEDGE_WORKBENCH_DATA/reviews`。
+- 旧版存档需要匹配词表，例如 `examples/knowledge_builder/vocabulary_v0.1.json`，不能将旧确认套到新版抽取。
+- 每次请求重读并校验样本、词表、存档。审核后点击“重新读取存档”即可；改变路径配置需要重启 D。
+- A 后续新导入的论文，不会自动全部进入 B 当前的固定样本审核流程。
+
+## 4. 启动数据库与应用
+
+### 4.1 ZIP 方式启动 Neo4j
+
+解压 Neo4j 5.26 Community 并准备兼容 Java。以下目录为示例，替换为实际解压路径：
 
 ```powershell
-# 终端一：A 原代码的受保护启动入口，127.0.0.1:8000
+cd D:\tools\neo4j-community-5.26.x
+java -version
+.\bin\neo4j console
+```
+
+保持数据库终端运行，另开终端操作项目。已配置 Windows 服务时可使用服务方式，不要再同时启动同一实例的 console。
+
+打开 <http://127.0.0.1:7474>，连接 `bolt://127.0.0.1:7687`，使用本机账号密码登录。全新且尚未设定初始密码的实例通常以 `neo4j/neo4j` 首次登录，再按提示更改；已有实例使用原来的实际密码。将最终密码同步到 `graph.env`。
+
+在 Browser 中选择 `neo4j` 数据库，执行：
+
+```cypher
+RETURN 1 AS ok;
+```
+
+返回 `ok = 1` 表示数据库账号和查询可用，不代表已导入或发布业务数据。
+
+### 4.2 Docker 方式（与 ZIP 二选一）
+
+已有 ZIP 数据库时跳过本节。安装并启动 Docker Desktop 后，在仓库根目录使用已填写的 `graph.env`：
+
+```powershell
+docker compose --env-file graph.env -f compose.graph.yaml up -d
+docker compose --env-file graph.env -f compose.graph.yaml ps
+```
+
+项目镜像为 `neo4j:5.26-community`，绑定本机 7474、7687；健康状态应最终为 `healthy`。数据保存在命名卷中。已有数据卷的密码不会因修改配置文件而自动改变。
+
+### 4.3 分别启动 A、C、D 和前端
+
+每个命令使用单独终端。A、C、D 从仓库根目录执行，前端命令在 `frontend` 中执行。
+
+```powershell
+# A：8000
 .\.venv\Scripts\python.exe -m server.run_a
 ```
 
 ```powershell
-# 终端二：D 网关，127.0.0.1:8001
+# C：8002；先确保 Neo4j 正常运行
+.\.venv\Scripts\python.exe -m server.run_c
+```
+
+```powershell
+# D：8001
 .\.venv\Scripts\python.exe -m server.run
 ```
 
 ```powershell
-# 终端三：Vue 开发服务器，127.0.0.1:5173
+# 前端：5173
 cd frontend
 npm run dev
 ```
 
-Windows 下也可分别双击 `start-a-for-d.cmd`、`start-d.cmd`、`start-frontend.cmd`。这些入口只启动程序，不安装依赖。
+打开 <http://127.0.0.1:5173>。Windows 也可使用 `start-a-for-d.cmd`、`start-c.cmd`、`start-d.cmd`、`start-frontend.cmd`；这些入口不安装依赖。
 
-打开 <http://127.0.0.1:5173>。开发服务器把 `/api` 代理到 D；原始论文及导入请求由 D 调用 A，研究查询和图谱批次请求由 D 调用 C，审核复用 B 模块。浏览器使用同源 HttpOnly Cookie 会话，不需要把 A 管理令牌放在前端。
+注意：
 
-`server.run_a` 使用忽略提交的 `server/.local/a-demo.db`；首次启动自动导入 A 的固定 20 篇样本。它设置 A 已有的 `LOCAL_DEMO=0` 和令牌配置，不改 A 源代码。A 原来的 `python run.py` 继续保留原行为；D 联调使用上述包装入口，两者不要同时占用 8000 端口。
+- A 包装入口以既有受保护模式运行，默认数据库为 `server/.local/a-demo.db`；没有成功固定样本任务时导入基准样本。可用 `D_A_DATABASE_URL` 指定其他数据库。
+- A 原来的 `python run.py` 保留原行为，不要与上述入口同时占用 8000；两种启动的数据库配置不一定相同。
+- `server.run_c` 在启动时执行 C 已有的 Schema 初始化，不自动导入或发布样本。
+- README-C 的独立启动示例使用 8001；D 整合环境使用 8002，以本文入口为准。
+- D 使用单进程内存会话，保持默认单 worker，重启后需重新登录。
+- 仅展示 A 原始论文与 B 审核时，可以先启动 A、D、前端；默认 C 研究页此时可能提示不可用。
 
-需要构建后运行时，在 `frontend` 执行 `npm run build`，再启动或重启 D 网关；它会直接提供 `frontend/dist`，此时访问 <http://127.0.0.1:8001>，无需前端开发服务器。
-
-会话存放在 D 的单进程内存中，重启后需重新登录；请使用默认单 worker。HTTP localhost 配置下 `COOKIE_SECURE=false`，同一轮操作使用同一主机名。修改端口时同步修改 `server/.env` 的 `ALLOWED_ORIGINS`、`A_API_BASE_URL` 和 Vite 代理。
-
-## 4. 验收步骤
-
-1. 匿名打开“原始论文（A）”，检查原始论文、标题/摘要关键词、年份和导入批次。默认“已发布图谱（C）”只显示 B 已确认并手动发布的批次；未发布时提示，无服务时显示错误和未知数量。C 的关键词只查询标题，主题/方法按精确名称或 ID 筛选。
-2. A 原始论文图仅为论文与会议；C 已发布图谱使用实际确认关系，检查节点定位、1—2 跳、详情与逐条证据，并核对列表/详情/图谱的 batch_id 相同。作者/机构页检查有证据邻居，不视为完整合作统计。
-3. 匿名进入数据管理应跳转登录；直接请求 `/api/admin/datasets` 应返回 401。错误密码被拒绝，正确密码可登录。
-4. 在“会话与权限验证”测试权限，再进入“创建固定样本导入”，导入同一数据集；任务与批次增加，论文去重后总数仍为 20。每篇论文可属于多个导入批次。
-5. 在“候选与证据查看”检查原始/审核结果和三状态。进入“审核与改名”，核对证据、填写理由后操作；改名后仍待审，需要另行确认。关系两端未确认时应拒绝确认关系；撤回实体会让相关已确认关系退回待审。保存后 D 与 B 工具应能读取同一进度，原始抽取不改变。
-6. 退出后管理接口返回 401；旧会话 Cookie 重放也应失败。停止 A 后研究页显示连接错误，不回退到合成论文。
-7. 管理页下载区域提供已确认/待审核/已驳回 JSON 及完整 ZIP，范围为固定样本全部论文，不受当前论文和页面筛选影响。ZIP 内为 B 原格式的五个文件；没有已确认记录时 confirmed.json 为空，不补造结果。
-8. 匿名打开论文详情，应只出现已确认实体、关系及证据，没有审核人、理由或私有历史。撤回后刷新详情，对应实体及联动关系应消失。不在 B 固定样本中的论文显示未覆盖提示；坏存档显示不可用，不把异常当成无确认内容。
-
-固定样本只含 CVPR 2024；用其他年份检索为空是正常结果。列表及会议详情本轮最多展示前 100 篇。B 页面始终对应固定快照，不把它冒充为 A 后续新增论文的抽取结果。
-
-概览、详情、审核提交和下载通过 `snapshot_revision` 核对同一版数据；存档变化时返回 409，不覆盖新决定。保存还复用 B 文件锁与磁盘 revision 检查，沿用已有自定义存档文件名。损坏、版本不符或重复存档明确报错，不清空、不回退；A 与登录仍可用。D 新提交使用服务端会话账号，浏览器不能指定 reviewer 或编辑证据。既有 B 历史仍可能包含自由填写的姓名；单管理员账号也不能区分其背后不同操作者。
-
-## 5. 检查命令与验证状态
-
-以下既有测试记录主要针对先前 A/B 适配，不代表新增 C 接入已完整验收。当前 C 接入仍需完成专项回归和真实 D → C → Neo4j 联调。
-
-仓库根目录：
+### 4.4 构建后由 8001 提供前端
 
 ```powershell
-# 不需要第三方包的检查
-python -B -m unittest server.tests.test_snapshot_stdlib server.tests.test_knowledge_workflow_stdlib -v
-
-# 安装依赖后运行 A/B 原有回归与 D 后端测试；隔离数据库
-$env:DATABASE_URL = 'sqlite://'
-.\.venv\Scripts\python.exe -m pytest tests server/tests -q
-```
-
-在 `frontend` 目录：
-
-```powershell
-npm test
+cd frontend
 npm run build
+cd ..
+.\.venv\Scripts\python.exe -m server.run
 ```
 
-本轮已通过 D 标准库测试 20 项、前端 Node 测试 16 项，以及 Vue 类型检查和 Vite 构建。标准库测试覆盖审核保存、端点约束、撤回联动、旧窗口及文件锁冲突、失败不落盘、原始候选不变、公开内容过滤、三状态导出与 ZIP 的 B 校验。上轮 B 核心回归 49 项通过，本轮未修改 B 核心。
+已有 D 进程时先在其终端停止，再启动。D 检测到 `frontend/dist/index.html` 后提供构建页面，访问 <http://127.0.0.1:8001>，无需启动 5173。
 
-浏览器检查拦截 HTTP 请求后调用真实 D 应用层及 B 业务代码，使用独立程序测试目录完成审核保存、JSON/ZIP 下载、匿名详情与证据、冲突拒绝及撤回联动。它验证前端和业务层串联，不代替 FastAPI 会话/CSRF 集成验收。
+开发源入口是 `frontend/index.html`，构建入口才是 `frontend/dist/index.html`。修改源码后，5173 可更新开发页面；8001 的构建页面需要重新构建并刷新。
 
-已补充 FastAPI 测试，覆盖匿名/CSRF 拒绝、禁止伪造审核人和证据、公开数据过滤、下载及完整审核流程。当前 `.venv` 指向的 Python 解释器不可启动，已安装扩展为 cp310，与可用的 Python 3.12 不兼容，因此 HTTP 集成测试和 A 全量回归尚未运行；本轮未安装依赖。所有程序审核记录只在隔离测试目录，不计作真人确认，也没有修改真实业务存档。
+## 5. 页面与菜单
 
-## 6. 本轮 B 更新适配涉及文件
+20 个三级菜单入口对应多个复用页面，不等于 20 个独立完成的业务页面。
 
-修改：`server/application/knowledge.py`、`server/api/main.py`、`server/api/schemas.py`、`frontend/src/services/knowledge.ts`、`frontend/src/views/CandidateView.vue`、`frontend/src/components/DetailDrawer.vue`、`frontend/src/navigation.ts`、`frontend/src/router.ts`、`frontend/tests/knowledge.test.ts`、`README-D.md`、`docs/d_integration_contract.md`。新增：`frontend/src/components/ReviewActions.vue`、`KnowledgeDownloads.vue`、`ConfirmedKnowledge.vue`，以及 `server/tests/test_knowledge_workflow_stdlib.py`、`server/tests/test_knowledge_review_api.py`。上轮只读适配的改动仍保留。A/B 原代码、样本和真实存档未改。
+| 入口 | 当前功能与边界 |
+| --- | --- |
+| 原始论文（A，工作台切换入口） | 列表、标题/摘要关键词、年份、导入批次、详情和来源；图仅含 Paper、Venue、PUBLISHED_IN |
+| NAV01 组合检索、NAV02 论文列表 | 同一 C 工作台；标题关键词、主题/方法精确名称或 ID、年份、发布批次；最多展示前 100 篇 |
+| NAV03 论文详情 | 详情抽屉和独立地址；A 详情可附加 B 当前已确认内容，C 详情为固定发布快照 |
+| NAV04 节点检索与定位、NAV05 1—2 跳探索 | 复用工作台；节点查询、起点定位、手动切换跳数；缩放、布局、类型显隐、节点详情及键盘列表 |
+| NAV06 当前论文集导出、NAV07 导出进度与下载 | 占位；研究结果集导出任务未实现，与 B JSON/ZIP 下载不同 |
+| NAV08 年度趋势与对比、NAV09 年份下钻与联动 | 占位；统计、图表和下钻未实现 |
+| NAV10 作者证据画像、NAV11 机构证据画像 | 节点和有证据邻居骨架，不是完整合作统计，也不推断永久任职 |
+| NAV12 基准清单 | A 的数据集、来源、数量及可用校验信息 |
+| NAV13 创建固定样本导入 | 请求 A 导入基准，成功后进入任务详情 |
+| NAV14 任务进度与批次论文、NAV15 错误与原批次重试 | 同一任务页；阶段、计数、日志、错误、论文及允许的重试；NAV15 暂无独立错误筛选，通过刷新读取状态 |
+| NAV16 候选与证据查看 | B 原始/审核结果、三状态、实体/关系、原文定位、历史及诊断 |
+| NAV17 审核与改名 | 在查看页上增加确认、驳回、实体显示名修改、撤回；证据只读 |
+| NAV18 生成导入与校验 | B 确认结果预览、导入 C、按批次号查看校验；无完整历史批次列表 |
+| NAV19 发布确认与状态 | 核对目标和当前发布版本，手动发布通过校验的正式批次 |
+| NAV20 会话与权限验证 | 账号、到期时间、退出及受保护请求验证，不修改研究数据 |
+| 管理员登录与侧栏状态 | 登录、返回原管理页面、退出；显示未登录/已登录/鉴权连接状态 |
 
-接口与组件契约见 [D 端接入契约](docs/d_integration_contract.md)。
+研究页类型计数针对当前返回子图，不是全库统计。C 图查询每次最多请求 100 条路径，详情邻居由 C 限制并提供截断提示；不补造节点、关系或缺失内容。
+
+
+## 6. 使用者自行查看的指标
+
+以下为查看方法，不表示本次整理时已执行或全部通过。
+
+| 查看位置 | 预期与解释 |
+| --- | --- |
+| Neo4j Browser：`RETURN 1 AS ok;` | 返回 1，账号和数据库查询可用 |
+| A：`http://127.0.0.1:8000/api/papers?page_size=1` | HTTP 200，基准初始化后可读论文 |
+| D：`http://127.0.0.1:8001/api/health` | D 存活，不代表 A/C 可用 |
+| C：`http://127.0.0.1:8002/api/health` | HTTP 200、`status=ok`、`storage=neo4j`，真实数据库探活 |
+| D：`http://127.0.0.1:8001/api/graph/health` | HTTP 200，代理健康检查通过；不证明已有正式发布或全部管理凭据有效 |
+| A 原始论文页 | 可查论文、详情、来源；2 类实体与 1 类关系是元数据图正常范围 |
+| B 审核页 | 候选证据对应，决定保存后刷新仍在，导出按状态隔离 |
+| C 正式批次 | 来源 `reviewed_export`，校验通过且 `status=published` |
+| D 正式研究页 | 正式批次可查，列表/详情/图谱批次一致；失败显示未知，成功无匹配才显示 0 |
+| 管理权限 | 匿名管理请求 401；登录允许；退出后旧会话拒绝；写操作检查 CSRF |
+
+## 7. 常见问题
+
+| 现象 / 错误 | 原因及处理 |
+| --- | --- |
+| `KeyError: 'NEO4J_PASSWORD'` | CLI 未读文件或当前终端缺变量；按第 8 节设置，或使用下方显式加载命令 |
+| `ModuleNotFoundError: neo4j` | 缺 Python 驱动，由使用者安装 `server/requirements.txt`；驱动不等于数据库软件 |
+| Bolt 无法连接 / 数据库不可用 | 确认 ZIP console 或服务运行，7687、账号密码及库名正确 |
+| C 启动要求密码/令牌 | 核对 `graph.env`、`server/.env`，完成初始化并使用 `server.run_c` |
+| `503 C_SERVICE_UNAVAILABLE` | D 无法连接 C，查看 8002 和 `C_API_BASE_URL` |
+| `503 C_ADMIN_NOT_CONFIGURED` | D 未配 C 管理令牌，运行 `server.init_c` 后重启 D/C |
+| `503 C_SERVICE_CREDENTIALS_INVALID` | D/C 服务令牌不匹配，不表示 D 登录过期 |
+| C 的 `503 GRAPH_UNAVAILABLE` | C 已收到请求，但数据库查询不可用，查看数据库与 C 日志 |
+| `404 PUBLISHED_BATCH_NOT_FOUND` | 尚无可读取发布，需完成审核、导入、校验、发布 |
+| `409 REVIEWED_DATA_REQUIRED` | 发布来源为开发夹具等非正式数据，不能进入 D 正式研究页 |
+| 研究页“数量未知”或“—” | 请求失败，不代表论文清空；查看具体错误，也可切换 A 原始论文 |
+| `/api/admin/session` 返回 401 | 未登录或会话过期的反馈，不阻止公开查询 |
+| 8001 首页 404，但接口可用 | 无构建产物或启动时未加载；开发访问 5173，或构建后重启 D |
+| `B_TO_C_VALIDATION_FAILED` | 核对各确认分区论文实体、端点、名称和证据，不伪造确认补齐 |
+| `KNOWLEDGE_SNAPSHOT_CHANGED` / `GRAPH_PREVIEW_CHANGED` | B 数据变化，重新读存档并生成预览 |
+| B 版本、指纹或目录冲突 | 使用匹配词表及正确目录；不将坏存档当空数据，也不自动清空 |
+| B 已确认但图谱没更新 | 还需生成新批次、导入、校验、发布及读取最新发布 |
+| 相同批次号内容不同 | 批次不可变，使用新号 |
+| 发布版本冲突 | 重新读取当前版本核对，不删除数据库绕过 |
+| 不同菜单页面相同 | 部分入口复用，组合检索/列表及任务/错误页有展示重合，详见第 5 节 |
+
+CMD 与 PowerShell 环境变量语法不同。CMD 对应设置方式：
+
+```cmd
+set "NEO4J_URI=bolt://127.0.0.1:7687"
+set "NEO4J_USER=neo4j"
+set "NEO4J_DATABASE=neo4j"
+set /p "NEO4J_PASSWORD=请输入本机Neo4j数据库密码："
+```
+
+也可在 CMD / PowerShell 中显式读取根目录文件后调用 CLI，例如初始化：
+
+```powershell
+.\.venv\Scripts\python.exe -c "from dotenv import load_dotenv; load_dotenv('graph.env'); from src.graph_query.cli import main; main()" init
+```
+
+更多规则见 [B 文档](docs/knowledge_builder/README.md)、[C 模型与写入](docs/graph/model-and-write.md)、[C 接口说明](docs/graph/contracts.md)。模块文档中的历史“D 待接入”等状态不代表当前 D 代码状态；D 的整合启动端口和操作流程以本文为准。
