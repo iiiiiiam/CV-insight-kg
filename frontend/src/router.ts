@@ -9,6 +9,8 @@ export const router=createRouter({
     {path:'/',redirect:'/research/papers'},
     {path:'/research/papers',component:()=>import('./views/ResearchView.vue'),meta:{title:'研究工作台'}},
     {path:'/research/raw-papers',component:()=>import('./views/ResearchView.vue'),meta:{title:'A 原始论文'}},
+    {path:'/research/knowledge',component:()=>import('./views/KnowledgeView.vue'),meta:{title:'知识与证据'}},
+    {path:'/admin/knowledge-feedback',component:()=>import('./views/KnowledgeFeedbackView.vue'),meta:{title:'用户反馈处理',requiresAuth:true}},
     {path:'/research/graph',component:()=>import('./views/ResearchView.vue'),meta:{title:'图谱探索'}},
     {path:'/research/graph/expand',component:()=>import('./views/ResearchView.vue'),meta:{title:'多跳图谱探索'}},
     ...['authors','institutions'].flatMap(kind=>[

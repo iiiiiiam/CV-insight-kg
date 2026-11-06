@@ -7,7 +7,7 @@ import {graphResearch} from '../services/graph.ts'
 import CGraphDetail from './CGraphDetail.vue'
 import AppIcon from './AppIcon.vue'
 import StatePanel from './StatePanel.vue'
-import ConfirmedKnowledge from './ConfirmedKnowledge.vue'
+import KnowledgeEvidence from './KnowledgeEvidence.vue'
 
 const props=defineProps<{id:string|null;type?:string;source?:'a'|'c';batchId?:string}>()
 const emit=defineEmits<{close:[];paper:[id:string];navigate:[id:string,type:string];explore:[id:string]}>()
@@ -62,15 +62,15 @@ onBeforeUnmount(()=>{controller?.abort();document.removeEventListener('keydown',
             <p class="detail-meta">{{paper.year}} · {{paper.venue}}</p>
             <p class="author-line">{{paper.authors.join(' / ')}}</p>
             <h3>记录概述</h3><p class="body-copy">{{paper.abstract}}</p>
-            <ConfirmedKnowledge v-if="paper.openalex_id" :paper-id="paper.openalex_id"/>
-            <p v-else class="small-note">A 未提供 OpenAlex ID，暂无法关联 B 已确认内容。</p>
+            <KnowledgeEvidence v-if="paper.openalex_id" :paper-id="paper.openalex_id"/>
+            <p v-else class="small-note">来源记录未提供 OpenAlex ID，暂无法关联知识与证据。</p>
             <h3>来源与证据</h3>
             <p class="evidence-copy">{{paper.evidence}}</p>
             <dl class="definition-list"><dt>来源</dt><dd>{{paper.source}}</dd><dt>A 记录 ID</dt><dd class="mono">{{paper.id}}</dd><dt>OpenAlex ID</dt><dd class="mono">{{paper.openalex_id||'未提供'}}</dd><dt>DOI</dt><dd class="mono">{{paper.doi||'未提供'}}</dd><dt>去重键</dt><dd class="mono">{{paper.canonical_key||'未提供'}}</dd><dt>导入批次 ID</dt><dd class="mono">{{paper.batch_ids?.length?paper.batch_ids.join(', '):paper.batch_id}}</dd></dl>
             <div v-for="source in paper.sources" :key="source.name+source.source_id" class="source-record"><strong>{{source.name}}</strong><p class="small-note">{{source.source_id}} · 采集时间 {{source.retrieved_at}}</p><a v-if="source.url" :href="source.url" target="_blank" rel="noopener noreferrer" class="text-button">查看来源记录<AppIcon name="external" :size="15"/></a></div>
             <a v-if="paper.source_url" :href="paper.source_url" target="_blank" rel="noopener noreferrer" class="text-button">查看原始来源<AppIcon name="external" :size="15"/></a>
             <p v-else class="small-note">A 接口未返回可访问的来源链接。</p>
-            <RouterLink v-if="paper.openalex_id" :to="{path:'/admin/reviews',query:{paper_id:paper.openalex_id}}" class="related-paper">查看 B 全部候选、审核状态与历史（需管理员登录）</RouterLink>
+            <RouterLink v-if="paper.openalex_id" :to="{path:'/research/knowledge',query:{paper_id:paper.openalex_id}}" class="related-paper">查看该论文的知识与证据</RouterLink>
           </template>
           <template v-else-if="entity">
             <p class="body-copy">A 当前数据库中，该会议共 {{entity.total??entity.papers.length}} 篇论文，当前显示 {{entity.papers.length}} 篇。依据 venue 元数据，不受研究列表当前筛选限制。</p>

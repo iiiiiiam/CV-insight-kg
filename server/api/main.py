@@ -23,6 +23,7 @@ from server.application.knowledge import (KnowledgeSnapshot, UnknownSnapshotPape
                                           KnowledgeReviewRejected, KnowledgeReviewStorageError)
 from server.configuration.settings import Settings
 from server.domain.auth import AuthService, Session, require_admin, require_admin_write
+from server.api.knowledge_feedback import feedback_router
 
 
 def session_data(session: Session):
@@ -300,6 +301,8 @@ def create_app(settings: Settings | None = None):
     @app.post('/api/admin/jobs/{job_id}/retry')
     async def retry_job(job_id: int, _session: Session = Depends(require_admin_write)):
         return await call_a('POST', f'/api/admin/jobs/{job_id}/retry')
+
+    app.include_router(feedback_router(settings))
 
     dist = Path(__file__).resolve().parents[2] / 'frontend' / 'dist'
     if (dist / 'index.html').is_file():
