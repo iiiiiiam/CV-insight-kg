@@ -16,6 +16,18 @@ const panel=ref<HTMLElement|null>(null)
 const cDetail=ref<CDetail|null>(null)
 let generation=0,controller:AbortController|undefined,previous:HTMLElement|null=null
 const title=computed(()=>cDetail.value?.node.name??paper.value?.title??entity.value?.node.label??'实体详情')
+const knowledgePaperId=computed(()=>{
+  const node=cDetail.value?.node
+  if(!node)return ''
+  for(const value of [node.source_id,node.source_url,node.id]){
+    if(typeof value!=='string')continue
+    const full=value.match(/^https?:\/\/openalex\.org\/(W\d+)\/?$/i)
+    if(full)return `https://openalex.org/${full[1]}`
+    const short=value.match(/^W\d+$/i)
+    if(short)return `https://openalex.org/${short[0].toUpperCase()}`
+  }
+  return ''
+})
 async function load(){
   const current=++generation;controller?.abort();paper.value=null;entity.value=null;cDetail.value=null;error.value=''
   if(!props.id)return
@@ -54,7 +66,7 @@ onBeforeUnmount(()=>{controller?.abort();document.removeEventListener('keydown',
         <header class="drawer-header"><span class="eyebrow">DETAIL & EVIDENCE</span><button class="icon-button" aria-label="关闭详情" @click="emit('close')"><AppIcon name="close"/></button></header>
         <StatePanel v-if="loading" kind="loading" title="正在读取详情"/>
         <StatePanel v-else-if="error" kind="error" title="详情加载失败" :description="error" retry @retry="load"/>
-        <template v-else-if="cDetail"><span class="badge badge-teal">C 已审核发布批次 · {{cDetail.batch_id}}</span><CGraphDetail :detail="cDetail" @navigate="id=>emit('navigate',id,cDetail?.related.find(n=>n.id===id)?.type??'Paper')"/><button class="button button-secondary" @click="emit('explore',cDetail.node.id)">以此节点展开图谱</button></template>
+        <template v-else-if="cDetail"><span class="badge badge-teal">C 图谱查询结果 · {{cDetail.batch_id}}</span><CGraphDetail :detail="cDetail" @navigate="id=>emit('navigate',id,cDetail?.related.find(n=>n.id===id)?.type??'Paper')"/><button class="button button-secondary" @click="emit('explore',cDetail.node.id)">以此节点展开图谱</button><section v-if="knowledgePaperId" class="current-knowledge"><h3>当前公共知识、个人调整与反馈</h3><p class="small-note">以下内容来自 B 的当前知识视图：可查看原文依据、调整自己的显示方式并提交反馈。个人调整只保存在当前浏览器；管理员处理反馈会更新 B 公共知识。C 自动同步接口尚待接入，因此不把这里的变化表述为已同步到 C。</p><KnowledgeEvidence :paper-id="knowledgePaperId"/></section><p v-else-if="cDetail.node.kind==='paper'" class="small-note">C 未提供可对应的 OpenAlex ID，暂无法打开 B 的知识与反馈内容。</p></template>
         <template v-else>
           <span class="badge badge-teal">{{paper?'论文':entity?TYPE_LABELS[entity.node.type]:'详情'}}</span>
           <h2 id="drawer-title">{{title}}</h2>
@@ -84,3 +96,4 @@ onBeforeUnmount(()=>{controller?.abort();document.removeEventListener('keydown',
     </div>
   </Teleport>
 </template>
+<style scoped>.current-knowledge{margin-top:28px;padding-top:22px;border-top:1px solid #e5edef}.current-knowledge h3{margin:0 0 10px}.current-knowledge>.small-note{margin-bottom:18px}</style>

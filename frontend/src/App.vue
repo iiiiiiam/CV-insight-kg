@@ -55,7 +55,7 @@ watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAu
       </header>
       <div v-if="notice" class="global-notice" role="status">{{notice}}<button class="icon-button" aria-label="关闭提示" @click="notice=''"><AppIcon name="close" :size="14"/></button></div>
       <main id="main-content"><RouterView/></main>
-      <footer class="app-footer"><span>知域 Atlas · CV 知识图谱研究平台</span><span>A 原始数据 · B 审核 · C 已发布图谱查询</span></footer>
+      <footer class="app-footer"><span>知域 Atlas · CV 知识图谱研究平台</span><span>A 论文数据 · B 公共知识与反馈 · C 图谱查询</span></footer>
     </div>
   </div>
 </template>
