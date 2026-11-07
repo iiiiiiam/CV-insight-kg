@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {getReading,itemName,sendFeedback,resolveFeedback} from '../src/services/knowledge-feedback.ts'
+import {getReading,itemName,sendFeedback,resolveFeedback,reopenFeedback} from '../src/services/knowledge-feedback.ts'
 import type {ReadingKnowledge} from '../src/services/knowledge-feedback.ts'
 
 test('automatic reading uses stable IDs and translates relation labels without status labels',()=>{
@@ -32,5 +32,18 @@ test('admin feedback handling carries session CSRF and queue revision',async()=>
     return Response.json({id:'test-id',status:'dismissed'})
   }
   try{await resolveFeedback('test-id',{revision:7,action:'dismiss',reason:'test'},'test-csrf')}
+  finally{globalThis.fetch=previous}
+})
+
+test('admin undo uses authenticated POST with queue revision and no supplied reviewer',async()=>{
+  const previous=globalThis.fetch
+  globalThis.fetch=async(input,init)=>{
+    assert.equal(String(input),'/api/admin/knowledge/feedback/test-id/reopen')
+    assert.equal(init?.method,'POST')
+    assert.equal(new Headers(init?.headers).get('X-CSRF-Token'),'undo-csrf')
+    assert.deepEqual(JSON.parse(String(init?.body)),{revision:8})
+    return Response.json({id:'test-id',status:'open'})
+  }
+  try{assert.equal((await reopenFeedback('test-id',8,'undo-csrf')).status,'open')}
   finally{globalThis.fetch=previous}
 })

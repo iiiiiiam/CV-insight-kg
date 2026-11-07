@@ -10,12 +10,13 @@ export interface ReadingKnowledge {
 }
 export interface FeedbackRecord {
   id:string;paper_id:string;paper_title:string;candidate_id:string|null;term:string|null;message:string
-  status:'open'|'resolved'|'dismissed';created_at:string;updated_at:string
+  status:'open'|'resolved'|'dismissed'|'withdrawn';created_at:string;updated_at:string
   context:Record<string,unknown>
   resolution:null|{action:string;reason:string;reviewer:string;occurred_at:string;before:unknown;after:unknown}
+  processing_history?:Array<{resolution:NonNullable<FeedbackRecord['resolution']>;reopened_by:string;reopened_at:string}>
 }
 export interface FeedbackQueue {
-  revision:number;requests:FeedbackRecord[];counts:Record<FeedbackRecord['status'],number>
+  revision:number;requests:FeedbackRecord[];counts:Record<Exclude<FeedbackRecord['status'],'withdrawn'>,number>
   terms:Array<{term:{name:string;kind:string;aliases:string[]};source_url:string;created_at:string}>
 }
 export const RELATION_NAMES:Record<string,string>={has_author:'作者',affiliated_with:'机构关联',published_in:'发表于',mentions_topic:'提及主题',mentions_method:'提及方法',mentions_task:'提及任务',mentions_dataset:'提及数据集'}
@@ -32,10 +33,21 @@ export function getReading(paperId:string,signal?:AbortSignal){
 export function getReadingPapers(signal?:AbortSignal){
   return requestJson<Array<{paper_id:string;title:string;year:number;venue:string}>>('/api/knowledge/papers',{signal})
 }
-export function sendFeedback(body:{paper_id:string;revision:string;message:string;candidate_id?:string;term?:string}){
+export function sendFeedback(body:{paper_id:string;revision:string;message:string;candidate_id?:string;term?:string;owner_token?:string}){
   return requestJson<{id:string;status:string;duplicate:boolean}>('/api/knowledge/feedback',{method:'POST',body:JSON.stringify(body)})
+}
+export function getFeedbackStatus(id:string){
+  return requestJson<{id:string;status:FeedbackRecord['status'];updated_at:string}>(`/api/knowledge/feedback/${encodeURIComponent(id)}`)
+}
+export function withdrawFeedback(id:string,ownerToken:string){
+  return requestJson<{id:string;status:FeedbackRecord['status']}>(`/api/knowledge/feedback/${encodeURIComponent(id)}/withdraw`,{method:'POST',body:JSON.stringify({owner_token:ownerToken})})
 }
 export function getFeedbackQueue(){return requestJson<FeedbackQueue>('/api/admin/knowledge/feedback')}
 export function resolveFeedback(id:string,body:{revision:number;action:string;reason:string;name?:string;kind?:string;source_url?:string;aliases?:string[]},csrf:string){
   return requestJson(`/api/admin/knowledge/feedback/${id}`,{method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify(body)})
+}
+export function reopenFeedback(id:string,revision:number,csrf:string){
+  return requestJson<{id:string;status:'open'}>(`/api/admin/knowledge/feedback/${encodeURIComponent(id)}/reopen`,{
+    method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify({revision}),
+  })
 }

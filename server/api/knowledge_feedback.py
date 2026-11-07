@@ -19,6 +19,12 @@ class FeedbackSubmission(BaseModel):
     message: str = Field(min_length=1, max_length=2000)
     candidate_id: str | None = Field(default=None, min_length=1, max_length=128)
     term: str | None = Field(default=None, min_length=1, max_length=200)
+    owner_token: str | None = Field(default=None, pattern="^[0-9a-f]{64}$")
+
+
+class FeedbackWithdrawal(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    owner_token: str = Field(pattern="^[0-9a-f]{64}$")
 
 
 class FeedbackResolution(BaseModel):
@@ -30,6 +36,11 @@ class FeedbackResolution(BaseModel):
     kind: Literal["topic", "method", "task", "dataset"] | None = None
     aliases: list[str] | None = Field(default=None, max_length=8)
     source_url: str | None = Field(default=None, max_length=2000)
+
+
+class FeedbackReopen(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    revision: int = Field(ge=0)
 
 
 def feedback_router(settings):
@@ -75,6 +86,10 @@ def feedback_router(settings):
     def status(identifier: str):
         return call("status", identifier)
 
+    @router.post("/api/knowledge/feedback/{identifier}/withdraw")
+    def withdraw(identifier: str, body: FeedbackWithdrawal):
+        return call("withdraw", identifier, owner_token=body.owner_token)
+
     @router.get("/api/admin/knowledge/feedback")
     def queue(_session: Session = Depends(require_admin)):
         return call("queue")
@@ -83,5 +98,10 @@ def feedback_router(settings):
     def resolve(identifier: str, body: FeedbackResolution,
                 session: Session = Depends(require_admin_write)):
         return call("resolve", identifier, reviewer=session.username, **body.model_dump())
+
+    @router.post("/api/admin/knowledge/feedback/{identifier}/reopen")
+    def reopen(identifier: str, body: FeedbackReopen,
+               session: Session = Depends(require_admin_write)):
+        return call("reopen", identifier, revision=body.revision, reviewer=session.username)
 
     return router

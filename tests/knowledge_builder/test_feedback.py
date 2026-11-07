@@ -82,6 +82,49 @@ class FeedbackTests(unittest.TestCase):
         self.assertEqual(self.make_workspace().view(self.paper.openalex_id), view)
         self.assertEqual(self.workspace.queue()["counts"], dict(open=0, resolved=1, dismissed=0))
 
+    def test_owner_can_withdraw_without_changing_knowledge_or_legacy_review(self):
+        before = self.view()
+        token = "a" * 64
+        request = self.workspace.submit(self.paper.openalex_id, before["revision"], "withdraw test",
+            candidate_id=self.dataset()["candidate_id"], owner_token=token)
+        self.assertEqual(self.workspace.withdraw(request["id"], owner_token=token)["status"], "withdrawn")
+        self.assertEqual(self.view(), before)
+        self.assertEqual(self.store.read()["decisions"], [])
+        self.assertEqual(self.store.read()["terms"], [])
+        self.assertEqual(self.workspace.queue()["counts"]["open"], 0)
+        self.assertEqual(self.workspace.queue()["requests"], [])
+        self.assertNotIn("withdrawn", self.workspace.queue()["counts"])
+        self.assertEqual(self.workspace.status(request["id"])["status"], "withdrawn")
+        revision = self.store.read()["revision"]
+        self.workspace.withdraw(request["id"], owner_token=token)
+        self.assertEqual(self.store.read()["revision"], revision)
+        with self.assertRaises(FeedbackConflict):
+            self.process(request, "exclude")
+        self.assertNotIn(token, self.store.path.read_text(encoding="utf-8"))
+
+    def test_ownership_isolated_and_legacy_feedback_cannot_be_claimed(self):
+        kwargs = dict(paper_id=self.paper.openalex_id, revision=self.view()["revision"],
+                      message="same target", candidate_id=self.dataset()["candidate_id"])
+        first = self.workspace.submit(**kwargs, owner_token="a" * 64)
+        second = self.workspace.submit(**kwargs, owner_token="b" * 64)
+        legacy = self.workspace.submit(**kwargs)
+        self.assertNotEqual(first["id"], second["id"])
+        self.assertEqual(self.workspace.submit(**kwargs, owner_token="a" * 64)["id"], first["id"])
+        before = self.store.path.read_bytes()
+        for identifier in (first["id"], legacy["id"], "unknown"):
+            with self.assertRaises(LookupError):
+                self.workspace.withdraw(identifier, owner_token="c" * 64)
+        self.assertEqual(self.store.path.read_bytes(), before)
+
+    def test_processed_feedback_cannot_be_withdrawn_or_revert_public_decision(self):
+        request = self.workspace.submit(self.paper.openalex_id, self.view()["revision"], "test",
+            candidate_id=self.dataset()["candidate_id"], owner_token="a" * 64)
+        self.process(request, "rename", name="LVIS revised")
+        before = self.store.path.read_bytes()
+        with self.assertRaises(FeedbackConflict):
+            self.workspace.withdraw(request["id"], owner_token="a" * 64)
+        self.assertEqual(self.store.path.read_bytes(), before)
+
     def test_rename_changes_display_only_and_is_preserved_after_reopen(self):
         request = self.request_item()
         original = self.dataset()
@@ -111,6 +154,79 @@ class FeedbackTests(unittest.TestCase):
         self.process(request, "rename", name="LVIS revised")
         with self.assertRaises(FeedbackConflict):
             self.workspace.submit(self.paper.openalex_id, "0" * 64, "stale", candidate_id=self.dataset()["candidate_id"])
+
+    def reopen(self, request):
+        return self.workspace.reopen(request["id"], revision=self.store.read()["revision"], reviewer="undo-admin")
+
+    def test_reopen_restores_name_and_allows_reprocessing_with_history(self):
+        before = self.view()
+        request = self.request_item()
+        self.process(request, "rename", name="LVIS revised")
+        self.assertEqual(self.reopen(request)["status"], "open")
+        self.assertEqual(self.view(), before)
+        row = self.workspace.queue()["requests"][0]
+        self.assertIsNone(row["resolution"])
+        self.assertEqual(row["processing_history"][0]["resolution"]["action"], "rename")
+        self.assertEqual(row["processing_history"][0]["reopened_by"], "undo-admin")
+        self.assertEqual(self.workspace.queue()["counts"], dict(open=1, resolved=0, dismissed=0))
+        with self.assertRaises(FeedbackConflict):
+            self.reopen(request)
+        self.process(request, "dismiss")
+        self.reopen(request)
+        self.assertEqual(self.view(), before)
+        self.assertEqual(len(self.workspace.queue()["requests"][0]["processing_history"]), 2)
+
+    def test_reopen_exclusion_restores_incident_relations(self):
+        before = self.view()
+        request = self.request_item()
+        self.process(request, "exclude")
+        self.assertLess(len(self.view()["relations"]), len(before["relations"]))
+        self.reopen(request)
+        self.assertEqual(self.view(), before)
+
+    def test_reopen_preserves_later_independent_decision_and_rejects_stale_revision(self):
+        first = self.request_item()
+        self.process(first, "rename", name="First name")
+        second = self.request_item()
+        self.process(second, "rename", name="Second name")
+        before = self.store.path.read_bytes()
+        with self.assertRaises(FeedbackConflict):
+            self.workspace.reopen(first["id"], revision=0, reviewer="undo-admin")
+        self.assertEqual(self.store.path.read_bytes(), before)
+        self.reopen(first)
+        self.assertEqual(self.dataset()["content"]["name"], "Second name")
+        self.assertEqual([d["feedback_id"] for d in self.store.read()["decisions"]], [second["id"]])
+
+    def test_reopen_term_removes_rule_from_all_inputs_then_can_be_added_again(self):
+        new_paper = replace(self.paper, openalex_id="https://openalex.org/W9999999999",
+                            title="RepVL-PAN for detection", abstract=None)
+        self.workspace = self.make_workspace([self.paper, new_paper])
+        before = {p.openalex_id: self.workspace.view(p.openalex_id) for p in [self.paper, new_paper]}
+        request = self.workspace.submit(self.paper.openalex_id, self.view()["revision"], "term test", term="RepVL-PAN")
+        options = dict(name="RepVL-PAN", kind="method", aliases=["RepVL-PAN"], source_url=self.paper.source_url)
+        self.process(request, "add_term", **options)
+        self.reopen(request)
+        self.assertEqual(self.store.read()["terms"], [])
+        for paper in [self.paper, new_paper]:
+            self.assertEqual(self.workspace.view(paper.openalex_id), before[paper.openalex_id])
+        self.process(request, "add_term", **options)
+        self.assertEqual(len(self.store.read()["terms"]), 1)
+
+    def test_reopen_term_requires_dependent_correction_to_be_undone_first(self):
+        request = self.workspace.submit(self.paper.openalex_id, self.view()["revision"], "term test", term="RepVL-PAN")
+        self.process(request, "add_term", name="RepVL-PAN", kind="method",
+                     aliases=["RepVL-PAN"], source_url=self.paper.source_url)
+        candidate = next(i for i in self.view()["entities"] if i["content"]["name"] == "RepVL-PAN")
+        second = self.workspace.submit(self.paper.openalex_id, self.view()["revision"], "rename test",
+                                       candidate_id=candidate["candidate_id"])
+        self.process(second, "rename", name="Personalized public name")
+        before = self.store.path.read_bytes()
+        with self.assertRaisesRegex(FeedbackConflict, "依赖"):
+            self.reopen(request)
+        self.assertEqual(self.store.path.read_bytes(), before)
+        self.reopen(second)
+        self.reopen(request)
+        self.assertEqual(self.store.read()["terms"], [])
 
     def test_changed_source_blocks_correction_but_allows_explained_dismissal(self):
         request = self.request_item()
@@ -162,6 +278,41 @@ class FeedbackTests(unittest.TestCase):
         matches = [i for i in workspace.view(paper.openalex_id)["entities"] if i["content"]["name"] == "YOLO"]
         self.assertEqual(len(matches), 1)
         self.assertEqual(matches[0]["content"]["key"], "method:term:yolo")
+        workspace.reopen(request["id"], revision=self.store.read()["revision"], reviewer="undo-admin")
+        self.assertEqual(workspace.view(paper.openalex_id), view)
+
+    def test_alias_evidence_survives_original_pending_or_confirmed_yolo_snapshot(self):
+        before = self.view()
+        identifier = next(i["candidate_id"] for i in before["entities"] if i["content"]["key"] == "method:term:yolo")
+        request = self.workspace.submit(self.paper.openalex_id, before["revision"], "test real alias",
+                                        term="You Only Look Once")
+        self.process(request, "add_term", name="YOLO", kind="method",
+                     aliases=["You Only Look Once"], source_url=self.paper.source_url)
+        for status in ("pending", "confirmed"):
+            if status == "confirmed":
+                self.session.confirm(identifier, reviewer="legacy-admin", reason="confirm original evidence")
+            with self.subTest(status=status):
+                shown = self.view()
+                matches = [i for i in shown["entities"] if i["content"]["key"] == "method:term:yolo"]
+                self.assertEqual(len(matches), 1)
+                proof = next(e for e in matches[0]["evidence"] if e["quote"] == "You Only Look Once")
+                self.assertEqual(self.paper.abstract[proof["start"]:proof["end"]], proof["quote"])
+                relations = [r for r in shown["relations"] if r["content"]["target"] == "method:term:yolo"]
+                self.assertTrue(any(proof in relation["evidence"] for relation in relations))
+        self.reopen(request)
+        self.assertEqual(self.view(), before)
+
+    def test_legacy_name_correction_keeps_new_alias_evidence(self):
+        original = self.view()
+        identifier = next(i["candidate_id"] for i in original["entities"] if i["content"]["key"] == "method:term:yolo")
+        self.session.correct(identifier, name="YOLO legacy name", reviewer="legacy-admin", reason="name only")
+        request = self.workspace.submit(self.paper.openalex_id, self.view()["revision"], "alias test",
+                                        term="You Only Look Once")
+        self.process(request, "add_term", name="YOLO", kind="method",
+                     aliases=["You Only Look Once"], source_url=self.paper.source_url)
+        item = next(i for i in self.view()["entities"] if i["candidate_id"] == identifier)
+        self.assertEqual(item["content"]["name"], "YOLO legacy name")
+        self.assertIn("You Only Look Once", [e["quote"] for e in item["evidence"]])
 
     def test_lock_and_checksum_errors_never_silently_reset_data(self):
         self.request_item()

@@ -97,6 +97,53 @@ class FeedbackAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, 503)
         self.assertEqual(self.store_path.read_text(encoding="utf-8"),"broken-json")
 
+    def test_withdrawal_requires_owner_token_and_is_reflected_in_admin_queue(self):
+        token = "a" * 64
+        identifier = self.submit(owner_token=token).json()["id"]
+        path = "/api/knowledge/feedback/" + identifier + "/withdraw"
+        self.assertEqual(self.client.post(path, json={}).status_code, 422)
+        self.assertEqual(self.client.post(path, json={"owner_token":"b" * 64}).status_code, 404)
+        self.assertEqual(self.client.post(path, json={"owner_token":token},
+            headers={"Origin":"https://outside.example"}).status_code, 403)
+        self.assertEqual(self.client.post(path, json={"owner_token":token}).status_code, 200)
+        self.assertEqual(self.client.post(path, json={"owner_token":token}).status_code, 200)
+        self.assertEqual(self.client.get("/api/knowledge/feedback/" + identifier).json()["status"], "withdrawn")
+        headers = self.login()
+        queue = self.client.get("/api/admin/knowledge/feedback").json()
+        self.assertNotIn("withdrawn", queue["counts"])
+        self.assertEqual(queue["counts"]["open"], 0)
+        self.assertEqual(queue["requests"], [])
+        self.assertEqual(self.client.post("/api/admin/knowledge/feedback/" + identifier,
+            json=dict(revision=queue["revision"], action="exclude", reason="test"), headers=headers).status_code, 409)
+
+    def test_admin_reopen_is_authenticated_revision_bound_and_returns_to_open(self):
+        before = self.reading()
+        identifier = self.submit(owner_token="a" * 64).json()["id"]
+        path = "/api/admin/knowledge/feedback/" + identifier
+        self.assertEqual(self.client.post(path + "/reopen", json={"revision":0}).status_code, 401)
+        headers = self.login()
+        revision = self.client.get("/api/admin/knowledge/feedback").json()["revision"]
+        self.assertEqual(self.client.post(path, headers=headers,
+            json=dict(revision=revision, action="rename", reason="test", name="LVIS revised")).status_code, 200)
+        revision = self.client.get("/api/admin/knowledge/feedback").json()["revision"]
+        self.assertEqual(self.client.post(path + "/reopen", json={"revision":revision}).status_code, 403)
+        self.assertEqual(self.client.post(path + "/reopen", headers=headers,
+            json={"revision":0}).status_code, 409)
+        self.assertEqual(self.client.post(path + "/reopen", headers=headers,
+            json={"revision":revision,"reviewer":"fake"}).status_code, 422)
+        self.assertEqual(self.client.post(path + "/reopen", headers=headers,
+            json={"revision":revision}).status_code, 200)
+        self.assertEqual(self.reading(), before)
+        queue = self.client.get("/api/admin/knowledge/feedback").json()
+        self.assertEqual(queue["requests"][0]["status"], "open")
+        self.assertIsNone(queue["requests"][0]["resolution"])
+        self.assertEqual(queue["requests"][0]["processing_history"][0]["reopened_by"], self.settings.username)
+        self.assertEqual(self.client.post("/api/knowledge/feedback/" + identifier + "/withdraw",
+            json={"owner_token":"a" * 64}).status_code, 200)
+        queue = self.client.get("/api/admin/knowledge/feedback").json()
+        self.assertEqual(self.client.post(path + "/reopen", headers=headers,
+            json={"revision":queue["revision"]}).status_code, 409)
+
 
 if __name__ == "__main__":
     unittest.main()

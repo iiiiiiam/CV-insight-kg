@@ -5,6 +5,7 @@ original candidate and input; vocabulary additions remain reproducible rules.
 """
 
 import json
+import hmac
 import os
 import re
 import tempfile
@@ -19,7 +20,15 @@ from uuid import uuid4
 from .extraction import extract_candidates, fingerprint, validate_vocabulary
 
 FORMAT = "knowledge-feedback/1"
-STATES = ("open", "resolved", "dismissed")
+STATES = ("open", "resolved", "dismissed")  # Admin queue excludes withdrawn requests.
+
+
+def _owner_digest(token):
+    if token is None:
+        return None  # Legacy submissions stay readable, without granting withdrawal rights.
+    if not isinstance(token, str) or re.fullmatch(r"[0-9a-f]{64}", token) is None:
+        raise ValueError("反馈凭证无效")
+    return fingerprint(token)
 
 
 class FeedbackConflict(ValueError):
@@ -137,18 +146,34 @@ class KnowledgeFeedback:
                 content=dict(source=c.source, kind=c.kind, target=c.target),
                 evidence=[asdict(e) for e in c.evidence])
         signatures = {key: fingerprint(item) for key, item in items.items()}
-        # Apply compatible first-week review content without rewriting its archive.
+        # Carry over actual legacy edits, not the unchanged baseline snapshots:
+        # new vocabulary may add evidence to an already-existing candidate.
         session = self.sessions.get(paper_id)
         excluded = set()
         if session is not None:
+            original = session.original
+            baseline = {
+                c.candidate_id: dict(content=asdict(c.entity), evidence=[asdict(e) for e in c.evidence])
+                for c in original.entities
+            }
+            baseline.update({
+                c.candidate_id: dict(content=dict(source=c.source, kind=c.kind, target=c.target),
+                                     evidence=[asdict(e) for e in c.evidence])
+                for c in original.relations
+            })
             for item in session.items:
                 if item.candidate_id not in items:
                     continue
                 if item.status == "rejected":
                     excluded.add(item.candidate_id)
                 else:
-                    items[item.candidate_id]["content"] = asdict(item.content)
-                    items[item.candidate_id]["evidence"] = [asdict(e) for e in item.evidence]
+                    previous = baseline[item.candidate_id]
+                    reviewed_content = asdict(item.content)
+                    reviewed_evidence = [asdict(e) for e in item.evidence]
+                    if reviewed_content != previous["content"]:
+                        items[item.candidate_id]["content"] = reviewed_content
+                    if reviewed_evidence != previous["evidence"]:
+                        items[item.candidate_id]["evidence"] = reviewed_evidence
         for decision in data["decisions"]:
             key = decision["candidate_id"]
             if (decision["paper_id"] != paper_id or key not in items or
@@ -177,8 +202,9 @@ class KnowledgeFeedback:
     def view(self, paper_id):
         return self._material(paper_id, self.store.read())[0]
 
-    def submit(self, paper_id, revision, message, *, candidate_id=None, term=None):
+    def submit(self, paper_id, revision, message, *, candidate_id=None, term=None, owner_token=None):
         message = _text(message, "问题描述")
+        owner_digest = _owner_digest(owner_token)
         if bool(candidate_id) == bool(term):
             raise ValueError("请选择具体条目，或填写一个遗漏名称")
         with self.store.transaction() as data:
@@ -206,6 +232,7 @@ class KnowledgeFeedback:
                     and request["candidate_id"] == candidate_id
                     and (request["term"] or "").casefold() == (requested or "").casefold()
                     and request["input_fingerprint"] == result.input_fingerprint
+                    and request.get("owner_digest") == owner_digest
                     and request["resource_revision"] == revision):
                     return dict(id=request["id"], status="open", duplicate=True)
             now = _now()
@@ -213,14 +240,16 @@ class KnowledgeFeedback:
                 candidate_id=candidate_id, term=requested, message=message, context=context,
                 input_fingerprint=result.input_fingerprint, resource_revision=revision,
                 candidate_fingerprint=signatures.get(candidate_id), status="open",
-                created_at=now, updated_at=now, resolution=None)
+                created_at=now, updated_at=now, resolution=None, owner_digest=owner_digest)
             data["requests"].append(request)
             return dict(id=request["id"], status="open", duplicate=False)
 
     def queue(self):
         data = self.store.read()
-        return dict(revision=data["revision"], requests=list(reversed(data["requests"])),
-            counts={state: sum(r["status"] == state for r in data["requests"]) for state in STATES},
+        requests = [r for r in data["requests"] if r["status"] != "withdrawn"]
+        return dict(revision=data["revision"], requests=[{k: v for k, v in r.items() if k != "owner_digest"}
+            for r in reversed(requests)],
+            counts={state: sum(r["status"] == state for r in requests) for state in STATES},
             terms=data["terms"])
 
     def status(self, identifier):
@@ -229,6 +258,21 @@ class KnowledgeFeedback:
             raise LookupError("未找到反馈")
         # No public message, identity, decision reason or historical snapshots.
         return {key: request[key] for key in ("id", "status", "updated_at")}
+
+    def withdraw(self, identifier, *, owner_token):
+        owner_digest = _owner_digest(owner_token)
+        with self.store.transaction() as data:
+            request = next((r for r in data["requests"] if r["id"] == identifier), None)
+            if (request is None or not owner_digest or not request.get("owner_digest")
+                or not hmac.compare_digest(request["owner_digest"], owner_digest)):
+                raise LookupError("未找到可由当前浏览器撤回的反馈")
+            if request["status"] == "withdrawn":
+                return dict(id=identifier, status="withdrawn")
+            if request["status"] != "open":
+                raise FeedbackConflict("反馈已被管理员处理，不能撤回；原处理记录保留")
+            request["status"] = "withdrawn"
+            request["updated_at"] = _now()
+            return dict(id=identifier, status="withdrawn")
 
     def resolve(self, identifier, *, revision, action, reason, reviewer,
                 name=None, kind=None, aliases=None, source_url=None):
@@ -241,7 +285,7 @@ class KnowledgeFeedback:
             if request is None:
                 raise LookupError("未找到反馈")
             if request["status"] != "open":
-                raise FeedbackConflict("该反馈已处理，请刷新")
+                raise FeedbackConflict("该反馈已处理或撤回，请刷新")
             public, items, signatures, result = self._material(request["paper_id"], data)
             key = request["candidate_id"]
             if action != "dismiss" and (request["input_fingerprint"] != result.input_fingerprint
@@ -308,3 +352,40 @@ class KnowledgeFeedback:
                 occurred_at=now, before=before, after=deepcopy(after),
                 visible_after=key in {i["candidate_id"] for i in shown["entities"] + shown["relations"]})
             return dict(id=identifier, status=request["status"])
+
+    def reopen(self, identifier, *, revision, reviewer):
+        reviewer = _text(reviewer, "管理员账号", 200)
+        with self.store.transaction(revision) as data:
+            request = next((r for r in data["requests"] if r["id"] == identifier), None)
+            if request is None:
+                raise LookupError("未找到反馈")
+            if request["status"] not in ("resolved", "dismissed"):
+                raise FeedbackConflict("只能撤回已处理的反馈；待处理或用户已撤回的反馈不能执行此操作")
+            # Remove this feedback's effects, never restore a whole historical store.
+            previous = deepcopy(data)
+            data["decisions"] = [d for d in data["decisions"] if d["feedback_id"] != identifier]
+            data["terms"] = [t for t in data["terms"] if t["feedback_id"] != identifier]
+            if len(data["terms"]) != len(previous["terms"]):
+                # A later correction may rely on the newly introduced term/alias.
+                # Keep it intact: undo that dependent correction first.
+                for paper_id in {d["paper_id"] for d in data["decisions"]}:
+                    if paper_id not in self.papers:
+                        continue
+                    _, _, before_signatures, before_result = self._material(paper_id, previous)
+                    _, _, after_signatures, after_result = self._material(paper_id, data)
+                    for decision in data["decisions"]:
+                        if decision["paper_id"] != paper_id:
+                            continue
+                        key = decision["candidate_id"]
+                        if (decision["input_fingerprint"] == before_result.input_fingerprint
+                            and decision["candidate_fingerprint"] == before_signatures.get(key)
+                            and (decision["input_fingerprint"] != after_result.input_fingerprint
+                                 or decision["candidate_fingerprint"] != after_signatures.get(key))):
+                            raise FeedbackConflict("其他处理依赖此词条，请先撤回依赖它的处理，再撤回补词")
+            now = _now()
+            request.setdefault("processing_history", []).append(dict(
+                resolution=deepcopy(request["resolution"]), reopened_by=reviewer, reopened_at=now))
+            request["resolution"] = None
+            request["status"] = "open"
+            request["updated_at"] = now
+            return dict(id=identifier, status="open")
