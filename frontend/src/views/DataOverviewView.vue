@@ -17,7 +17,7 @@ watch(days,()=>{selectedDate.value='';dayVersion++;void load()});onMounted(load)
 </script>
 <template>
 <section class="standard-page data-overview">
-<div class="page-heading overview-heading"><div><div class="eyebrow">DATA MANAGEMENT</div><h1>数据概览</h1><p>查看论文收录、每日新增和导入进度。</p></div><div class="heading-actions"><button class="button button-secondary" :disabled="loading" @click="load">刷新</button><RouterLink class="button button-primary" to="/admin/imports">导入论文</RouterLink></div></div>
+<div class="page-heading overview-heading"><div><div class="eyebrow">DATA MANAGEMENT</div><h1>数据概览</h1><p>查看论文收录、每日新增和导入进度。</p></div><div class="heading-actions"><button class="button button-secondary" :disabled="loading" @click="load">刷新</button><RouterLink class="button button-secondary" to="/admin/jobs">批次对比</RouterLink><RouterLink class="button button-primary" to="/admin/imports">导入论文</RouterLink></div></div>
 <div v-if="overview?.demo_mode" class="demo-notice"><span v-if="route.query.preview==='clean-v2'" class="preview-version">新版预览 · </span>演示环境 · 真实论文按模拟日期分批导入</div>
 <StatePanel v-if="loading&&!overview" kind="loading" title="正在读取数据"/><StatePanel v-else-if="error" kind="error" title="数据读取失败" :description="error" retry @retry="load"/>
 <template v-else-if="overview">
