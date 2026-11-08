@@ -11,3 +11,9 @@ data/
 dist/
 .pytest_cache/
 .DS_Store
+graph.env
+node_modules/
+server/.local/
+frontend/*.tsbuildinfo
+.cache/
+/reports/

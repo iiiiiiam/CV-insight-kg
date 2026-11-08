@@ -1,0 +1,318 @@
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from pathlib import Path
+import secrets
+from typing import Literal
+from urllib.parse import quote
+
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.sessions import SessionMiddleware
+
+from server.api.schemas import (ImportRequest, LoginRequest, KnowledgeReviewRequest,
+                                GraphImportRequest, GraphPublishRequest)
+from server.application.a_gateway import AServiceClient, AServiceUnavailable
+from server.application.c_gateway import CServiceClient
+from server.application.graph_policy import GraphBoundaryError, require_reviewed_batch
+from server.application.graph_batches import prepare_graph_batch
+from server.application.knowledge import (KnowledgeSnapshot, UnknownSnapshotPaper,
+                                          KnowledgeSnapshotInvalid, KnowledgeSnapshotChanged,
+                                          KnowledgeReviewRejected, KnowledgeReviewStorageError)
+from server.configuration.settings import Settings
+from server.domain.auth import AuthService, Session, require_admin, require_admin_write
+from server.api.knowledge_feedback import feedback_router
+
+
+def session_data(session: Session):
+    return {
+        'authenticated': True,
+        'username': session.username,
+        'role': 'admin',
+        'csrf_token': session.csrf,
+        'expires_at': datetime.fromtimestamp(session.expires, timezone.utc).isoformat(),
+    }
+
+
+def upstream_response(upstream):
+    content_type = upstream.headers.get('content-type', 'application/json').split(';', 1)[0]
+    return Response(content=upstream.content, status_code=upstream.status_code, media_type=content_type)
+
+
+def create_app(settings: Settings | None = None):
+    settings = settings or Settings.from_env()
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        app.state.auth = AuthService(settings)
+        app.state.a_service = AServiceClient(settings)
+        app.state.c_service = CServiceClient(settings)
+        yield
+        app.state.auth.sessions.clear()
+
+    app = FastAPI(
+        title='CVKG D Gateway',
+        version='0.6.0',
+        lifespan=lifespan,
+        docs_url='/api/docs',
+        openapi_url='/api/openapi.json',
+        redoc_url=None,
+    )
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.secret,
+        session_cookie='cvkg_session',
+        max_age=settings.ttl,
+        same_site='lax',
+        https_only=settings.cookie_secure,
+    )
+
+    @app.middleware('http')
+    async def request_context(request: Request, call_next):
+        request.state.request_id = secrets.token_hex(8)
+        if request.url.path.startswith('/api/') and request.method not in ('GET', 'HEAD', 'OPTIONS'):
+            origin = request.headers.get('origin')
+            if origin and origin.rstrip('/') not in settings.origins:
+                return JSONResponse(status_code=403, content={
+                    'error': {'code': 'FORBIDDEN_ORIGIN', 'message': '该请求来源不被允许。'},
+                    'request_id': request.state.request_id,
+                })
+        response = await call_next(request)
+        response.headers['X-Request-ID'] = request.state.request_id
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        if request.url.path.startswith('/api/admin/'):
+            response.headers['Cache-Control'] = 'no-store'
+        return response
+
+    @app.exception_handler(StarletteHTTPException)
+    async def handle_http(request: Request, exc: StarletteHTTPException):
+        return JSONResponse(status_code=exc.status_code, content={
+            'error': {'code': f'HTTP_{exc.status_code}', 'message': str(exc.detail)},
+            'request_id': request.state.request_id,
+        })
+
+    @app.exception_handler(RequestValidationError)
+    async def handle_validation(request: Request, _exc: RequestValidationError):
+        return JSONResponse(status_code=422, content={
+            'error': {'code': 'INVALID_INPUT', 'message': '输入格式不正确，请检查必填项和字段长度。'},
+            'request_id': request.state.request_id,
+        })
+
+    @app.exception_handler(AServiceUnavailable)
+    async def handle_a_unavailable(request: Request, exc: AServiceUnavailable):
+        return JSONResponse(status_code=502, content={
+            'error': {'code': 'A_SERVICE_UNAVAILABLE', 'message': str(exc)},
+            'request_id': request.state.request_id,
+        })
+
+    @app.exception_handler(KnowledgeSnapshotInvalid)
+    @app.exception_handler(KnowledgeSnapshotChanged)
+    async def handle_knowledge_error(request: Request, exc):
+        code = 'KNOWLEDGE_SNAPSHOT_CHANGED' if isinstance(exc, KnowledgeSnapshotChanged) else 'KNOWLEDGE_SNAPSHOT_INVALID'
+        return JSONResponse(status_code=409, headers={'Cache-Control': 'no-store'}, content={
+            'error': {'code': code, 'message': ('已确认知识暂不可用，请管理员检查 B 的数据版本和审核存档。'
+                                                if request.url.path == '/api/knowledge/confirmed' else str(exc))},
+            'request_id': request.state.request_id,
+        })
+
+    @app.exception_handler(KnowledgeReviewRejected)
+    @app.exception_handler(KnowledgeReviewStorageError)
+    async def handle_review_error(request: Request, exc):
+        storage = isinstance(exc, KnowledgeReviewStorageError)
+        return JSONResponse(status_code=503 if storage else 422, content={
+            'error': {'code': 'KNOWLEDGE_SAVE_FAILED' if storage else 'KNOWLEDGE_REVIEW_REJECTED', 'message': str(exc)},
+            'request_id': request.state.request_id,
+        })
+
+    def read_knowledge():
+        # Fresh and local to this request: invalid archives do not disable login/A APIs.
+        return KnowledgeSnapshot(vocabulary_path=settings.b_vocabulary_path,
+                                 reviews_directory=settings.b_reviews_directory)
+
+    @app.exception_handler(GraphBoundaryError)
+    async def handle_graph_error(request: Request, exc: GraphBoundaryError):
+        return JSONResponse(status_code=exc.status, content={
+            'error': {'code': exc.code, 'message': exc.message},
+            'request_id': request.state.request_id,
+        })
+
+    @app.get('/api/graph/health')
+    async def graph_health():
+        return upstream_response(await app.state.c_service.request('GET', '/api/health'))
+
+    @app.get('/api/research/{resource}')
+    async def c_research(resource: Literal['papers', 'entities', 'graph'], request: Request):
+        response = await app.state.c_service.research('/api/research/' + resource, request.query_params.multi_items())
+        return upstream_response(response)
+
+    @app.get('/api/research/{resource}/{entity_id:path}')
+    async def c_detail(resource: Literal['papers', 'entities', 'authors', 'institutions'], entity_id: str, request: Request):
+        path = '/api/research/' + resource + '/' + quote(entity_id, safe='')
+        return upstream_response(await app.state.c_service.research(path, request.query_params.multi_items()))
+
+    @app.get('/api/components/c-paper-detail.js', include_in_schema=False)
+    def c_component():
+        return FileResponse(Path(__file__).resolve().parents[2] / 'src/graph_query/paper-detail.js', media_type='text/javascript')
+
+    @app.get('/api/admin/graph/preview')
+    def graph_preview(batch_id: str = Query(pattern='^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$'),
+                      source_batch_id: str = Query(min_length=1, max_length=200),
+                      snapshot_revision: str = Query(pattern='^[0-9a-f]{64}$'),
+                      _session: Session = Depends(require_admin)):
+        _payload, summary = prepare_graph_batch(read_knowledge(), batch_id, source_batch_id, snapshot_revision)
+        return summary
+
+    @app.post('/api/admin/graph/import')
+    async def graph_import(body: GraphImportRequest, _session: Session = Depends(require_admin_write)):
+        payload, summary = prepare_graph_batch(read_knowledge(), body.batch_id, body.source_batch_id, body.snapshot_revision)
+        if summary['digest'] != body.digest:
+            raise GraphBoundaryError(409, 'GRAPH_PREVIEW_CHANGED', '批次内容与预览不一致，请重新生成预览。')
+        return upstream_response(await app.state.c_service.request('POST', '/api/admin/graph/batches', body=payload))
+
+    @app.get('/api/admin/graph/batches/{batch_id}')
+    async def graph_batch(batch_id: str, _session: Session = Depends(require_admin)):
+        return upstream_response(await app.state.c_service.batch(batch_id))
+
+    @app.post('/api/admin/graph/batches/{batch_id}/publish')
+    async def graph_publish(batch_id: str, body: GraphPublishRequest, _session: Session = Depends(require_admin_write)):
+        response = await app.state.c_service.batch(batch_id)
+        if not response.is_success:
+            return upstream_response(response)
+        metadata = require_reviewed_batch(response.json(), batch_id)
+        if not metadata.get('publishable'):
+            raise GraphBoundaryError(409, 'GRAPH_NOT_PUBLISHABLE', '批次完整性校验未通过，保留当前发布版本。')
+        path = '/api/admin/batches/' + quote(batch_id, safe='') + '/publish'
+        return upstream_response(await app.state.c_service.request('POST', path,
+            body={'expected_active_batch_id': body.expected_active_batch_id, 'allow_developer_fixture': False}))
+
+    async def call_a(method: str, path: str, *, params=None, body=None):
+        upstream = await app.state.a_service.request(method, path, params=params, body=body)
+        return upstream_response(upstream)
+
+    @app.get('/api/health')
+    async def health():
+        return {'status': 'ok', 'service': 'd-gateway', 'mode': 'local-single-process'}
+
+    @app.post('/api/admin/sessions')
+    async def login(body: LoginRequest, request: Request):
+        return session_data(app.state.auth.login(request, body.username, body.password))
+
+    @app.get('/api/admin/session')
+    async def current(session: Session = Depends(require_admin)):
+        return session_data(session)
+
+    @app.delete('/api/admin/session', status_code=204)
+    async def logout(request: Request, _session: Session = Depends(require_admin_write)):
+        app.state.auth.logout(request)
+        return Response(status_code=204)
+
+    @app.get('/api/admin/probe')
+    async def read_probe(session: Session = Depends(require_admin)):
+        return {'ok': True, 'username': session.username, 'message': '受保护接口访问成功。', 'data_changed': False}
+
+    @app.post('/api/admin/probe')
+    async def write_probe(session: Session = Depends(require_admin_write)):
+        return {
+            'ok': True,
+            'username': session.username,
+            'message': '管理员权限及 CSRF 校验通过；未执行数据导入。',
+            'checked_at': datetime.now(timezone.utc).isoformat(),
+            'data_changed': False,
+        }
+
+    @app.get('/api/papers')
+    async def list_papers(request: Request):
+        return await call_a('GET', '/api/papers', params=dict(request.query_params))
+
+    @app.get('/api/papers/{paper_id}')
+    async def get_paper(paper_id: int):
+        return await call_a('GET', f'/api/papers/{paper_id}')
+
+    @app.get('/api/papers/{paper_id}/graph')
+    async def paper_metadata_graph(paper_id: int):
+        # Forward A's actual Paper--PUBLISHED_IN-->Venue relation, never synthesize C data.
+        return await call_a('GET', f'/api/papers/{paper_id}/graph')
+
+    @app.get('/api/admin/knowledge/snapshot')
+    def knowledge_snapshot(_session: Session = Depends(require_admin)):
+        return read_knowledge().overview()
+
+    @app.get('/api/admin/knowledge/candidates')
+    def knowledge_candidates(paper_id: str = Query(min_length=1, max_length=300),
+                             snapshot_revision: str | None = Query(default=None, pattern='^[0-9a-f]{64}$'),
+                             _session: Session = Depends(require_admin)):
+        try:
+            return read_knowledge().candidates(paper_id, snapshot_revision)
+        except UnknownSnapshotPaper as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @app.get('/api/admin/export')
+    async def export_papers(request: Request, _session: Session = Depends(require_admin)):
+        upstream = await app.state.a_service.request('GET', '/api/admin/export', params=dict(request.query_params))
+        response = upstream_response(upstream)
+        for name in ('content-disposition', 'x-paper-count'):
+            if name in upstream.headers:
+                response.headers[name] = upstream.headers[name]
+        return response
+
+    @app.post('/api/admin/knowledge/reviews')
+    def review_knowledge(body: KnowledgeReviewRequest, session: Session = Depends(require_admin_write)):
+        try:
+            return read_knowledge().apply_review(body.paper_id, body.candidate_id, body.action,
+                                                reviewer=session.username, reason=body.reason,
+                                                snapshot_revision=body.snapshot_revision, name=body.name)
+        except UnknownSnapshotPaper as exc:
+            raise HTTPException(404, str(exc)) from exc
+
+    @app.get('/api/admin/knowledge/exports/{filename}')
+    def download_knowledge(filename: Literal['confirmed.json', 'pending.json', 'rejected.json', 'bundle.zip'],
+                           snapshot_revision: str = Query(pattern='^[0-9a-f]{64}$'),
+                           _session: Session = Depends(require_admin)):
+        body, media_type, name = read_knowledge().download(filename, snapshot_revision)
+        return Response(content=body, media_type=media_type,
+                        headers={'Content-Disposition': f'attachment; filename="{name}"'})
+
+    @app.get('/api/knowledge/confirmed')
+    def confirmed_knowledge(paper_id: str = Query(min_length=1, max_length=300)):
+        return JSONResponse(content=read_knowledge().confirmed(paper_id), headers={'Cache-Control': 'no-store'})
+
+    @app.get('/api/admin/datasets')
+    async def list_datasets(_session: Session = Depends(require_admin)):
+        return await call_a('GET', '/api/admin/datasets')
+
+    @app.post('/api/admin/imports')
+    async def create_import(body: ImportRequest, _session: Session = Depends(require_admin_write)):
+        return await call_a('POST', '/api/admin/imports', body=body.model_dump())
+
+    @app.get('/api/admin/jobs')
+    async def list_jobs(_session: Session = Depends(require_admin)):
+        return await call_a('GET', '/api/admin/jobs')
+
+    @app.get('/api/admin/jobs/{job_id}')
+    async def get_job(job_id: int, _session: Session = Depends(require_admin)):
+        return await call_a('GET', f'/api/admin/jobs/{job_id}')
+
+    @app.get('/api/admin/jobs/{job_id}/papers')
+    async def get_job_papers(job_id: int, request: Request, _session: Session = Depends(require_admin)):
+        return await call_a('GET', f'/api/admin/jobs/{job_id}/papers', params=dict(request.query_params))
+
+    @app.post('/api/admin/jobs/{job_id}/retry')
+    async def retry_job(job_id: int, _session: Session = Depends(require_admin_write)):
+        return await call_a('POST', f'/api/admin/jobs/{job_id}/retry')
+
+    app.include_router(feedback_router(settings))
+
+    dist = Path(__file__).resolve().parents[2] / 'frontend' / 'dist'
+    if (dist / 'index.html').is_file():
+        if (dist / 'assets').is_dir():
+            app.mount('/assets', StaticFiles(directory=dist / 'assets'), name='assets')
+
+        @app.get('/{path:path}', include_in_schema=False)
+        async def frontend(path: str):
+            if path == 'api' or path.startswith('api/'):
+                raise HTTPException(404, '接口不存在。')
+            return FileResponse(dist / 'index.html')
+
+    return app

@@ -1,0 +1,23 @@
+export interface MenuItem { id:string; group:string; section:string; label:string; path:string; implemented:boolean; owner:string }
+export const MENU:MenuItem[]=[
+ {id:'NAV01',group:'文献调研',section:'论文检索',label:'公共知识检索',path:'/research/papers',implemented:true,owner:'D / C'},
+ {id:'NAV02',group:'文献调研',section:'论文检索',label:'论文列表',path:'/research/papers?view=list',implemented:true,owner:'D / C'},
+ {id:'NAV03',group:'文献调研',section:'论文检索',label:'论文详情',path:'/research/papers/first',implemented:true,owner:'A / D'},
+ {id:'NAV04',group:'文献调研',section:'图谱探索',label:'公共图谱定位',path:'/research/graph',implemented:true,owner:'C / D'},
+ {id:'NAV05',group:'文献调研',section:'图谱探索',label:'1—2 跳探索',path:'/research/graph/expand',implemented:true,owner:'C / D'},
+ {id:'NAV06',group:'文献调研',section:'结果导出',label:'当前论文集导出',path:'/research/exports/new',implemented:false,owner:'D 后续'},
+ {id:'NAV07',group:'文献调研',section:'结果导出',label:'导出进度与下载',path:'/research/exports/demo-export',implemented:false,owner:'D 后续'},
+ {id:'NAV08',group:'研究分析',section:'趋势分析',label:'年度趋势与对比',path:'/research/trends',implemented:false,owner:'D 后续'},
+ {id:'NAV09',group:'研究分析',section:'趋势分析',label:'年份下钻与联动',path:'/research/trends/linked',implemented:false,owner:'D 后续'},
+ {id:'NAV10',group:'研究分析',section:'作者调研',label:'作者证据画像',path:'/research/authors',implemented:true,owner:'C / D；完整合作统计后续'},
+ {id:'NAV11',group:'研究分析',section:'机构调研',label:'机构证据画像',path:'/research/institutions',implemented:true,owner:'C / D'},
+ {id:'NAV12',group:'数据管理',section:'数据集',label:'基准清单',path:'/admin/datasets',implemented:true,owner:'A / D'},
+ {id:'NAV13',group:'数据管理',section:'导入任务',label:'创建固定样本导入',path:'/admin/imports',implemented:true,owner:'A / D'},
+ {id:'NAV14',group:'数据管理',section:'导入任务',label:'任务进度与批次论文',path:'/admin/jobs',implemented:true,owner:'A / D'},
+ {id:'NAV15',group:'数据管理',section:'导入任务',label:'错误与原批次重试',path:'/admin/jobs?view=errors',implemented:true,owner:'A / D'},
+ {id:'NAV16',group:'文献调研',section:'论文知识',label:'知识证据与个人调整',path:'/research/knowledge',implemented:true,owner:'B / D'},
+ {id:'NAV17',group:'数据管理',section:'反馈处理',label:'用户反馈处理',path:'/admin/knowledge-feedback',implemented:true,owner:'B / D'},
+ {id:'NAV18',group:'数据管理',section:'图谱同步',label:'公共图谱同步状态',path:'/admin/graph/sync',implemented:false,owner:'C / D 待接入'},
+ {id:'NAV19',group:'数据管理',section:'图谱同步',label:'同步记录与重试',path:'/admin/graph/sync/history',implemented:false,owner:'C / D 待接入'},
+ {id:'NAV20',group:'系统管理',section:'管理员会话',label:'会话与权限验证',path:'/admin/access-check',implemented:true,owner:'D'},
+]
