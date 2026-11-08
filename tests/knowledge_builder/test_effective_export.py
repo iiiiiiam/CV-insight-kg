@@ -34,7 +34,7 @@ class EffectiveExportTests(unittest.TestCase):
         return document["papers"][paper_index][group]
 
     def target(self):
-        return next(i for i in self.workspace.view(self.pid)["entities"] if i["content"]["name"] == "COCO")
+        return next(i for i in self.workspace.view(self.pid)["entities"] if i["content"]["key"] == "dataset:term:coco")
 
     def submit(self):
         return self.workspace.submit(self.pid, self.workspace.view(self.pid)["revision"], "private-test-message",
@@ -78,6 +78,9 @@ class EffectiveExportTests(unittest.TestCase):
         item = next(i for i in self.entries(document) if i["content"]["name"] == "COCO corrected")
         self.assertEqual(item["provenance"]["review_state"], "human_corrected")
         self.assertNotEqual(document["revision"], before["revision"])
+        self.assertTrue(all(i["provenance"]["review_state"] == "automatic" for i in self.entries(document, "relations")))
+        self.assertNotIn("private-admin", json.dumps(document))
+        self.assertNotIn("private-reason", json.dumps(document))
         self.assertIn("COCO", [i["content"]["name"] for i in self.entries(document, paper_index=1)])
         self.reopen(request)
         self.assertEqual(self.export()["revision"], before["revision"])
@@ -146,3 +149,41 @@ class EffectiveExportTests(unittest.TestCase):
         self.assertEqual(validate_effective_export(json.loads(path.read_text(encoding="utf-8"))), document)
         with self.assertRaises(ValueError):
             adapt_confirmed(document, "test", "test")
+
+    def test_new_rule_evidence_does_not_inherit_old_human_confirmation(self):
+        key = self.target()["candidate_id"]
+        self.sessions[self.pid].confirm(key, reviewer="admin", reason="checked original quote")
+        request = self.workspace.submit(self.pid, self.workspace.view(self.pid)["revision"], "alias test", term="FreshSet")
+        self.resolve(request, "add_term", name="COCO", kind="dataset", aliases=["FreshSet"], source_url="https://example.org/alias")
+        item = next(i for i in self.entries(self.export()) if i["candidate_id"] == key)
+        self.assertEqual(item["provenance"]["review_state"], "automatic")
+        self.assertTrue(item["provenance"]["rule_adjusted"])
+        self.assertEqual({e["quote"] for e in item["evidence"]}, {"COCO", "FreshSet"})
+        self.reopen(request)
+        restored = next(i for i in self.entries(self.export()) if i["candidate_id"] == key)
+        self.assertEqual(restored["provenance"]["review_state"], "human_confirmed")
+
+    def test_excluding_only_a_relation_keeps_both_entities(self):
+        before = self.export()
+        view = self.workspace.view(self.pid)
+        target = view["relations"][0]
+        request = self.workspace.submit(self.pid, view["revision"], "relation test", candidate_id=target["candidate_id"])
+        self.resolve(request, "exclude")
+        document = self.export()
+        self.assertEqual(self.entries(document), self.entries(before))
+        self.assertNotIn(target["candidate_id"], {i["candidate_id"] for i in self.entries(document, "relations")})
+        self.reopen(request)
+        self.assertEqual(self.export()["revision"], before["revision"])
+
+    def test_successive_renames_undo_one_step_at_a_time(self):
+        before = self.export()
+        first = self.submit()
+        self.resolve(first, "rename", name="COCO first")
+        first_revision = self.export()["revision"]
+        second = self.submit()
+        self.resolve(second, "rename", name="COCO second")
+        self.assertIn("COCO second", {i["content"]["name"] for i in self.entries(self.export())})
+        self.reopen(second)
+        self.assertEqual(self.export()["revision"], first_revision)
+        self.reopen(first)
+        self.assertEqual(self.export()["revision"], before["revision"])
