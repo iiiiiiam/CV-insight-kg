@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import {computed,ref,watch} from 'vue'
+import {batchCode} from '../services/import-progress.ts'
 import {compareDataBatches,getJob,type BatchComparison,type JobInfo} from '../services/admin.ts'
 
-const props=defineProps<{jobs:JobInfo[]}>()
-const choices=computed(()=>props.jobs.filter(job=>job.kind!=='archive'))
+const props=defineProps<{jobs:JobInfo[];currentJobId?:number}>()
+const choices=computed(()=>props.jobs.filter(job=>job.kind!=='archive').sort((a,b)=>b.id-a.id))
 const first=ref(0),second=ref(0),busy=ref(false),error=ref('')
 const result=ref<BatchComparison|null>(null),details=ref<JobInfo[]>([])
 let generation=0
 const sourceName=(s:string)=>({openalex:'OpenAlex',cvf:'CVF',ecva:'ECVA',dblp:'DBLP'} as Record<string,string>)[s]??s
 const statusName=(s:string)=>({succeeded:'已完成',partial:'需处理',failed:'失败',queued:'等待中',running:'导入中'} as Record<string,string>)[s]??s
 const number=(value:number|null|undefined)=>value==null?'—':value.toLocaleString('zh-CN')
-function label(job:JobInfo){return `#${job.id} · ${job.venue} ${job.year} · ${sourceName(job.source)} · ${job.created_at.slice(0,16).replace('T',' ')}`}
+function label(job:JobInfo){return `${batchCode(job)} · ${job.venue} ${job.year} · ${sourceName(job.source)}${job.kind==='demo'?' · 演示批次':''}`}
 function completeness(index:number,key:'with_abstract'|'with_doi'|'with_authors'){
   const quality=details.value[index]?.quality
   return quality?.total?`${(quality[key]/quality.total*100).toFixed(1)}%（${quality[key]}/${quality.total}）`:'—'
@@ -42,14 +43,22 @@ async function compare(){
   finally{if(current===generation)busy.value=false}
 }
 watch([first,second],()=>{generation++;result.value=null;details.value=[];error.value='';busy.value=false},{flush:'sync'})
-watch(choices,list=>{
+let previousTarget=0
+watch([choices,()=>props.currentJobId],([list,currentId])=>{
   if(list.length<2){first.value=list[0]?.id??0;second.value=0;return}
-  if(list.some(j=>j.id===first.value)&&list.some(j=>j.id===second.value))return
-  const latest=list[0]!
-  const previous=list.slice(1).find(j=>j.venue===latest.venue&&j.year===latest.year&&j.source===latest.source)??list[1]!
-  first.value=previous.id;second.value=latest.id
+  const target=list.find(item=>item.id===currentId)??list[0]!
+  const changed=target.id!==previousTarget
+  previousTarget=target.id
+  if(!changed&&list.some(j=>j.id===first.value)&&list.some(j=>j.id===second.value))return
+  const others=list.filter(item=>item.id!==target.id)
+  const previous=others.find(j=>j.venue===target.venue&&j.year===target.year&&j.source===target.source)??others[0]!
+  first.value=previous.id;second.value=target.id
   void compare()
 },{immediate:true})
+watch(()=>props.jobs.map(j=>`${j.id}:${j.status}:${j.attempted}:${j.succeeded}:${j.failed}`).join('|'),()=>{
+  if(result.value||busy.value)void compare()
+})
+
 </script>
 
 <template>
@@ -67,7 +76,7 @@ watch(choices,list=>{
     <p v-else-if="busy" class="comparison-message" role="status">正在读取所选批次…</p>
     <div v-else-if="result" aria-live="polite">
       <p v-if="scopesDiffer" class="comparison-message scope-note">两个批次的会议、年份或来源不同，请结合各自范围查看结果。</p>
-      <div class="comparison-table"><table><thead><tr><th scope="col">对比指标</th><th scope="col">基准 · #{{result.first.id}}<small>{{result.first.venue}} {{result.first.year}} · {{sourceName(result.first.source)}} · {{statusName(result.first.status)}}</small></th><th scope="col">对比 · #{{result.second.id}}<small>{{result.second.venue}} {{result.second.year}} · {{sourceName(result.second.source)}} · {{statusName(result.second.status)}}</small></th></tr></thead><tbody><tr v-for="row in rows" :key="row.label"><th scope="row">{{row.label}}</th><td>{{row.values[0]}}</td><td>{{row.values[1]}}</td></tr></tbody></table></div>
+      <div class="comparison-table"><table><thead><tr><th scope="col">对比指标</th><th scope="col">基准 · {{batchCode(result.first)}}<small>{{result.first.venue}} {{result.first.year}} · {{sourceName(result.first.source)}} · {{statusName(result.first.status)}}</small></th><th scope="col">对比 · {{batchCode(result.second)}}<small>{{result.second.venue}} {{result.second.year}} · {{sourceName(result.second.source)}} · {{statusName(result.second.status)}}</small></th></tr></thead><tbody><tr v-for="row in rows" :key="row.label"><th scope="row">{{row.label}}</th><td>{{row.values[0]}}</td><td>{{row.values[1]}}</td></tr></tbody></table></div>
       <div class="overlap-summary"><span>两批共有论文 <strong>{{number(result.shared_papers)}}</strong></span><span>仅基准批次 <strong>{{number(result.only_first)}}</strong></span><span>仅对比批次 <strong>{{number(result.only_second)}}</strong></span></div>
       <p class="comparison-footnote">新增与重复按导入时的记录统计，完整率按批次当前关联论文统计；未记录或没有论文时显示“—”。</p>
     </div>
