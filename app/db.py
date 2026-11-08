@@ -25,7 +25,7 @@ SessionLocal = database(database_url)
 def seed_sources(session_factory=None):
     factory = session_factory or SessionLocal
     with factory() as db:
-        for name in ("dblp", "openalex", "ecva"):
+        for name in ("dblp", "openalex", "ecva", "cvf"):
             if db.scalar(select(Source).where(Source.name == name)) is None:
                 try:
                     with db.begin_nested():

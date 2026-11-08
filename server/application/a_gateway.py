@@ -18,7 +18,7 @@ class AServiceClient:
         if self.settings.a_admin_token:
             headers['Authorization'] = f'Bearer {self.settings.a_admin_token}'
         try:
-            async with httpx.AsyncClient(timeout=10, trust_env=False) as client:
+            async with httpx.AsyncClient(timeout=120 if path == '/api/admin/file-imports' else 10, trust_env=False) as client:
                 return await client.request(
                     method,
                     f'{self.settings.a_base_url}{path}',

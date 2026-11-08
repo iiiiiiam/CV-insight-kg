@@ -32,3 +32,29 @@ class GraphImportRequest(BaseModel):
 class GraphPublishRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     expected_active_batch_id: str | None = Field(max_length=80)
+
+
+class OnlineJobRequest(BaseModel):
+    venue: Literal['CVPR', 'ICCV', 'ECCV']
+    year: int = Field(ge=1980, le=2100)
+    source: Literal['cvf', 'ecva', 'openalex', 'dblp', 'auto'] = 'cvf'
+    start: int = Field(default=1, ge=1, le=100000)
+    count: int = Field(default=20, ge=1, le=100)
+
+
+class FileImportRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=30_000_000)
+    manifest: dict
+
+
+class SourceUpdateRequest(BaseModel):
+    enabled: bool
+    page_size: int = Field(ge=1, le=1000)
+    max_retries: int = Field(ge=1, le=8)
+
+
+class ReserveImportRequest(BaseModel):
+    venue: Literal['CVPR','ICCV']
+    year: int = Field(ge=1980,le=2100)
+    source: Literal['openalex'] = 'openalex'
+    count: int = Field(default=20,ge=1,le=100)

@@ -7,7 +7,7 @@ import {auth,logout,refreshSession} from './stores/auth.ts'
 import AppIcon from './components/AppIcon.vue'
 
 const route=useRoute(),router=useRouter(),mobileOpen=ref(false),query=ref(''),notice=ref('')
-const collapsed=ref<string[]>(['数据管理','系统管理'])
+const collapsed=ref<string[]>(route.path.startsWith('/admin/')?['系统管理']:['数据管理','系统管理'])
 const loginStatus=computed(()=>auth.backend==='checking'?'正在检查登录':auth.backend==='offline'?'登录状态不可用':auth.session?`${auth.session.username} · 已登录`:'未登录')
 const loginHint=computed(()=>auth.backend==='checking'?'正在连接鉴权服务':auth.backend==='offline'?'请检查 D 后端连接':auth.session?'管理员会话有效':'访客模式 · 点击登录')
 const groups=computed(()=>[...new Set(MENU.map(n=>n.group))].map(group=>({name:group,
@@ -21,6 +21,7 @@ function active(item:MenuItem){
 async function leave(){try{await logout();notice.value='已退出管理员会话。';if(route.meta.requiresAuth)await router.push('/research/papers')}catch{notice.value='退出失败，请检查鉴权服务后重试。'}}
 function search(){router.push({path:'/research/papers',query:query.value.trim()?{q:query.value.trim()}:{}})}
 onMounted(()=>void refreshSession())
+watch(()=>route.path,path=>{if(path.startsWith('/admin/'))collapsed.value=collapsed.value.filter(group=>group!=='数据管理')},{immediate:true})
 watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAuth)void router.replace({path:'/admin/login',query:{redirect:route.fullPath}})})
 </script>
 <template>
@@ -48,7 +49,7 @@ watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAu
       <header class="topbar">
         <div class="breadcrumb"><button class="icon-button mobile-menu" aria-label="打开导航" @click="mobileOpen=true"><AppIcon name="menu"/></button><span>工作空间</span><AppIcon name="chevron" :size="13"/><strong>{{route.meta.title}}</strong></div>
         <form class="top-search" role="search" @submit.prevent="search"><AppIcon name="search" :size="16"/><input v-model="query" aria-label="全局搜索论文" placeholder="搜索标题或摘要关键词…"/><kbd>Enter</kbd></form>
-        <div class="top-actions"><span class="mode-label"><i></i>真实数据</span>
+        <div class="top-actions"><span class="mode-label"><i></i>论文数据</span>
           <template v-if="auth.session"><RouterLink to="/admin/access-check" class="account-button"><AppIcon name="shield" :size="16"/>{{auth.session.username}}</RouterLink><button class="icon-button" aria-label="退出登录" @click="leave"><AppIcon name="logout"/></button></template>
           <RouterLink v-else to="/admin/login" class="account-button"><AppIcon name="user" :size="16"/>管理员登录</RouterLink>
         </div>

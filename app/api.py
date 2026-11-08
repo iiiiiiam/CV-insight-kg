@@ -6,7 +6,7 @@ import io
 import json
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -22,6 +22,9 @@ from .ingest import VENUES
 from .models import Job, JobEvent, Paper, PaperBatch, PaperSource, Source, now
 from .db import SessionLocal, seed_sources
 from .datasets import DATASET_ID, ImportConflict, import_sample, load_sample
+from .additional_samples import DATASETS as ADDITIONAL_DATASETS, import_additional, list_additional_datasets
+from .paper_quality import research_paper_scope
+from .data_overview import batch_summary, dashboard, compare_batches, handoff
 from scripts.fetch_openalex_batch import SOURCES as OPENALEX_SOURCES
 
 @asynccontextmanager
@@ -69,11 +72,26 @@ class SourceUpdate(BaseModel):
 class JobCreate(BaseModel):
     venue: str
     year: int = Field(ge=1980, le=2100)
-    source: Literal["auto", "dblp", "openalex"] = "auto"
+    source: Literal["auto", "dblp", "openalex", "cvf", "ecva"] = "auto"
+    start: int = Field(default=1, ge=1, le=100000)
+    count: int = Field(default=20, ge=1, le=100)
+    full_year: bool = False
 
 
 class SampleImport(BaseModel):
     dataset_id: str = DATASET_ID
+
+
+class ReserveImportRequest(BaseModel):
+    venue: Literal['CVPR','ICCV']
+    year: int = Field(ge=1980,le=2100)
+    source: Literal['openalex'] = 'openalex'
+    count: int = Field(default=20,ge=1,le=100)
+
+
+class FileImportRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=30_000_000)
+    manifest: dict
 
 
 class JobView(BaseModel):
@@ -90,6 +108,7 @@ class JobView(BaseModel):
     attempted: int
     succeeded: int
     failed: int
+    skipped: int = 0
     error: str | None
     created_at: datetime
     updated_at: datetime
@@ -106,7 +125,7 @@ def job_data(job: Job) -> dict:
     return {"id": job.id, "batch_id": job.id, "batch_code": f"BATCH-{job.id:06d}",
             "kind": job.kind, "dataset_id": job.dataset_id,
             "venue": job.venue, "year": job.year, "source": job.source, "status": job.status, "stage": job.stage,
-            "attempted": job.attempted, "succeeded": job.succeeded, "failed": job.failed,
+            "attempted": job.attempted, "succeeded": job.succeeded, "failed": job.failed, "skipped": job.skipped,
             "error": job.error, "created_at": job.created_at, "updated_at": job.updated_at,
             "started_at": job.started_at, "finished_at": job.finished_at}
 
@@ -153,7 +172,7 @@ def batch_map(db: Session, paper_ids: list[int]) -> dict[int, list[int]]:
 
 
 def paper_filter(venue: str | None, year: int | None, q: str | None = None, batch_id: int | None = None):
-    conditions = []
+    conditions = [research_paper_scope()]
     if venue:
         venue = venue.upper()
         if venue not in VENUES:
@@ -187,7 +206,7 @@ def list_papers(q: str | None = Query(default=None, max_length=200), venue: str 
 
 @app.get("/api/papers/{paper_id}")
 def get_paper(paper_id: int, db: Session = Depends(db_session)):
-    paper = db.get(Paper, paper_id)
+    paper = db.scalar(select(Paper).where(Paper.id == paper_id, research_paper_scope()))
     if paper is None:
         raise HTTPException(404, "Paper not found")
     result = paper_data(paper)
@@ -207,7 +226,7 @@ def get_paper(paper_id: int, db: Session = Depends(db_session)):
 
 @app.get("/api/papers/{paper_id}/graph")
 def get_paper_graph(paper_id: int, db: Session = Depends(db_session)):
-    paper = db.get(Paper, paper_id)
+    paper = db.scalar(select(Paper).where(Paper.id == paper_id, research_paper_scope()))
     if paper is None:
         raise HTTPException(404, "Paper not found")
     paper_node = f"paper:{paper.id}"
@@ -244,15 +263,53 @@ def export_papers(venue: str | None = None, year: int | None = Query(default=Non
 
 @app.get("/api/admin/datasets", dependencies=[Depends(admin)])
 def list_datasets():
-    manifest, _ = load_sample()
-    return {"items": [manifest]}
+    try:
+        manifest, _ = load_sample()
+        return {"items": [manifest, *list_additional_datasets()]}
+    except (ValueError, OSError) as exc:
+        raise HTTPException(422, "样本文件不可用或校验失败，请检查样本清单和文件。") from exc
+
+
+@app.get("/api/admin/data-overview", dependencies=[Depends(admin)])
+def data_overview(days: int = Query(default=7, ge=1, le=30), db: Session = Depends(db_session)):
+    return dashboard(db, days)
+
+
+@app.get("/api/admin/new-papers", dependencies=[Depends(admin)])
+def new_papers(day: date, page: int = Query(default=1, ge=1),
+               page_size: int = Query(default=10, ge=1, le=100), db: Session = Depends(db_session)):
+    start = datetime.combine(day, time.min)
+    end = start + timedelta(days=1)
+    scope = (Paper.first_seen_at >= start, Paper.first_seen_at < end, research_paper_scope())
+    count = db.scalar(select(func.count(Paper.id)).where(*scope)) or 0
+    papers = db.scalars(select(Paper).where(*scope).order_by(Paper.id)
+                        .offset((page - 1) * page_size).limit(page_size)).all()
+    return {'date': day.isoformat(), 'timezone': 'UTC', 'total': count, 'page': page,
+            'page_size': page_size, 'items': [{'id': p.id, 'title': p.title, 'venue': p.venue,
+                                                'year': p.year, 'first_seen_at': p.first_seen_at} for p in papers]}
+
+
+@app.get("/api/admin/batch-comparison", dependencies=[Depends(admin)])
+def batch_comparison(first: int = Query(ge=1), second: int = Query(ge=1), db: Session = Depends(db_session)):
+    left, right = db.get(Job, first), db.get(Job, second)
+    if left is None or right is None:
+        raise HTTPException(404, "Batch not found")
+    return compare_batches(db, left, right)
+
+
+@app.get("/api/admin/handoff", dependencies=[Depends(admin)])
+def handoff_data(batch_id: int = Query(ge=1), db: Session = Depends(db_session)):
+    job = db.get(Job, batch_id)
+    if job is None:
+        raise HTTPException(404, "Batch not found")
+    return handoff(db, job)
 
 
 @app.get("/api/import-overview")
 def import_overview(db: Session = Depends(db_session)):
     """Read-only import results; credentials and administrative logs remain protected."""
     manifest, _ = load_sample()
-    jobs = db.scalars(select(Job).order_by(Job.id.desc()).limit(100)).all()
+    jobs = db.scalars(select(Job).where(Job.kind != "archive").order_by(Job.created_at.desc(), Job.id.desc()).limit(100)).all()
     counts = dict(db.execute(select(PaperBatch.job_id, func.count(PaperBatch.paper_id))
                              .group_by(PaperBatch.job_id)).all())
     batches = []
@@ -267,7 +324,8 @@ def import_overview(db: Session = Depends(db_session)):
 @app.post("/api/admin/imports", dependencies=[Depends(admin)], status_code=201, response_model=SampleImportView)
 def import_fixed_sample(payload: SampleImport, db: Session = Depends(db_session)):
     try:
-        job = import_sample(db, payload.dataset_id)
+        job = (import_additional(db, payload.dataset_id) if payload.dataset_id in ADDITIONAL_DATASETS
+               else import_sample(db, payload.dataset_id))
     except ImportConflict as exc:
         raise HTTPException(409, str(exc)) from exc
     except (ValueError, OSError) as exc:
@@ -299,6 +357,39 @@ def update_source(name: str, payload: SourceUpdate, db: Session = Depends(db_ses
     return {"name": source.name, "enabled": source.enabled, "page_size": source.page_size, "max_retries": source.max_retries}
 
 
+@app.get('/api/admin/reserve',dependencies=[Depends(admin)])
+def reserve_library(db: Session = Depends(db_session)):
+    from .reserve import summary
+    return summary(db)
+
+
+@app.post('/api/admin/reserve/imports',dependencies=[Depends(admin)],status_code=201)
+def import_reserve(payload: ReserveImportRequest,db: Session = Depends(db_session)):
+    from .reserve import queue_import
+    try:
+        job,count=queue_import(db,payload.venue,payload.year,payload.source,payload.count)
+        return {**job_data(job),'selected_papers':count}
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409,'该会议年度已有导入任务，请等待完成后再导入下一批')
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(422,str(exc))
+
+
+@app.post('/api/admin/file-imports', dependencies=[Depends(admin)], status_code=201, response_model=JobView)
+def import_uploaded_file(payload: FileImportRequest, db: Session = Depends(db_session)):
+    from .batch_import import queue_upload
+    try:
+        return job_data(queue_upload(db, payload.content, payload.manifest))
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, 'A job is already active for this conference/year')
+    except (ValueError, KeyError, TypeError, OSError) as exc:
+        db.rollback()
+        raise HTTPException(422, str(exc))
+
+
 @app.post("/api/admin/jobs", dependencies=[Depends(admin)], status_code=201, response_model=JobView)
 def create_job(payload: JobCreate, db: Session = Depends(db_session)):
     venue = payload.venue.upper()
@@ -306,6 +397,17 @@ def create_job(payload: JobCreate, db: Session = Depends(db_session)):
         raise HTTPException(422, "Supported venues: CVPR, ICCV, ECCV")
     if payload.year > datetime.utcnow().year:
         raise HTTPException(422, "Year cannot be in the future")
+    if payload.source == 'ecva' or (payload.source == 'auto' and venue == 'ECCV'):
+        configured = db.scalar(select(Source).where(Source.name == 'ecva'))
+        if venue != 'ECCV' or payload.year != 2024:
+            raise HTTPException(422, 'ECVA is currently configured for ECCV 2024')
+        if not configured or not configured.enabled:
+            raise HTTPException(409, 'ECVA source is disabled')
+    if payload.source == "cvf" and venue not in ("CVPR", "ICCV"):
+        raise HTTPException(422, "CVF supports CVPR and ICCV")
+    cvf = db.scalar(select(Source).where(Source.name == "cvf"))
+    if payload.source == "cvf" and (not cvf or not cvf.enabled):
+        raise HTTPException(409, "CVF source is disabled")
     dblp = db.scalar(select(Source).where(Source.name == "dblp"))
     openalex = db.scalar(select(Source).where(Source.name == "openalex"))
     if payload.source == "openalex" and venue not in OPENALEX_SOURCES:
@@ -314,12 +416,13 @@ def create_job(payload: JobCreate, db: Session = Depends(db_session)):
         raise HTTPException(409, "DBLP source is disabled")
     if payload.source == "openalex" and (not openalex or not openalex.enabled):
         raise HTTPException(409, "OpenAlex source is disabled")
-    if payload.source == "auto" and not ((dblp and dblp.enabled) or (openalex and openalex.enabled and venue in OPENALEX_SOURCES)):
+    if payload.source == "auto" and not ((cvf and cvf.enabled and venue in ('CVPR','ICCV')) or (dblp and dblp.enabled) or (openalex and openalex.enabled and venue in OPENALEX_SOURCES) or (venue=='ECCV' and db.scalar(select(Source).where(Source.name=='ecva',Source.enabled.is_(True))))):
         raise HTTPException(409, "No enabled source is available for this venue")
     active = db.scalar(select(Job).where(Job.venue == venue, Job.year == payload.year, Job.status.in_(["queued", "running"])))
     if active:
         raise HTTPException(409, f"Job {active.id} is already active for this venue/year")
-    job = Job(venue=venue, year=payload.year, source=payload.source, active_key=f"{venue}:{payload.year}")
+    job = Job(venue=venue, year=payload.year, source=payload.source, active_key=f"{venue}:{payload.year}",
+              dataset_id=f"cvf:{payload.start}:{'all' if payload.full_year else payload.count}" if payload.source in ("cvf", "auto") and venue in ("CVPR", "ICCV") else (f"ecva:{payload.start}:{'all' if payload.full_year else payload.count}" if venue=="ECCV" and payload.source in ("ecva", "auto") else None))
     db.add(job)
     try:
         db.commit()
@@ -331,7 +434,7 @@ def create_job(payload: JobCreate, db: Session = Depends(db_session)):
 
 @app.get("/api/admin/jobs", dependencies=[Depends(admin)], response_model=list[JobView])
 def list_jobs(db: Session = Depends(db_session)):
-    return [job_data(x) for x in db.scalars(select(Job).order_by(Job.id.desc()).limit(100))]
+    return [job_data(x) for x in db.scalars(select(Job).where(Job.kind != "archive").order_by(Job.created_at.desc(), Job.id.desc()).limit(100))]
 
 
 @app.get("/api/admin/jobs/{job_id}", dependencies=[Depends(admin)])
@@ -340,7 +443,20 @@ def get_job(job_id: int, db: Session = Depends(db_session)):
     if not job:
         raise HTTPException(404, "Job not found")
     result = job_data(job)
-    result["paper_count"] = db.scalar(select(func.count()).select_from(PaperBatch).where(PaperBatch.job_id == job_id))
+    result.update(batch_summary(db, job))
+    from .pipeline import record_counts
+    from .models import CvfRecord
+    result['progress'] = record_counts(db, job.id)
+    if not result['progress']['total'] and job.source == 'cvf':
+        values = list(db.scalars(select(CvfRecord.status).where(CvfRecord.job_id == job.id)))
+        result['progress'] = {'total':len(values),'succeeded':values.count('succeeded'),'failed':values.count('failed'),'pending':values.count('pending'),'skipped':0}
+
+    batch_papers = db.scalars(select(Paper).join(PaperBatch, PaperBatch.paper_id == Paper.id).where(PaperBatch.job_id == job.id, research_paper_scope())).all()
+    result['quality'] = {'total': len(batch_papers),
+                         'with_abstract': sum(bool((p.abstract or '').strip()) for p in batch_papers),
+                         'with_doi': sum(bool(p.doi) for p in batch_papers),
+                         'with_authors': sum(bool(json.loads(p.authors_json)) for p in batch_papers)}
+
     result["events"] = [{"stage": e.stage, "level": e.level, "message": e.message, "created_at": e.created_at}
                         for e in db.scalars(select(JobEvent).where(JobEvent.job_id == job_id).order_by(JobEvent.id.desc()).limit(100))]
     return result
@@ -348,10 +464,10 @@ def get_job(job_id: int, db: Session = Depends(db_session)):
 
 @app.get("/api/admin/jobs/{job_id}/papers", dependencies=[Depends(admin)])
 def get_batch_papers(job_id: int, page: int = Query(default=1, ge=1),
-                     page_size: int = Query(default=20, ge=1, le=100), db: Session = Depends(db_session)):
+                     page_size: int = Query(default=20, ge=1, le=100), q: str | None = Query(default=None, max_length=200), db: Session = Depends(db_session)):
     if db.get(Job, job_id) is None:
         raise HTTPException(404, "Batch not found")
-    result = list_papers(q=None, venue=None, year=None, page=page, page_size=page_size, batch_id=job_id, db=db)
+    result = list_papers(q=q, venue=None, year=None, page=page, page_size=page_size, batch_id=job_id, db=db)
     result["batch_id"] = job_id
     return result
 
@@ -363,15 +479,17 @@ def retry_job(job_id: int, db: Session = Depends(db_session)):
         raise HTTPException(404, "Job not found")
     if job.status not in ("failed", "partial"):
         raise HTTPException(409, "Only failed or partial jobs can be retried")
-    if job.source == "ecva":
-        raise HTTPException(409, "ECVA batches must be retried through the import command")
     if job.kind == "sample":
         try:
-            return job_data(import_sample(db, job.dataset_id, job=job))
+            retried = (import_additional(db, job.dataset_id, job=job) if job.dataset_id in ADDITIONAL_DATASETS
+                       else import_sample(db, job.dataset_id, job=job))
+            return job_data(retried)
         except ImportConflict as exc:
             raise HTTPException(409, str(exc)) from exc
         except (ValueError, OSError) as exc:
             raise HTTPException(422, str(exc)) from exc
+    if job.source == "ecva":
+        raise HTTPException(409, "ECVA batches must be retried through the import command")
     active = db.scalar(select(Job).where(Job.venue == job.venue, Job.year == job.year,
                                          Job.status.in_(["queued", "running"])))
     if active:
@@ -379,9 +497,14 @@ def retry_job(job_id: int, db: Session = Depends(db_session)):
     job.status = "queued"
     job.active_key = f"{job.venue}:{job.year}"
     job.stage = "queued"
-    job.attempted = job.succeeded = job.failed = 0
+    from .pipeline import saved_progress
+    progress = saved_progress(db,job)
+    job.succeeded,job.failed,job.skipped = progress['succeeded'],progress['failed'],progress['skipped']
+    job.attempted = job.succeeded+job.failed+job.skipped
     job.error = None
-    job.started_at = job.finished_at = None
+    if not progress['total']:
+        job.started_at = None
+    job.finished_at = None
     job.updated_at = now()
     try:
         db.commit()

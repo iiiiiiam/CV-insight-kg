@@ -13,7 +13,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from server.api.schemas import (ImportRequest, LoginRequest, KnowledgeReviewRequest,
-                                GraphImportRequest, GraphPublishRequest)
+                                GraphImportRequest, GraphPublishRequest, OnlineJobRequest, FileImportRequest, SourceUpdateRequest, ReserveImportRequest)
 from server.application.a_gateway import AServiceClient, AServiceUnavailable
 from server.application.c_gateway import CServiceClient
 from server.application.graph_policy import GraphBoundaryError, require_reviewed_batch
@@ -282,9 +282,49 @@ def create_app(settings: Settings | None = None):
     async def list_datasets(_session: Session = Depends(require_admin)):
         return await call_a('GET', '/api/admin/datasets')
 
+    @app.get('/api/admin/data-overview')
+    async def data_overview(request: Request, _session: Session = Depends(require_admin)):
+        return await call_a('GET', '/api/admin/data-overview', params=dict(request.query_params))
+
+    @app.get('/api/admin/new-papers')
+    async def new_papers(request: Request, _session: Session = Depends(require_admin)):
+        return await call_a('GET', '/api/admin/new-papers', params=dict(request.query_params))
+
+    @app.get('/api/admin/batch-comparison')
+    async def batch_comparison(request: Request, _session: Session = Depends(require_admin)):
+        return await call_a('GET', '/api/admin/batch-comparison', params=dict(request.query_params))
+
+    @app.get('/api/admin/handoff')
+    async def handoff_data(request: Request, _session: Session = Depends(require_admin)):
+        return await call_a('GET', '/api/admin/handoff', params=dict(request.query_params))
+
     @app.post('/api/admin/imports')
     async def create_import(body: ImportRequest, _session: Session = Depends(require_admin_write)):
         return await call_a('POST', '/api/admin/imports', body=body.model_dump())
+
+    @app.get('/api/admin/reserve')
+    async def reserve_library(_session: Session = Depends(require_admin)):
+        return await call_a('GET','/api/admin/reserve')
+
+    @app.post('/api/admin/reserve/imports')
+    async def import_reserve(body: ReserveImportRequest,_session: Session = Depends(require_admin_write)):
+        return await call_a('POST','/api/admin/reserve/imports',body=body.model_dump())
+
+    @app.post('/api/admin/file-imports')
+    async def import_file(body: FileImportRequest, _session: Session = Depends(require_admin_write)):
+        return await call_a('POST', '/api/admin/file-imports', body=body.model_dump())
+
+    @app.get('/api/admin/sources')
+    async def get_sources(_session: Session = Depends(require_admin)):
+        return await call_a('GET', '/api/admin/sources')
+
+    @app.put('/api/admin/sources/{name}')
+    async def update_source(name: str, body: SourceUpdateRequest, _session: Session = Depends(require_admin_write)):
+        return await call_a('PUT', '/api/admin/sources/' + quote(name, safe=''), body=body.model_dump())
+
+    @app.post('/api/admin/jobs')
+    async def create_online_job(body: OnlineJobRequest, _session: Session = Depends(require_admin_write)):
+        return await call_a('POST', '/api/admin/jobs', body=body.model_dump())
 
     @app.get('/api/admin/jobs')
     async def list_jobs(_session: Session = Depends(require_admin)):

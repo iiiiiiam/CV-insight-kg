@@ -114,7 +114,7 @@ class ApiTests(unittest.TestCase):
 
     def test_api_initializes_sources_and_retries_failed_jobs(self):
         sources = self.client.get("/api/admin/sources", headers=self.auth).json()
-        self.assertEqual({s["name"] for s in sources}, {"dblp", "openalex", "ecva"})
+        self.assertEqual({s["name"] for s in sources}, {"dblp", "openalex", "ecva", "cvf"})
         payload = {"venue": "CVPR", "year": 2024, "source": "openalex"}
         response = self.client.post("/api/admin/jobs", headers=self.auth, json=payload)
         self.assertEqual(response.status_code, 201)

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import tempfile
@@ -118,7 +119,7 @@ class IngestTests(unittest.TestCase):
             path.write_text(json.dumps(work) + "\n", encoding="utf-8")
             path.with_suffix(".manifest.json").write_text(json.dumps({
                 "venue": "CVPR", "year": 2024, "source": "openalex",
-                "source_id": "S4210176548", "count": 1}), encoding="utf-8")
+                "source_id": "S4210176548", "count": 1, "sha256":hashlib.sha256(path.read_bytes()).hexdigest()}), encoding="utf-8")
             with patch.dict(os.environ, {"BATCH_DIR": directory}), patch(
                 "scripts.fetch_openalex_batch.fetch_batch", side_effect=requests.ConnectionError("offline")
             ):

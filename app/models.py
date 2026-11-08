@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, create_engine, inspect, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, create_engine, inspect, text, event
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
@@ -39,12 +39,23 @@ class Job(Base):
     attempted: Mapped[int] = mapped_column(Integer, default=0)
     succeeded: Mapped[int] = mapped_column(Integer, default=0)
     failed: Mapped[int] = mapped_column(Integer, default=0)
+    skipped: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     error: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
     started_at: Mapped[datetime | None] = mapped_column(DateTime)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime)
     events: Mapped[list[JobEvent]] = relationship(back_populates="job", cascade="all, delete-orphan")
+
+
+class CvfRecord(Base):
+    __tablename__ = "cvf_job_records"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"), index=True)
+    source_id: Mapped[str] = mapped_column(String(255))
+    payload: Mapped[str] = mapped_column(Text().with_variant(LONGTEXT(), "mysql"))
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    __table_args__ = (UniqueConstraint("job_id", "source_id", name="uq_cvf_job_record"),)
 
 
 class JobEvent(Base):
@@ -78,6 +89,22 @@ class Paper(Base):
     __table_args__ = (Index("ix_papers_venue_year", "venue", "year"),)
 
 
+class JobRecord(Base):
+    """Frozen inputs and durable per-record checkpoints for a refresh batch."""
+    __tablename__ = "job_records"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"), index=True)
+    source: Mapped[str] = mapped_column(String(40))
+    source_id: Mapped[str] = mapped_column(String(255))
+    payload_json: Mapped[str] = mapped_column(Text().with_variant(LONGTEXT(), "mysql"))
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    stage: Mapped[str] = mapped_column(String(40), default="upsert")
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    error: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
+    __table_args__ = (UniqueConstraint("job_id", "source", "source_id", name="uq_job_record"),)
+
+
 class PaperSource(Base):
     __tablename__ = "paper_sources"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -90,17 +117,58 @@ class PaperSource(Base):
     __table_args__ = (UniqueConstraint("source", "source_id", name="uq_source_record"),)
 
 
+class ImportCandidate(Base):
+    """Verified supplementary metadata; not part of the imported paper collection."""
+    __tablename__ = 'import_candidates'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source: Mapped[str] = mapped_column(String(40))
+    source_id: Mapped[str] = mapped_column(String(255))
+    venue: Mapped[str] = mapped_column(String(20))
+    year: Mapped[int] = mapped_column(Integer)
+    title: Mapped[str] = mapped_column(String(1000))
+    title_normalized: Mapped[str] = mapped_column(String(1000))
+    doi: Mapped[str | None] = mapped_column(String(255))
+    payload_json: Mapped[str] = mapped_column(Text().with_variant(LONGTEXT(), 'mysql'))
+    input_sha256: Mapped[str] = mapped_column(String(64))
+    claimed_job_id: Mapped[int | None] = mapped_column(ForeignKey('jobs.id'), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    __table_args__ = (UniqueConstraint('source','source_id',name='uq_import_candidate'), Index('ix_candidate_scope','venue','year','source','claimed_job_id'))
+
+
+class SourceRevision(Base):
+    __tablename__ = 'source_revisions'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source_record_id: Mapped[int] = mapped_column(ForeignKey('paper_sources.id'), index=True)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    raw_json: Mapped[str] = mapped_column(Text().with_variant(LONGTEXT(), 'mysql'))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    __table_args__ = (UniqueConstraint('source_record_id', 'fingerprint', name='uq_source_revision'),)
+
+
 class PaperBatch(Base):
     """A paper can appear in multiple import batches without being duplicated."""
     __tablename__ = "paper_batches"
     job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"), primary_key=True)
     paper_id: Mapped[int] = mapped_column(ForeignKey("papers.id"), primary_key=True, index=True)
     imported_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    # Null means this association predates tracking, so its creation status is unknown.
+    is_new: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
 
 def database(url: str):
     engine = create_engine(url, pool_pre_ping=True)
+    if engine.dialect.name == 'sqlite':
+        @event.listens_for(engine, 'connect')
+        def foreign_keys(connection, _record):
+            connection.execute('PRAGMA foreign_keys=ON')
     Base.metadata.create_all(engine)
+    if "is_new" not in {column["name"] for column in inspect(engine).get_columns("paper_batches")}:
+        try:
+            with engine.begin() as connection:
+                connection.execute(text("ALTER TABLE paper_batches ADD COLUMN is_new BOOLEAN NULL"))
+        except Exception:
+            if "is_new" not in {column["name"] for column in inspect(engine).get_columns("paper_batches")}:
+                raise
     if "source" not in {column["name"] for column in inspect(engine).get_columns("jobs")}:
         try:
             with engine.begin() as connection:
@@ -111,7 +179,7 @@ def database(url: str):
             # API and worker can start together; another process may have added the column.
             if "source" not in {column["name"] for column in inspect(engine).get_columns("jobs")}:
                 raise
-    for name, definition in (("kind", "VARCHAR(20) NOT NULL DEFAULT 'refresh'"), ("dataset_id", "VARCHAR(100) NULL")):
+    for name, definition in (("skipped", "INTEGER NOT NULL DEFAULT 0"), ("kind", "VARCHAR(20) NOT NULL DEFAULT 'refresh'"), ("dataset_id", "VARCHAR(100) NULL")):
         if name not in {column["name"] for column in inspect(engine).get_columns("jobs")}:
             try:
                 with engine.begin() as connection:

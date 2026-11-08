@@ -1,4 +1,4 @@
-"""Start unchanged A code in its existing protected mode, with an isolated demo DB."""
+"""Start the protected A API and its worker using persistent local configuration."""
 
 import os
 from pathlib import Path
@@ -25,8 +25,14 @@ def main():
             result = import_sample(db)
             if result.status != 'succeeded':
                 raise SystemExit('A样本导入未成功，请检查本地数据库和样本清单。')
-    print('A原代码以既有受保护模式运行：http://127.0.0.1:8000；数据库位于server/.local。')
-    uvicorn.run('app.api:app', host='127.0.0.1', port=8000)
+    print('A数据服务已启动：http://127.0.0.1:8000；数据库位于server/.local。')
+    import subprocess, sys
+    worker = subprocess.Popen([sys.executable, '-m', 'app.worker'], env=os.environ.copy())
+    try:
+        uvicorn.run('app.api:app', host='127.0.0.1', port=8000)
+    finally:
+        worker.terminate()
+        worker.wait(timeout=10)
 
 
 if __name__ == '__main__':
