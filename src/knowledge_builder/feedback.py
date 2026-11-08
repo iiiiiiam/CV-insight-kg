@@ -138,7 +138,7 @@ class KnowledgeFeedback:
         from .source_enrichment import extract_with_sources
         return extract_with_sources(paper, vocabulary, self.source_records.get(paper.openalex_id, []))
 
-    def _material(self, paper_id, data):
+    def _material(self, paper_id, data, *, with_provenance=False):
         if paper_id not in self.papers:
             raise LookupError("该论文尚未纳入当前知识输入")
         paper = self.papers[paper_id]
@@ -153,6 +153,17 @@ class KnowledgeFeedback:
                 content=dict(source=c.source, kind=c.kind, target=c.target),
                 evidence=[asdict(e) for e in c.evidence])
         signatures = {key: fingerprint(item) for key, item in items.items()}
+        provenance = {key: dict(generation="automatic", review_state="automatic", rule_adjusted=False)
+                      for key in items} if with_provenance else None
+        if with_provenance and data["terms"]:
+            original_result, _ = self._extract(paper, self.vocabulary)
+            original_items = {c.candidate_id: dict(candidate_id=c.candidate_id, content=asdict(c.entity),
+                evidence=[asdict(e) for e in c.evidence]) for c in original_result.entities}
+            original_items.update({c.candidate_id: dict(candidate_id=c.candidate_id,
+                content=dict(source=c.source, kind=c.kind, target=c.target), evidence=[asdict(e) for e in c.evidence])
+                for c in original_result.relations})
+            for key, info in provenance.items():
+                info["rule_adjusted"] = signatures[key] != fingerprint(original_items.get(key))
         # Carry over actual legacy edits, not the unchanged baseline snapshots:
         # new vocabulary may add evidence to an already-existing candidate.
         session = self.sessions.get(paper_id)
@@ -181,6 +192,12 @@ class KnowledgeFeedback:
                         items[item.candidate_id]["content"] = reviewed_content
                     if reviewed_evidence != previous["evidence"]:
                         items[item.candidate_id]["evidence"] = reviewed_evidence
+                    if provenance is not None:
+                        current = items[item.candidate_id]
+                        if item.status == "confirmed" and current["content"] == reviewed_content and current["evidence"] == reviewed_evidence:
+                            provenance[item.candidate_id]["review_state"] = "human_confirmed"
+                        elif reviewed_content != previous["content"] or reviewed_evidence != previous["evidence"]:
+                            provenance[item.candidate_id]["review_state"] = "human_corrected"
         for decision in data["decisions"]:
             key = decision["candidate_id"]
             if (decision["paper_id"] != paper_id or key not in items or
@@ -191,6 +208,8 @@ class KnowledgeFeedback:
                 excluded.add(key)
             elif decision["action"] == "rename":
                 items[key]["content"]["name"] = decision["name"]
+                if provenance is not None:
+                    provenance[key]["review_state"] = "human_corrected"
         entities = [item for key, item in items.items() if "key" in item["content"] and key not in excluded]
         keys = {item["content"]["key"] for item in entities}
         relations = [item for key, item in items.items()
@@ -202,6 +221,8 @@ class KnowledgeFeedback:
         if enrichment is not None:
             public["source_enrichment"] = enrichment
         public["revision"] = fingerprint(public)
+        if with_provenance:
+            return public, items, signatures, result, provenance
         return public, items, signatures, result
 
     def list_papers(self):
@@ -210,6 +231,10 @@ class KnowledgeFeedback:
 
     def view(self, paper_id):
         return self._material(paper_id, self.store.read())[0]
+
+    def export_effective(self, expected_revision=None):
+        from .effective_export import build_effective_export
+        return build_effective_export(self, expected_revision=expected_revision)
 
     def submit(self, paper_id, revision, message, *, candidate_id=None, term=None, owner_token=None):
         message = _text(message, "问题描述")

@@ -1,16 +1,16 @@
 """B-owned reading and feedback routes; shared login remains D-owned."""
 
-from pathlib import Path
+import json
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from server.application.knowledge import KnowledgeSnapshot, KnowledgeSnapshotInvalid
 from server.domain.auth import Session, require_admin, require_admin_write
-from src.knowledge_builder.extraction import load_vocabulary
-from src.knowledge_builder.source_corpus import load_reading_corpus
-from src.knowledge_builder.feedback import FeedbackConflict, FeedbackStore, FeedbackStoreInvalid, KnowledgeFeedback
+from server.application.knowledge_reading import reading_workspace
+from src.knowledge_builder.feedback import FeedbackConflict, FeedbackStoreInvalid
 
 
 class FeedbackSubmission(BaseModel):
@@ -48,25 +48,7 @@ def feedback_router(settings):
     router = APIRouter()
 
     def workspace():
-        snapshot = KnowledgeSnapshot(vocabulary_path=settings.b_vocabulary_path,
-                                    reviews_directory=settings.b_reviews_directory)
-        path = Path(settings.b_vocabulary_path) if settings.b_vocabulary_path else None
-        if path is not None and not path.is_absolute():
-            path = Path(__file__).resolve().parents[2] / path
-        vocabulary = load_vocabulary(path)
-        papers, results, sources = snapshot.papers, snapshot.results, None
-        corpus_path = getattr(settings, "b_source_corpus", None)
-        if corpus_path:
-            corpus_path = Path(corpus_path)
-            if not corpus_path.is_absolute():
-                corpus_path = Path(__file__).resolve().parents[2] / corpus_path
-            try:
-                papers, sources, results = load_reading_corpus(corpus_path, papers, vocabulary)
-            except (ValueError, KeyError, TypeError, OSError) as exc:
-                raise KnowledgeSnapshotInvalid("来源增强数据无法读取或校验，请检查 B_SOURCE_CORPUS") from exc
-        return KnowledgeFeedback(papers, results, snapshot.sessions,
-            vocabulary, FeedbackStore(snapshot.review_directory / "_feedback" / "state.json"),
-            source_records=sources)
+        return reading_workspace(settings, snapshot_factory=KnowledgeSnapshot)
 
     def call(method, *args, **kwargs):
         try:
@@ -105,6 +87,14 @@ def feedback_router(settings):
     @router.get("/api/admin/knowledge/feedback")
     def queue(_session: Session = Depends(require_admin)):
         return call("queue")
+
+    @router.get("/api/admin/knowledge/effective-export")
+    def export_effective(expected_revision: str | None = Query(default=None, pattern="^[0-9a-f]{64}$"),
+                         _session: Session = Depends(require_admin)):
+        document = call("export_effective", expected_revision=expected_revision)
+        return Response(json.dumps(document, ensure_ascii=False, indent=2), media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="effective-{document["revision"][:12]}.json"',
+                     "Cache-Control": "no-store", "X-Knowledge-Revision": document["revision"]})
 
     @router.post("/api/admin/knowledge/feedback/{identifier}")
     def resolve(identifier: str, body: FeedbackResolution,
