@@ -5,6 +5,7 @@ import re
 from neo4j import GraphDatabase, unit_of_work
 
 from .models import BatchInput
+from .analytics import GraphAnalytics
 
 
 class GraphError(Exception):
@@ -12,7 +13,9 @@ class GraphError(Exception):
         self.status, self.code, self.message = status, code, message
 
 
-class GraphRepository:
+from .effective_store import EffectiveStore
+
+class GraphRepository(GraphAnalytics, EffectiveStore):
     def __init__(self, uri, user, password, database="neo4j"):
         self.driver = GraphDatabase.driver(
             uri, auth=(user, password), max_transaction_retry_time=5
@@ -116,6 +119,8 @@ class GraphRepository:
             if not row:
                 raise GraphError(404, "BATCH_NOT_FOUND", "批次不存在")
             result = dict(row["b"])
+            self._check_effective(tx,result)
+            result.pop("effective_json",None)
             actual = tx.run(
                 "MATCH (n:CVEntity {batch_id:$id}) OPTIONAL MATCH (n)-[r:CV_LINK]->() RETURN count(DISTINCT n) AS entities, count(r) AS relations",
                 id=batch_id,
@@ -124,7 +129,7 @@ class GraphRepository:
                 "counts_match": actual["entities"] == result["entity_count"]
                 and actual["relations"] == result["relation_count"],
                 "nonempty": actual["entities"] > 0,
-                "formal_knowledge": result["provenance"] == "reviewed_export",
+                "formal_knowledge": result["provenance"] in ("reviewed_export","effective_export"),
             }
             result["publishable"] = all(result["checks"].values())
             result["active_batch_id"] = tx.run(
@@ -148,6 +153,7 @@ class GraphRepository:
             if not row:
                 raise GraphError(404, "BATCH_NOT_FOUND", "批次不存在")
             b = row["b"]
+            self._check_effective(tx,b)
             if b["provenance"] == "developer_fixture" and not allow_fixture:
                 raise GraphError(409, "FIXTURE_REQUIRES_OPT_IN", "演示夹具必须显式允许发布")
             counts = tx.run(
@@ -186,6 +192,8 @@ class GraphRepository:
     @staticmethod
     def node(n):
         result = dict(n)
+        if "contexts_json" in result: result["contexts"] = json.loads(result.pop("contexts_json"))
+        if "effective_partition_json" in result: result["effective_partition"] = json.loads(result.pop("effective_partition_json"))
         result["label"] = result["name"]
         result["type"] = result["kind"].title()
         if result["kind"] == "paper":
@@ -205,6 +213,8 @@ class GraphRepository:
             clauses.append("toLower(p.name) CONTAINS toLower($q)")
         if filters.get("year") is not None:
             clauses.append("p.year=$year")
+        if filters.get('author_id'):
+            clauses.append("EXISTS { MATCH (p)-[:CV_LINK {kind:'has_author'}]->(:CVEntity {batch_id:$batch,kind:'author',id:$author_id}) }")
         for kind in (
             "topic",
             "method",
@@ -290,9 +300,14 @@ class GraphRepository:
                 id=entity_id,
             )
             values = list(rows)
+            related=[self.node(r["n"]) for r in values[:200]]
+            if record["n"]["kind"]=="paper":
+                for n in related:
+                    local=next((c for c in n.get("contexts",[]) if c["paper_id"]==entity_id),None)
+                    if local:n.update(name=local["content"]["name"],label=local["content"]["name"])
             return {
                 "node": self.node(record["n"]),
-                "related": [self.node(r["n"]) for r in values[:200]],
+                "related": related,
                 "relations": [
                     self.edge(r["r"], r["source"], r["target"]) for r in values[:200]
                 ],
@@ -338,6 +353,9 @@ class GraphRepository:
                     nodes[n["id"]] = self.node(n)
                 for r in row["path"].relationships:
                     edges[r["id"]] = self.edge(r, r.start_node["id"], r.end_node["id"])
+            for n in nodes.values():
+                local=next((c for c in n.get("contexts",[]) if c["paper_id"]==seed),None)
+                if local:n.update(name=local["content"]["name"],label=local["content"]["name"])
             return {
                 "nodes": list(nodes.values()),
                 "edges": list(edges.values()),

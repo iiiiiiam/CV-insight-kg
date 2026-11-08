@@ -6,7 +6,7 @@ import org.neo4j.configuration.helpers.SocketAddress;
 public class GraphHarness {
     public static void main(String[] args) throws Exception {
         try (var db = Neo4jBuilders.newInProcessBuilder().withDisabledServer()
-                .withConfig(BoltConnector.listen_address, new SocketAddress("127.0.0.1", 17687)).build()) {
+                .withConfig(BoltConnector.listen_address, new SocketAddress("127.0.0.1", Integer.getInteger("graph.test.port", 17687))).build()) {
             System.out.println("READY " + db.boltURI());
             System.out.flush();
             Thread.currentThread().join();

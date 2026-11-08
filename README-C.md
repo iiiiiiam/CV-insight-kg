@@ -1,5 +1,7 @@
 # C · 第一周图谱查询原型
 
+Week 2 新增作者画像与研究统计，接口、统计口径、独立展示及 B/D 对接边界见 [Week 2 交付说明](docs/graph/week2.md)。独立展示入口：`/research/analytics`。既有图写入、发布和查询入口保持兼容。
+
 独立目录 `src/graph_query/`，不修改 A/B/D 的实现或现有接口。研究读取真实 Neo4j，不使用内存或 SQL 代替图查询。Python 3.10+，Neo4j 5.26 LTS，开发测试另需 pytest/httpx。
 
 ## 启动（Windows PowerShell）
@@ -74,3 +76,5 @@ java -cp "target/classes;target/dependency/*" GraphHarness
 管理员路由使用环境中的服务 Bearer token，默认关闭；应由 D 验证管理员会话后通过服务器代理调用，不能把 token 放入前端。该模块不取代 D 的登录/退出服务。当前同源演示不配置跨域；D 可用开发代理接入。作者/机构接口本周只交付带证据邻居的画像骨架，完整合作网络与聚合统计属于后续周次。
 
 所有改动在 `feature/graph-week1` 开发；通过 PR 请组员评审，保持 main 不变，不强推。
+
+新增 B knowledge-effective/1.0 完整快照接入，运行与真实验证见 [effective 交接说明](docs/graph/effective-handoff.md)。旧 confirmed 路径保留。

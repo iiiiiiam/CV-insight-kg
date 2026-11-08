@@ -141,25 +141,9 @@
   </section>
   <p id="status" role="status" aria-live="polite"></p>
   <main id="detail"></main>
-  <section class="card" id="graphCard" hidden>
-    <h2>关联图谱</h2>
-    <label
-      >范围
-      <select id="hops">
-        <option value="1">1 跳</option>
-        <option value="2">2 跳</option>
-      </select></label
-    >
-    <button id="expand">刷新图谱</button>
-    <p id="graphInfo"></p>
-    <svg
-      id="graph"
-      viewBox="0 0 1000 400"
-      role="img"
-      aria-label="可点击节点的关联图谱"
-    ></svg>
-  </section>
+  <section class="card" id="graphCard" hidden><h2>关联图谱</h2><div id="graphHost"></div></section>
   <script type="module">
+    import { mountGraph } from "/assets/c-graph-view.js";
     import { mountPaperDetail } from "/assets/c-paper-detail.js";
     function el(tag, text, cls) {
       const n = document.createElement(tag);
@@ -204,82 +188,13 @@
         status(e.message);
       }
     }
+    let graphView;
     async function graph() {
       if (!seed) return;
-      const d = await api("graph", {
-        ...filters(),
-        seed,
-        hops: $("#hops").value,
-        batch_id: batch,
-        limit: 80,
-      });
-      $("#graphInfo").textContent =
-        `批次 ${d.batch_id} · ${d.nodes.length} 节点 / ${d.edges.length} 关系${d.truncated ? " · 结果已截断" : ""} · 点击节点查看详情`;
-      const svg = $("#graph");
-      svg.replaceChildren();
-      const ns = "http://www.w3.org/2000/svg";
-      const positions = new Map();
-      d.nodes.forEach((n, i) =>
-        positions.set(
-          n.id,
-          i === 0
-            ? [500, 200]
-            : [
-                500 +
-                  390 *
-                    Math.cos(
-                      ((i - 1) * 2 * Math.PI) / Math.max(1, d.nodes.length - 1),
-                    ),
-                200 +
-                  150 *
-                    Math.sin(
-                      ((i - 1) * 2 * Math.PI) / Math.max(1, d.nodes.length - 1),
-                    ),
-              ],
-        ),
-      );
-      for (const e of d.edges) {
-        const [x1, y1] = positions.get(e.source),
-          [x2, y2] = positions.get(e.target);
-        const l = document.createElementNS(ns, "line");
-        for (const [k, v] of Object.entries({
-          x1,
-          y1,
-          x2,
-          y2,
-          stroke: "#c6d6df",
-        }))
-          l.setAttribute(k, v);
-        svg.append(l);
-      }
-      for (const n of d.nodes) {
-        const [x, y] = positions.get(n.id);
-        const g = document.createElementNS(ns, "g");
-        g.setAttribute("tabindex", "0");
-        g.setAttribute("role", "button");
-        g.setAttribute("aria-label", n.name);
-        const c = document.createElementNS(ns, "circle");
-        for (const [k, v] of Object.entries({
-          cx: x,
-          cy: y,
-          r: n.id === selected ? 13 : 7,
-          fill: n.id === selected ? "#e4a34c" : "#398493",
-        }))
-          c.setAttribute(k, v);
-        const t = document.createElementNS(ns, "text");
-        t.setAttribute("x", x + (x > 500 ? -12 : 12));
-        t.setAttribute("text-anchor", x > 500 ? "end" : "start");
-        t.setAttribute("y", y + 4);
-        t.textContent = n.name.length > 23 ? n.name.slice(0, 23) + "…" : n.name;
-        const title = document.createElementNS(ns, "title");
-        title.textContent = n.name;
-        g.append(c, t, title);
-        g.onclick = () => detail(n.id);
-        g.onkeydown = (e) => {
-          if (e.key === "Enter") detail(n.id);
-        };
-        svg.append(g);
-      }
+      graphView?.destroy();
+      graphView=mountGraph($('#graphHost'),{seed,batch,
+        load:params=>api('graph',{...filters(),...params}),
+        onSelect:async(id,b)=>{try{const d=await api('entities/'+encodeURIComponent(id),{batch_id:b});mountPaperDetail($('#detail'),d,detail)}catch(e){status(e.message)}}});
     }
     async function search() {
       controller?.abort();
@@ -326,7 +241,7 @@
       $("#search").reset();
       search();
     };
-    $("#expand").onclick = () => graph().catch((e) => status(e.message));
+
     const path = location.pathname.split("/research/papers/")[1];
     if (path) {
       batch = new URLSearchParams(location.search).get("batch_id");
