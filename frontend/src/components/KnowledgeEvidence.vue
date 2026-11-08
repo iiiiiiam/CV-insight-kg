@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed,nextTick,onBeforeUnmount,ref,watch} from 'vue'
 import {evidenceExcerpt} from '../services/knowledge.ts'
+import type {Evidence} from '../services/knowledge.ts'
 import {safeSourceUrl} from '../services/research.ts'
 import {getReading,itemName,KIND_NAMES,sendFeedback} from '../services/knowledge-feedback.ts'
 import type {ReadingKnowledge} from '../services/knowledge-feedback.ts'
@@ -37,6 +38,18 @@ const excerpt=computed(()=>{
   if(!proof.value||!view.value||proof.value.field==='metadata')return null
   return evidenceExcerpt(view.value.paper[proof.value.field]??'',proof.value)
 })
+function proofLabel(p:Evidence){
+  if(p.field==='title')return '论文标题'
+  if(p.field==='abstract')return '论文摘要'
+  if(p.path[0]==='title')return '论文标题'
+  if(p.path[0]==='venue')return '会议 / 期刊'
+  if(p.path[0]==='authorships')return p.path.includes('institutions')?'机构记录':'作者记录'
+  return '文献来源记录'
+}
+function proofQuote(p:Evidence){
+  if(p.field!=='metadata')return p.quote
+  try{const value:unknown=JSON.parse(p.quote);return typeof value==='string'||typeof value==='number'?String(value):p.quote}catch{return p.quote}
+}
 async function load(){
   const current=++generation;controller?.abort();controller=new AbortController()
   loading.value=true;error.value='';localError.value='';localNote.value='';base.value=null;form.value=null;editor.value=null;selectedId.value='';undoDraft.value=null;actionNote.value='';showChanges.value=false;feedbackVersion.value=0
@@ -46,7 +59,7 @@ async function load(){
 }
 watch(()=>props.paperId,()=>{notice.value='';void load()},{immediate:true})
 watch([collection,view],()=>{if(!selected.value)selectedId.value=items.value[0]?.candidate_id??''})
-watch(selectedId,()=>{proofIndex.value=0;form.value=null;editor.value=null;message.value=''})
+watch(selectedId,()=>{const index=selected.value?.evidence.findIndex(p=>p.field==='title'||p.field==='abstract'||['display_name','title','venue'].includes(String(p.path.at(-1))))??-1;proofIndex.value=Math.max(0,index);form.value=null;editor.value=null;message.value=''})
 function readLocal(){
   if(!base.value)return
   localError.value='';localNote.value=''
@@ -135,17 +148,29 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
 <template>
   <section class="knowledge-evidence">
     <header class="section-heading">
-      <div><h3>知识与原文依据</h3><p>选择节点或条目，即可查看依据并调整自己的视图。</p></div>
+      <div><h3>知识与原文依据</h3></div>
       <button class="action-button" :disabled="loading || saving" @click="load">刷新内容</button>
     </header>
-    <p class="privacy-note">个人调整只保存在当前浏览器，不会上报后台；需要公共纠错时再主动反馈。</p>
     <p v-if="loading" role="status">正在读取知识与证据…</p>
     <p v-if="error" class="inline-error" role="alert">{{error}}</p>
     <p v-if="notice" class="inline-success" role="status">{{notice}}</p>
     <p v-if="localError" class="inline-error" role="alert">{{localError}} <button class="action-button" @click="reset">恢复默认</button></p>
     <p v-if="localNote" class="privacy-note" role="status">{{localNote}}</p>
     <template v-if="view">
+      <section v-if="view.source_enrichment?.source_classifications.length" class="source-summary" aria-label="研究主题">
+        <h4>研究主题</h4>
+        <div v-if="view.source_enrichment.source_classifications.length" class="source-topics">
+          <a v-for="topic in view.source_enrichment.source_classifications" :key="topic.source_id" :href="safeSourceUrl(topic.source_id) || undefined" target="_blank" rel="noopener noreferrer">{{topic.name}}</a>
+        </div>
+        <p class="privacy-note">由文献来源提供的分类，点击主题可查看来源。</p>
+      </section>
+      <details v-if="view.source_enrichment" :key="paperId" class="recognition-details">
+        <summary>信息来源与识别说明</summary>
+        <p>信息根据文献来源、标题和摘要自动整理，点击条目可查看依据。</p>
+        <p>研究主题采用来源网站的分类，未必逐字出现在原文中。自动整理可能遗漏或误认；发现问题时，可以调整自己的视图或主动反馈。</p>
+      </details>
       <div class="adjustment-bar" aria-label="个人调整工具">
+        <p class="privacy-note">个人调整只保存在当前浏览器，不会上报后台；需要公共纠错时再主动反馈。</p>
         <div class="bar-buttons">
           <button class="action-button primary-action" @click="edit('add')">＋ 补充个人条目</button>
           <button class="action-button" :disabled="!undoDraft" @click="undoLast">撤销上一步</button>
@@ -170,11 +195,12 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
         <div class="explorer">
           <section v-if="graph" class="personal-graph" aria-label="本篇论文关联图">
             <h4>本篇论文关联图</h4>
+            <p class="graph-hint">点击节点或下方条目，查看依据并调整自己的视图。</p>
             <GraphPanel :graph="graph" :selected-id="selectedId" @select="node=>choose(node.id,'entities')"/>
           </section>
           <section class="item-browser">
             <div class="collection-tabs" aria-label="条目类型">
-              <button class="action-button" :class="{active:collection==='entities'}" :aria-pressed="collection==='entities'" @click="collection='entities'">对象 {{view.entities.length}}</button>
+              <button class="action-button" :class="{active:collection==='entities'}" :aria-pressed="collection==='entities'" @click="collection='entities'">知识条目 {{view.entities.length}}</button>
               <button class="action-button" :class="{active:collection==='relations'}" :aria-pressed="collection==='relations'" @click="collection='relations'">关联 {{view.relations.length}}</button>
             </div>
             <div class="item-list">
@@ -217,16 +243,17 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
           </form>
           <template v-if="selected">
             <p v-if="draft.names[selectedId]" class="privacy-note">名称按个人设置显示，原文引用保持原样。</p>
-            <label v-if="selected.evidence.length">原文依据
+            <label v-if="selected.evidence.length">查看依据
               <select v-model.number="proofIndex" class="form-input">
-                <option v-for="(p,i) in selected.evidence" :key="i" :value="i">{{i+1}} · {{p.field==='title'?'标题':p.field==='abstract'?'摘要':'来源字段'}} · {{p.quote.length>60?p.quote.slice(0,60)+'…':p.quote}}</option>
+                <option v-for="(p,i) in selected.evidence" :key="i" :value="i">{{i+1}} · {{proofLabel(p)}} · {{proofQuote(p).length>60?proofQuote(p).slice(0,60)+'…':proofQuote(p)}}</option>
               </select>
             </label>
+            <p v-if="selected.evidence.some(p=>p.field==='title'||p.field==='abstract')" class="privacy-note">方法、任务和数据集的关联表示论文提及；是否实际采用，请结合原文判断。</p>
             <template v-if="proof">
               <p v-if="proof.field!=='metadata'&&'name' in selected.content&&proof.quote!==selected.content.name" class="privacy-note">原文写法：{{proof.quote}} → 当前显示名称：{{selected.content.name}}</p>
-              <blockquote>{{proof.quote}}</blockquote>
+              <blockquote>{{proofQuote(proof)}}</blockquote>
               <p v-if="excerpt" class="source-text">{{excerpt.before}}<mark>{{excerpt.quote}}</mark>{{excerpt.after}}</p>
-              <p v-else-if="proof.field==='metadata'" class="privacy-note">来源字段：{{proof.path.join(' → ')}}</p>
+              <p v-else-if="proof.field==='metadata'" class="privacy-note">依据来自文献来源中的{{proofLabel(proof)}}，可打开来源核对。</p>
               <p v-else class="inline-error">这条依据与当前原文不一致。</p>
               <a v-if="safeSourceUrl(proof.source_url)" :href="safeSourceUrl(proof.source_url)??undefined" target="_blank" rel="noopener noreferrer" class="source-link">查看来源 ↗</a>
             </template>
@@ -241,7 +268,7 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
             </div>
           </details>
           <form v-if="form" ref="feedbackForm" class="edit-form" @submit.prevent="submit">
-            <h4>{{form==='missing'?'申请识别遗漏名称':'反馈公共原始信息'}}</h4>
+            <h4>{{form==='missing'?'反馈遗漏的名称':'反馈条目信息'}}</h4>
             <p v-if="form==='item'&&originalSelected&&base">反馈对象：{{itemName(originalSelected,base)}}</p>
             <p class="privacy-note">{{form==='missing'?'填写标题或摘要里实际出现的名称。':'反馈指向公共原始条目，不包含你的其他个人调整。'}}</p>
             <label v-if="form==='missing'">原文名称<input v-model="term" class="form-input" maxlength="200" required :disabled="saving"/></label>
@@ -260,6 +287,8 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
 </template>
 
 <style scoped>
+.recognition-details{margin:0 0 18px;border-bottom:1px solid #dce8e2;padding:0 0 14px;color:#557168;font-size:14px}.recognition-details summary{cursor:pointer;padding:8px 0;font-weight:600}.recognition-details p{margin:8px 0;overflow-wrap:anywhere}
+.source-summary{padding:16px 18px;margin:0 0 18px;background:#f1f7f6;border:1px solid #d6e6e1;border-radius:10px}.source-summary h4{margin:0 0 8px;font-size:16px}.source-summary p{margin:6px 0}.source-topics{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.source-topics a{padding:3px 10px;border:1px solid #c8ddd6;border-radius:16px;color:#236956;background:white}
 .knowledge-evidence{container-type:inline-size;margin:24px 0;min-width:0;color:#365660;font-size:15px;line-height:1.7}
 .section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .section-heading h3{margin:0;font-size:20px;color:#284f58}
@@ -280,6 +309,7 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
 .personal-graph,.item-browser,.proof-panel{border:1px solid #d5e3df;border-radius:10px;background:white;min-width:0}
 .personal-graph{overflow:hidden;margin-bottom:16px}
 .personal-graph h4{font-size:16px;padding:14px 16px;margin:0}
+.graph-hint{font-size:14px;line-height:1.7;margin:0;padding:0 16px 12px;color:#557168}
 .personal-graph :deep(.graph-stage){height:380px;min-height:380px}
 .personal-graph :deep(.cy-canvas){min-height:0;height:auto}
 .personal-graph :deep(.graph-legend button){font-size:12px;min-height:30px}

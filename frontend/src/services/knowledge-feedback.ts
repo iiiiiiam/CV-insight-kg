@@ -7,6 +7,14 @@ export interface KnowledgeItem {
 export interface ReadingKnowledge {
   paper:{openalex_id:string;title:string;abstract:string|null;year:number;venue:string;source_url:string}
   entities:KnowledgeItem[];relations:KnowledgeItem[];revision:string;vocabulary_version:string
+  source_enrichment?:{
+    source_classifications:Array<{kind:string;name:string;source:string;source_url:string;source_id:string}>
+    source_records:Array<{source:string;url:string;fetched_at:string;digest:string}>
+    accepted_signals:Array<{key:string;name:string;source:string;source_url:string;alias:string}>
+    added_entities:EntityContent[]
+    fallback_matches?:Array<{key:string;kind:string;name:string;source_url:string;alias:string}>
+    text_signals?:Array<{kind:string;name:string;alias:string;field:string;context:string;rule:string}>
+  }
 }
 export interface FeedbackRecord {
   id:string;paper_id:string;paper_title:string;candidate_id:string|null;term:string|null;message:string

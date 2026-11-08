@@ -104,12 +104,13 @@ class FeedbackStore:
 
 
 class KnowledgeFeedback:
-    def __init__(self, papers, results, sessions, vocabulary, store):
+    def __init__(self, papers, results, sessions, vocabulary, store, *, source_records=None):
         self.papers = {p.openalex_id: p for p in papers}
         self.results = results
         self.sessions = sessions
         self.vocabulary = vocabulary
         self.store = store
+        self.source_records = source_records
         if set(results) != set(self.papers) or any(
             r.vocabulary_fingerprint != fingerprint(vocabulary) for r in results.values()
         ):
@@ -131,12 +132,18 @@ class KnowledgeFeedback:
         validate_vocabulary(vocabulary)
         return vocabulary
 
+    def _extract(self, paper, vocabulary):
+        if self.source_records is None:
+            return extract_candidates(paper, vocabulary), None
+        from .source_enrichment import extract_with_sources
+        return extract_with_sources(paper, vocabulary, self.source_records.get(paper.openalex_id, []))
+
     def _material(self, paper_id, data):
         if paper_id not in self.papers:
             raise LookupError("该论文尚未纳入当前知识输入")
         paper = self.papers[paper_id]
         vocabulary = self._vocabulary(data)
-        result = extract_candidates(paper, vocabulary)
+        result, enrichment = self._extract(paper, vocabulary)
         items = {}
         for c in result.entities:
             items[c.candidate_id] = dict(candidate_id=c.candidate_id, content=asdict(c.entity),
@@ -192,6 +199,8 @@ class KnowledgeFeedback:
         public = dict(paper=dict(openalex_id=paper.openalex_id, title=paper.title,
             abstract=paper.abstract, year=paper.year, venue=paper.venue, source_url=paper.source_url),
             entities=entities, relations=relations, vocabulary_version=result.vocabulary_version)
+        if enrichment is not None:
+            public["source_enrichment"] = enrichment
         public["revision"] = fingerprint(public)
         return public, items, signatures, result
 
@@ -336,7 +345,7 @@ class KnowledgeFeedback:
                                 kind=kind, name=name, aliases=aliases)
                     proposed["terms"].append(term)
                 validate_vocabulary(proposed)
-                check = extract_candidates(self.papers[request["paper_id"]], proposed)
+                check, _ = self._extract(self.papers[request["paper_id"]], proposed)
                 context = request["context"]
                 if not any(c.entity.key == kind + ":term:" + term["key"] and any(
                     proof.field == context["field"] and proof.start == context["start"]
