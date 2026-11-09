@@ -9,7 +9,9 @@ export interface Paper {
   sources: Array<{name: string; source_id: string; url: string | null; retrieved_at: string}>;
   origin?: 'a' | 'c'; graph_detail?: CDetail;
 }
-export interface GraphEvidence {paper_id:string;source_url:string;field:string;quote:string;locator:string;reviewer:string;reviewed_at:string}
+// Effective public snapshots can be automatic or human-corrected.  Evidence
+// always points to source text, but an automatic item has no reviewer field.
+export interface GraphEvidence {paper_id:string;source_url:string;field:string;quote:string;locator:string;reviewer?:string;reviewed_at?:string}
 export interface CNode {id:string;kind:string;type:EntityType;name:string;label:string;title?:string;year?:number;abstract?:string|null;source_id?:string|null;source_url?:string|null;updated_at?:string;missing_fields?:string[];batch_id?:string}
 export interface CDetail {node:CNode;related:CNode[];relations:GraphEdge[];truncated:boolean;batch_id:string;batch_provenance?:string}
 export interface GraphNode { id: string; label: string; type: EntityType }

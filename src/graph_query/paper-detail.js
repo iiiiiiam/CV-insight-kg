@@ -43,6 +43,7 @@ export function mountPaperDetail(root, data, onNavigate) {
     const d = el("details");
     const s = el("summary", `${r.kind} → ${other?.name || r.target}`);
     d.append(s);
+    if(r.review_state)d.append(el("p",`生成：${r.generation}；审核：${r.review_state}；规则调整：${r.rule_adjusted}`));
     if (other) {
       const b = el("button", "查看节点");
       b.onclick = () => onNavigate(other.id);
@@ -54,7 +55,7 @@ export function mountPaperDetail(root, data, onNavigate) {
         q,
         el(
           "small",
-          `${e.field} · ${e.locator} · ${e.reviewer} · ${e.reviewed_at}`,
+          `${e.field} · ${e.locator ?? (e.field === "metadata" ? JSON.stringify(e.path) : `${e.start}:${e.end} code points`)} · ${r.review_state ?? "legacy confirmed"} · ${e.reviewer ?? "未提供逐条审核人"}`,
         ),
         el("br"),
         safeLink(e.source_url, "证据来源"),
@@ -62,7 +63,7 @@ export function mountPaperDetail(root, data, onNavigate) {
     }
     card.append(d);
   }
-  if (!data.relations.length) card.append(el("p", "暂无已确认关联。"));
+  if (!data.relations.length) card.append(el("p", "暂无当前有效关联。"));
   if (data.truncated)
     card.append(el("p", "关联超过 200 条，已截断；请使用图谱入口继续探索。"));
   root.append(card);

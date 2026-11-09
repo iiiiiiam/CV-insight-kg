@@ -4,7 +4,7 @@ import {safeSourceUrl} from './research.ts'
 
 function batchQuery(batch?:string){return batch?`?${new URLSearchParams({batch_id:batch})}`:''}
 function checked<T extends {batch_id:string;batch_provenance?:string}>(data:T):T{
-  if(!data.batch_id||data.batch_provenance!=='reviewed_export')throw new Error('研究数据没有通过已审核发布批次校验。')
+  if(!data.batch_id||!['reviewed_export','effective_export'].includes(data.batch_provenance??''))throw new Error('研究数据没有通过公共知识发布批次校验。')
   return data
 }
 export function normalizeCNode(value:CNode):CNode{
@@ -20,7 +20,7 @@ export function normalizeCPaper(node:CNode,batch:string,detail?:CDetail):Paper{
     topic:names('topic').join('、')||'图谱详情中查看',method:names('method').join('、')||'图谱详情中查看',
     task:names('task').join('、')||'图谱详情中查看',dataset:names('dataset').join('、')||'图谱详情中查看',
     institution:'按论文上下文查看关联证据',venue:names('venue').join('、')||'会议见图谱详情',
-    source:'C 已发布图谱',source_url:safeSourceUrl(n.source_url),evidence:'当前内容来自 B 已确认并发布到 C 的固定批次，提及不等于使用或验证。',
+    source:'C 已发布公共图谱',source_url:safeSourceUrl(n.source_url),evidence:'当前内容来自 B 的有效公共知识快照及已生效修正，并已发布到 C。提及不等于使用或验证。',
     batch_id:batch,batch_ids:[batch],batches:[],openalex_id:openalex,doi:'',canonical_key:n.id,sources:[],origin:'c',graph_detail:detail}
 }
 export class CResearchGateway implements ResearchGateway{

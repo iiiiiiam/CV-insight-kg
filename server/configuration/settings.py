@@ -20,6 +20,9 @@ class Settings:
     b_source_corpus: str | None = None
     c_base_url: str = 'http://127.0.0.1:8002'
     c_admin_token: str = ''
+    auto_graph_sync: bool = True
+    graph_sync_interval_seconds: int = 30
+    c_sync_timeout_seconds: int = 240
 
     @classmethod
     def from_env(cls):
@@ -43,6 +46,9 @@ class Settings:
             a_admin_token=os.getenv('A_ADMIN_TOKEN', ''),
             c_base_url=os.getenv('C_API_BASE_URL', 'http://127.0.0.1:8002').rstrip('/'),
             c_admin_token=os.getenv('C_ADMIN_TOKEN') or os.getenv('GRAPH_ADMIN_TOKEN', ''),
+            auto_graph_sync=os.getenv('AUTO_GRAPH_SYNC', 'true').lower() == 'true',
+            graph_sync_interval_seconds=max(10, int(os.getenv('GRAPH_SYNC_INTERVAL_SECONDS', '30'))),
+            c_sync_timeout_seconds=max(60, int(os.getenv('C_SYNC_TIMEOUT_SECONDS', '240'))),
             b_vocabulary_path=os.getenv('B_VOCABULARY_PATH') or None,
             b_source_corpus=os.getenv('B_SOURCE_CORPUS') or None,
             b_reviews_directory=(os.getenv('B_REVIEWS_DIR') or

@@ -9,6 +9,11 @@ const route=useRoute(),router=useRouter()
 const controller=new AbortController()
 const search=ref(''),historyNote=ref('')
 const matches=computed(()=>filterPaperTitles(papers.value,search.value))
+const visiblePapers=computed(()=>search.value.trim()?matches.value:papers.value)
+const pickerValue=computed<string>({
+  get:()=>visiblePapers.value.some(p=>p.paper_id===selected.value)?selected.value:'',
+  set:value=>{if(value)selected.value=value},
+})
 function selectFromRoute(){
   if(!papers.value.length)return
   let remembered:string|null=null
@@ -44,7 +49,7 @@ onBeforeUnmount(()=>controller.abort())
           <div v-if="matches.length" class="search-results" aria-label="标题搜索结果"><button v-for="paper in matches" :key="paper.paper_id" type="button" class="search-result" :class="{active:selected===paper.paper_id}" :aria-pressed="selected===paper.paper_id" @click="selected=paper.paper_id"><strong>{{paper.title}}</strong><span>{{paper.year}} · {{paper.venue}}{{selected===paper.paper_id?' · 当前阅读':''}}</span></button></div>
         </template>
       </form>
-      <label>选择论文（共 {{papers.length}} 篇）<select v-model="selected" class="form-input"><option v-for="paper in papers" :key="paper.paper_id" :value="paper.paper_id">{{paper.year}} · {{paper.venue}} · {{paper.title}}</option></select></label>
+      <label>{{search.trim()?`检索结果（${visiblePapers.length} / ${papers.length} 篇）`:`选择论文（共 ${papers.length} 篇）`}}<select v-model="pickerValue" class="form-input" :disabled="!visiblePapers.length"><option value="" disabled>{{visiblePapers.length?'请选择匹配论文':'没有匹配论文'}}</option><option v-for="paper in visiblePapers" :key="paper.paper_id" :value="paper.paper_id">{{paper.year}} · {{paper.venue}} · {{paper.title}}</option></select></label>
       <p v-if="historyNote" class="reading-note" role="status">{{historyNote}}</p>
       <KnowledgeEvidence v-if="selected" :paper-id="selected"/>
     </section>

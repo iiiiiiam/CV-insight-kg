@@ -10,16 +10,19 @@ class CServiceClient:
     def __init__(self, settings):
         self.settings = settings
 
-    async def request(self, method, path, *, params=None, body=None):
+    async def request(self, method, path, *, params=None, body=None, timeout_seconds=None):
         if path.startswith('/api/admin/') and not self.settings.c_admin_token:
             raise GraphBoundaryError(503, 'C_ADMIN_NOT_CONFIGURED', '请先配置 D 的 C_ADMIN_TOKEN，并与 C 服务的 GRAPH_ADMIN_TOKEN 保持一致。')
         headers = {'Accept': 'application/json'}
         if self.settings.c_admin_token:
             headers['Authorization'] = 'Bearer ' + self.settings.c_admin_token
         try:
-            async with httpx.AsyncClient(timeout=30, trust_env=False) as client:
+            timeout = timeout_seconds if timeout_seconds is not None else 30
+            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
                 response = await client.request(method, self.settings.c_base_url + path,
                                                 params=params, json=body, headers=headers)
+        except httpx.TimeoutException as exc:
+            raise GraphBoundaryError(504, 'C_SYNC_TIMEOUT', 'C 或 Neo4j 处理超时；自动同步会继续重试，请不要重复提交 B 结果。') from exc
         except httpx.RequestError as exc:
             raise GraphBoundaryError(503, 'C_SERVICE_UNAVAILABLE', '无法连接 C 图谱服务，请检查 8002 服务及 Neo4j；不会回退到其他数据。') from exc
         if response.status_code == 401:

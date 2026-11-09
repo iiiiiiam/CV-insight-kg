@@ -1,6 +1,9 @@
 import {ApiError,requestJson} from './http.ts'
 import type {Evidence,EntityContent,RelationContent} from './knowledge.ts'
 
+const FEEDBACK_READ_TIMEOUT=120000
+const FEEDBACK_WRITE_TIMEOUT=300000
+
 export interface KnowledgeItem {
   candidate_id:string;content:EntityContent|RelationContent;evidence:Evidence[]
 }
@@ -42,21 +45,31 @@ export function getReadingPapers(signal?:AbortSignal){
   return requestJson<Array<{paper_id:string;title:string;year:number;venue:string}>>('/api/knowledge/papers',{signal})
 }
 export function sendFeedback(body:{paper_id:string;revision:string;message:string;candidate_id?:string;term?:string;owner_token?:string}){
-  return requestJson<{id:string;status:string;duplicate:boolean}>('/api/knowledge/feedback',{method:'POST',body:JSON.stringify(body)})
+  return requestJson<{id:string;status:string;duplicate:boolean}>('/api/knowledge/feedback',{
+    method:'POST',body:JSON.stringify(body),signal:AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),
+  })
 }
 export function getFeedbackStatus(id:string){
-  return requestJson<{id:string;status:FeedbackRecord['status'];updated_at:string}>(`/api/knowledge/feedback/${encodeURIComponent(id)}`)
+  return requestJson<{id:string;status:FeedbackRecord['status'];updated_at:string}>(`/api/knowledge/feedback/${encodeURIComponent(id)}`,{
+    signal:AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),
+  })
 }
 export function withdrawFeedback(id:string,ownerToken:string){
-  return requestJson<{id:string;status:FeedbackRecord['status']}>(`/api/knowledge/feedback/${encodeURIComponent(id)}/withdraw`,{method:'POST',body:JSON.stringify({owner_token:ownerToken})})
+  return requestJson<{id:string;status:FeedbackRecord['status']}>(`/api/knowledge/feedback/${encodeURIComponent(id)}/withdraw`,{
+    method:'POST',body:JSON.stringify({owner_token:ownerToken}),signal:AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),
+  })
 }
-export function getFeedbackQueue(){return requestJson<FeedbackQueue>('/api/admin/knowledge/feedback')}
+export function getFeedbackQueue(){return requestJson<FeedbackQueue>('/api/admin/knowledge/feedback',{
+  signal:AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),
+})}
 export function resolveFeedback(id:string,body:{revision:number;action:string;reason:string;name?:string;kind?:string;source_url?:string;aliases?:string[]},csrf:string){
-  return requestJson(`/api/admin/knowledge/feedback/${id}`,{method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify(body)})
+  return requestJson(`/api/admin/knowledge/feedback/${id}`,{
+    method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify(body),signal:AbortSignal.timeout(FEEDBACK_WRITE_TIMEOUT),
+  })
 }
 export function reopenFeedback(id:string,revision:number,csrf:string){
   return requestJson<{id:string;status:'open'}>(`/api/admin/knowledge/feedback/${encodeURIComponent(id)}/reopen`,{
-    method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify({revision}),
+    method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify({revision}),signal:AbortSignal.timeout(FEEDBACK_WRITE_TIMEOUT),
   })
 }
 

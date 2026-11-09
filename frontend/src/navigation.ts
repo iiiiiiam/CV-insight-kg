@@ -18,8 +18,5 @@ export const MENU:MenuItem[]=[
  {id:'NAV15',group:'数据管理',section:'导入任务',label:'失败任务',path:'/admin/jobs?view=errors',implemented:true,owner:'A / D'},
  {id:'NAV16',group:'文献调研',section:'论文知识',label:'知识证据与个人调整',path:'/research/knowledge',implemented:true,owner:'B / D'},
  {id:'NAV17',group:'数据管理',section:'反馈处理',label:'用户反馈处理',path:'/admin/knowledge-feedback',implemented:true,owner:'B / D'},
- {id:'NAV18',group:'数据管理',section:'图谱同步',label:'公共图谱同步状态',path:'/admin/graph/sync',implemented:false,owner:'C / D 待接入'},
- {id:'NAV19',group:'数据管理',section:'图谱同步',label:'同步记录与重试',path:'/admin/graph/sync/history',implemented:false,owner:'C / D 待接入'},
-
  {id:'NAV20',group:'系统管理',section:'管理员会话',label:'会话与权限验证',path:'/admin/access-check',implemented:true,owner:'D'},
 ]

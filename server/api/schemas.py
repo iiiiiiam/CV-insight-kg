@@ -34,6 +34,12 @@ class GraphPublishRequest(BaseModel):
     expected_active_batch_id: str | None = Field(max_length=80)
 
 
+class EffectiveGraphSyncRequest(BaseModel):
+    """Pin the B public-knowledge revision that an administrator inspected."""
+    model_config = ConfigDict(extra='forbid')
+    expected_revision: str | None = Field(default=None, pattern='^[0-9a-f]{64}$')
+
+
 class OnlineJobRequest(BaseModel):
     venue: Literal['CVPR', 'ICCV', 'ECCV']
     year: int = Field(ge=1980, le=2100)

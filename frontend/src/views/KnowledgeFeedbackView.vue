@@ -28,7 +28,8 @@ async function save(){
     await resolveFeedback(selected.value.id,{revision:queue.value.revision,action:action.value,reason:summary,
       ...(action.value==='rename'?{name:name.value}:{}),
       ...(action.value==='add_term'?{name:name.value,kind:kind.value,source_url:source.value,aliases:aliases.value.split('\n').map(a=>a.trim()).filter(Boolean)}:{})},auth.session?.csrf_token??'')
-    notice.value='处理已保存，知识阅读页刷新后可看到本轮结果。C 自动同步接口尚待接入，当前不能将本次结果视为已同步到 C 图谱。';await load()
+    notice.value='处理已保存，B 公共知识已更新；D 后台会自动检测新版本并发布到 C，无需再次确认。'
+    await load()
   }catch(e){error.value=e instanceof Error?e.message:'处理失败，请刷新核对后再试';busy.value=false}
 }
 async function reopen(){
@@ -40,7 +41,7 @@ async function reopen(){
     filter.value='open';await load()
     const request=queue.value?.requests.find(r=>r.id===identifier)
     if(request)pick(request)
-    notice.value='处理已撤回，反馈已回到待处理；本次处理产生的公共修正已取消，知识页刷新后生效。'
+    notice.value='处理已撤回，B 公共知识已恢复；D 后台会自动检测新版本并发布到 C。'
   }catch(e){error.value=e instanceof Error?e.message:'撤回处理失败，请刷新后重试。';busy.value=false}
 }
 onMounted(load)
@@ -57,7 +58,7 @@ async function exportKnowledge(){
   finally{busy.value=false}
 }
 </script>
-<template><section class="standard-page"><div class="page-heading"><div><div class="eyebrow">B · PUBLIC KNOWLEDGE ADMIN</div><h1>用户反馈处理</h1><p>只处理用户主动提交的问题，已撤回的反馈不显示。</p></div><button class="button button-secondary" :disabled="busy" @click="load">刷新反馈</button></div><p class="sync-boundary">处理成功后，B 当前公共知识会立即更新；个人浏览器调整不受直接修改。C 自动同步接口尚未接入，因此不要将本页处理结果表述为已同步到 C 图谱。</p>
+<template><section class="standard-page"><div class="page-heading"><div><div class="eyebrow">B · PUBLIC KNOWLEDGE ADMIN</div><h1>用户反馈处理</h1><p>只处理用户主动提交的问题，已撤回的反馈不显示。</p></div><button class="button button-secondary" :disabled="busy" @click="load">刷新反馈</button></div><p class="sync-boundary">处理成功后，B 当前公共知识立即更新；D 后台自动检测版本并发布到 C。若 C 或 Neo4j 暂不可用，B 的处理仍会保存，后台会持续重试。</p>
   <div class="export-tools"><button class="button button-secondary" :disabled="busy" @click="exportKnowledge">导出当前有效知识</button><span>包含自动结果和已生效的公共修正，可交接给图谱导入。</span></div>
   <p v-if="error" class="inline-error" role="alert">{{error}}</p><p v-if="notice" class="inline-success" role="status">{{notice}}</p><p v-if="busy" role="status">正在读取或处理，请稍候…</p>
   <template v-if="queue"><div class="feedback-counts"><button v-for="s in ['open','resolved','dismissed']" :key="s" class="panel count-card" :class="{active:filter===s}" @click="filter=s"><strong>{{queue.counts[s as keyof typeof queue.counts]}}</strong><span>{{labels[s]}}</span><div class="bar" :style="{width:queue.counts[s as keyof typeof queue.counts]/Math.max(1,queue.requests.length)*100+'%'}"></div></button></div>
@@ -66,7 +67,7 @@ async function exportKnowledge(){
       <form v-if="selected.status==='open'" @submit.prevent="save"><label>处理方式<select v-model="action" class="form-input" :disabled="busy"><option value="dismiss">核对后保留原结果，说明原因</option><template v-if="selected.candidate_id"><option value="exclude">不采纳此条信息</option><option v-if="'content' in selected.context&&selected.context.content&&typeof selected.context.content==='object'&&'name' in selected.context.content" value="rename">纠正显示名称</option></template><option v-if="selected.term" value="add_term">核实后加入词表并重新识别</option></select></label>
         <label v-if="action==='rename'||action==='add_term'">{{action==='add_term'?'规范名称':'显示名称'}}<input v-model="name" class="form-input" maxlength="200" required :disabled="busy"/></label>
         <template v-if="action==='add_term'"><label>类别<select v-model="kind" class="form-input" :disabled="busy"><option value="method">方法</option><option value="dataset">数据集</option><option value="task">任务</option><option value="topic">主题</option></select></label><label>必要别名（每行一个，包含原文写法）<textarea v-model="aliases" rows="3" required :disabled="busy"></textarea></label><label>公开依据地址<input v-model="source" type="url" class="form-input" maxlength="2000" required :disabled="busy"/></label><p class="small-note">核实类别与歧义后再补词；别名会作用于当前全部输入，不能只为演示论文填答案。</p></template>
-        <div class="impact-note"><strong>保存后会怎样？</strong><p>{{impact}}</p><p>不会改 A 的原始论文。B 公共知识会立即更新；C 自动同步尚待接入。</p></div><details><summary>补充处理说明（选填）</summary><textarea v-model="reason" rows="2" maxlength="2000" placeholder="不填写时，系统会记录本次实际执行的操作。" :disabled="busy"></textarea></details><button class="button button-primary" :disabled="busy">{{saveLabel}}</button></form>
+        <div class="impact-note"><strong>保存后会怎样？</strong><p>{{impact}}</p><p>不会改 A 的原始论文。B 公共知识会立即更新，D 后台随后自动发布到 C，不需要人工确认。</p></div><details><summary>补充处理说明（选填）</summary><textarea v-model="reason" rows="2" maxlength="2000" placeholder="不填写时，系统会记录本次实际执行的操作。" :disabled="busy"></textarea></details><button class="button button-primary" :disabled="busy">{{saveLabel}}</button></form>
       <div v-else-if="selected.resolution"><h3>处理记录</h3><p>{{selected.resolution.reviewer}} · {{selected.resolution.occurred_at}}</p><p>{{selected.resolution.reason}}</p><div class="impact-note"><p>撤回会取消这次处理产生的公共改名、移除或补词效果，并将反馈重新放回待处理。原处理记录保留在历史中。</p><button type="button" class="button button-secondary" :disabled="busy" @click="reopen">撤回处理，重新待处理</button></div><details><summary>处理前后内容</summary><pre>{{JSON.stringify(selected.resolution,null,2)}}</pre></details></div>
       <details v-if="selected.processing_history?.length"><summary>已撤回的处理历史（{{selected.processing_history.length}}）</summary><article v-for="(event,index) in selected.processing_history" :key="index"><p>原处理：{{event.resolution.reviewer}} · {{event.resolution.reason}}</p><p>撤回：{{event.reopened_by}} · {{event.reopened_at}}</p></article></details>
     </template><p v-else>选择一条用户反馈，先核对原文，再作出处理。</p></section></div>
