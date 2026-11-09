@@ -16,10 +16,11 @@ SOURCES = {
     "ICCV": "S4363607764",
 }
 FIELDS = "id,display_name,publication_year,doi,authorships,abstract_inverted_index,cited_by_count,primary_location,type"
+ANNOTATION_FIELDS = "primary_topic,topics,keywords"
 
 ANNOTATION_FIELDS = "primary_topic,topics,keywords"
 
-def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, page_size: int = 100, *, with_annotations: bool = False) -> dict:
+def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, *, with_annotations: bool = False) -> dict:
     if venue not in SOURCES:
         raise ValueError(f"No verified OpenAlex source for {venue}")
     if retries < 1 or not 1 <= page_size <= 100:
@@ -36,7 +37,7 @@ def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, page_size
     session = requests.Session()
     params = {
         "filter": f"primary_location.source.id:{source_id},publication_year:{year}",
-        "per_page": page_size,
+        "per_page": 100,
         "select": FIELDS + ("," + ANNOTATION_FIELDS if with_annotations else ""),
     }
     if use_cursor:
@@ -129,15 +130,10 @@ def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, page_size
         raise RuntimeError(f"Incomplete batch: fetched {count}, expected {expected}")
     partial.replace(output)
     manifest = {"venue": venue, "year": year, "source": "openalex", "source_id": source_id,
-                "count": count, "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
-                "filter": params["filter"], "url": "https://api.openalex.org/works"}
+                "count": count, "filter": params["filter"], "url": "https://api.openalex.org/works"}
     if with_annotations:
         manifest["requested_fields"] = params["select"].split(",")
-    manifest_path = output.with_suffix('.manifest.json')
-    manifest_tmp = manifest_path.with_suffix('.manifest.tmp')
-    manifest_tmp.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
-    manifest_tmp.replace(manifest_path)
-    checkpoint.unlink(missing_ok=True)
+    output.with_suffix(".manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return manifest
 
 
@@ -146,6 +142,6 @@ if __name__ == "__main__":
     parser.add_argument("venue", choices=SOURCES)
     parser.add_argument("year", type=int)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--with-annotations", action="store_true", help="Include OpenAlex topics and keywords")
+    parser.add_argument("--with-annotations", action="store_true", help="Also retain OpenAlex topics and keywords")
     args = parser.parse_args()
     print(json.dumps(fetch_batch(args.venue, args.year, args.output, with_annotations=args.with_annotations), ensure_ascii=False))

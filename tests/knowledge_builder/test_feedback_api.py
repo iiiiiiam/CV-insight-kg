@@ -65,6 +65,21 @@ class FeedbackAPITests(unittest.TestCase):
         self.assertEqual(set(status.json()), {"id", "status", "updated_at"})
         self.assertEqual(self.client.get("/api/admin/knowledge/feedback").status_code, 401)
 
+    def test_effective_export_requires_login_and_has_revision_attachment(self):
+        path = "/api/admin/knowledge/effective-export"
+        self.assertEqual(self.client.get(path).status_code, 401)
+        self.login()
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["format_version"], "knowledge-effective/1.0")
+        self.assertEqual(body["counts"]["papers"], 1)
+        self.assertIn("attachment", response.headers["content-disposition"])
+        self.assertEqual(response.headers["cache-control"], "no-store")
+        self.assertEqual(response.headers["x-knowledge-revision"], body["revision"])
+        self.assertEqual(self.client.get(path, params={"expected_revision": body["revision"]}).status_code, 200)
+        self.assertEqual(self.client.get(path, params={"expected_revision": "0" * 64}).status_code, 409)
+
     def test_authenticated_resolution_requires_csrf_and_rejects_spoofed_identity(self):
         identifier = self.submit().json()["id"]
         headers = self.login()

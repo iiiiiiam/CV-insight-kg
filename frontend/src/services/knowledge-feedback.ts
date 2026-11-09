@@ -1,4 +1,4 @@
-import {requestJson} from './http.ts'
+import {ApiError,requestJson} from './http.ts'
 import type {Evidence,EntityContent,RelationContent} from './knowledge.ts'
 
 export interface KnowledgeItem {
@@ -7,6 +7,14 @@ export interface KnowledgeItem {
 export interface ReadingKnowledge {
   paper:{openalex_id:string;title:string;abstract:string|null;year:number;venue:string;source_url:string}
   entities:KnowledgeItem[];relations:KnowledgeItem[];revision:string;vocabulary_version:string
+  source_enrichment?:{
+    source_classifications:Array<{kind:string;name:string;source:string;source_url:string;source_id:string}>
+    source_records:Array<{source:string;url:string;fetched_at:string;digest:string}>
+    accepted_signals:Array<{key:string;name:string;source:string;source_url:string;alias:string}>
+    added_entities:EntityContent[]
+    fallback_matches?:Array<{key:string;kind:string;name:string;source_url:string;alias:string}>
+    text_signals?:Array<{kind:string;name:string;alias:string;field:string;context:string;rule:string}>
+  }
 }
 export interface FeedbackRecord {
   id:string;paper_id:string;paper_title:string;candidate_id:string|null;term:string|null;message:string
@@ -50,4 +58,17 @@ export function reopenFeedback(id:string,revision:number,csrf:string){
   return requestJson<{id:string;status:'open'}>(`/api/admin/knowledge/feedback/${encodeURIComponent(id)}/reopen`,{
     method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify({revision}),
   })
+}
+
+export async function downloadEffectiveKnowledge(){
+  const response=await fetch('/api/admin/knowledge/effective-export',{
+    credentials:'same-origin',signal:AbortSignal.timeout(180000),
+  })
+  if(!response.ok){
+    const body=await response.json().catch(()=>null)
+    throw new ApiError(body?.error?.message??body?.detail??`导出失败（${response.status}）`,response.status)
+  }
+  const revision=response.headers.get('X-Knowledge-Revision')??''
+  if(!response.headers.get('Content-Type')?.includes('application/json')||!/^[0-9a-f]{64}$/.test(revision))throw new Error('导出响应不完整，请重新导出。')
+  return {blob:await response.blob(),filename:`effective-${revision.slice(0,12)}.json`}
 }

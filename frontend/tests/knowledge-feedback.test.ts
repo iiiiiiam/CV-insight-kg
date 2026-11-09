@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {getReading,itemName,sendFeedback,resolveFeedback,reopenFeedback} from '../src/services/knowledge-feedback.ts'
+import {getReading,itemName,sendFeedback,resolveFeedback,reopenFeedback,downloadEffectiveKnowledge} from '../src/services/knowledge-feedback.ts'
 import type {ReadingKnowledge} from '../src/services/knowledge-feedback.ts'
 
 test('automatic reading uses stable IDs and translates relation labels without status labels',()=>{
@@ -46,4 +46,25 @@ test('admin undo uses authenticated POST with queue revision and no supplied rev
   }
   try{assert.equal((await reopenFeedback('test-id',8,'undo-csrf')).status,'open')}
   finally{globalThis.fetch=previous}
+})
+
+test('effective export downloads a versioned JSON file with the admin session',async()=>{
+  const previous=globalThis.fetch
+  globalThis.fetch=async(input,init)=>{
+    assert.equal(String(input),'/api/admin/knowledge/effective-export')
+    assert.equal(init?.credentials,'same-origin')
+    return Response.json({format_version:'knowledge-effective/1.0'},{headers:{'X-Knowledge-Revision':'a'.repeat(64)}})
+  }
+  try{const result=await downloadEffectiveKnowledge();assert.equal(result.filename,'effective-aaaaaaaaaaaa.json');assert.equal(JSON.parse(await result.blob.text()).format_version,'knowledge-effective/1.0')}
+  finally{globalThis.fetch=previous}
+})
+test('effective export surfaces auth failures instead of saving error JSON',async()=>{
+  const previous=globalThis.fetch
+  globalThis.fetch=async()=>Response.json({detail:'请先登录'},{status:401})
+  try{await assert.rejects(downloadEffectiveKnowledge(),/请先登录/)}finally{globalThis.fetch=previous}
+})
+test('effective export rejects a success body without a knowledge revision',async()=>{
+  const previous=globalThis.fetch
+  globalThis.fetch=async()=>Response.json({unexpected:true})
+  try{await assert.rejects(downloadEffectiveKnowledge(),/导出响应不完整/)}finally{globalThis.fetch=previous}
 })
