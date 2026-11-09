@@ -146,7 +146,7 @@ def create_app(repository=None, admin_token=None):
 
         r.run(lambda tx: tx.run("RETURN 1").consume())
 
-        return {"status": "ok", "storage": "neo4j", "contract_version": "c-graph/1.0", "implementation_revision":"c-effective-graph-v2"}
+        return {"status": "ok", "storage": "neo4j", "contract_version": "c-graph/1.0", "implementation_revision":"c-effective-graph-v3"}
 
 
 
@@ -384,7 +384,7 @@ def create_app(repository=None, admin_token=None):
         def operation(tx):
             batch=r.resolve(tx,batch_id)
             counts=[dict(x) for x in tx.run("MATCH (:CVEntity {batch_id:$b})-[r:CV_LINK]->(:CVEntity {batch_id:$b}) RETURN r.kind AS kind,r.status AS status,count(r) AS count ORDER BY kind,status",b=batch)]
-            return {'batch_id':batch,'relations':counts,'implementation_revision':'c-effective-graph-v2'}
+            return {'batch_id':batch,'relations':counts,'implementation_revision':'c-effective-graph-v3'}
         return r.run(operation)
 
     @app.get("/assets/c-paper-detail.js", include_in_schema=False)

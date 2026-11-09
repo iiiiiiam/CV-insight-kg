@@ -342,7 +342,9 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
                 WHERE all(v IN nodes(path) WHERE v.batch_id=$batch)
                 AND all(r IN relationships(path) WHERE size($types)=0 OR r.kind IN $types)
                 AND all(paper IN [v IN nodes(path) WHERE v.kind='paper'] WHERE {condition})
-                RETURN path LIMIT $limit""",
+                RETURN path ORDER BY length(path),
+                CASE n.kind WHEN 'institution' THEN 0 WHEN 'author' THEN 1 WHEN 'paper' THEN 2 ELSE 3 END,
+                [v IN nodes(path) | v.id], [r IN relationships(path) | r.id] LIMIT $limit""",
                     params,
                 )
             )
@@ -362,6 +364,7 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
                 "batch_id": batch,
                 "truncated": len(rows) > limit,
                 "limit_unit": "paths",
+                "traversal_policy": "shortest_paths_first",
                 "seed": seed,
                 "hops": hops,
             }
