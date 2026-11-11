@@ -265,22 +265,59 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
 
         return self.run(operation)
 
-    def entities(self, q="", kind=None, batch_id=None, limit=30):
+    def entities(self, q="", kind=None, batch_id=None, limit=30, page=1):
         def operation(tx):
             batch = self.resolve(tx, batch_id)
-            rows = tx.run(
-                "MATCH (n:CVEntity {batch_id:$batch}) WHERE ($kind IS NULL OR n.kind=$kind) AND (toLower(n.name) CONTAINS toLower($q) OR n.id=$q) RETURN properties(n) AS n ORDER BY n.name,n.id LIMIT $limit",
-                batch=batch,
-                kind=kind,
-                q=q,
-                limit=limit + 1,
+            match = (
+                "MATCH (n:CVEntity {batch_id:$batch}) "
+                "WHERE ($kind IS NULL OR n.kind=$kind) "
+                "AND (toLower(n.name) CONTAINS toLower($q) OR n.id=$q) "
             )
-            items = list(rows)
+            params = dict(batch=batch, kind=kind, q=q, skip=(page - 1) * limit, limit=limit)
+            total = tx.run(match + "RETURN count(n) AS total", params).single()["total"]
+            rows = tx.run(match + "RETURN properties(n) AS n ORDER BY n.name,n.id SKIP $skip LIMIT $limit", params)
             return {
-                "items": [self.node(row["n"]) for row in items[:limit]],
-                "truncated": len(items) > limit,
+                "items": [self.node(row["n"]) for row in rows],
+                "truncated": page * limit < total,
+                "total": total,
+                "page": page,
                 "batch_id": batch,
             }
+
+        return self.run(operation)
+
+    def graph_overview(self, batch_id=None, hubs_per_type=8):
+        """Project the batch's papers and its most widely shared direct neighbours."""
+        def operation(tx):
+            batch = self.resolve(tx, batch_id)
+            papers = [dict(row) for row in tx.run(
+                "MATCH (p:CVEntity {batch_id:$batch,kind:'paper'}) "
+                "RETURN p.id AS id,p.name AS label,'Paper' AS type ORDER BY id",
+                batch=batch,
+            )]
+            rows = tx.run("""
+                MATCH (p:CVEntity {batch_id:$batch,kind:'paper'})-[r:CV_LINK]->
+                      (h:CVEntity {batch_id:$batch})
+                WHERE h.kind <> 'paper'
+                WITH h, count(DISTINCT p) AS reach,
+                     collect({id:r.id, source:p.id, target:h.id, type:r.kind}) AS edges
+                WHERE reach >= 2
+                ORDER BY reach DESC, h.id
+                WITH h.kind AS kind, collect({id:h.id,label:h.name,edges:edges}) AS hubs
+                RETURN kind, hubs[..$cap] AS shown, size(hubs) AS total ORDER BY kind
+                """, batch=batch, cap=hubs_per_type)
+            nodes, edges = list(papers), []
+            total_hubs = 0
+            for row in rows:
+                total_hubs += row["total"]
+                for hub in row["shown"]:
+                    nodes.append(dict(id=hub["id"], label=hub["label"], type=row["kind"].title()))
+                    edges.extend(dict(edge, evidence="") for edge in hub["edges"])
+            shown_hubs = len(nodes) - len(papers)
+            return dict(batch_id=batch, nodes=nodes, edges=edges,
+                        truncated=shown_hubs < total_hubs, paper_count=len(papers),
+                        linked_paper_count=len({edge["source"] for edge in edges}),
+                        hub_count=shown_hubs, total_hubs=total_hubs)
 
         return self.run(operation)
 
@@ -342,7 +379,9 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
                 WHERE all(v IN nodes(path) WHERE v.batch_id=$batch)
                 AND all(r IN relationships(path) WHERE size($types)=0 OR r.kind IN $types)
                 AND all(paper IN [v IN nodes(path) WHERE v.kind='paper'] WHERE {condition})
-                RETURN path LIMIT $limit""",
+                RETURN path ORDER BY length(path),
+                CASE n.kind WHEN 'institution' THEN 0 WHEN 'author' THEN 1 WHEN 'paper' THEN 2 ELSE 3 END,
+                [v IN nodes(path) | v.id], [r IN relationships(path) | r.id] LIMIT $limit""",
                     params,
                 )
             )
@@ -362,6 +401,7 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
                 "batch_id": batch,
                 "truncated": len(rows) > limit,
                 "limit_unit": "paths",
+                "traversal_policy": "shortest_paths_first",
                 "seed": seed,
                 "hops": hops,
             }

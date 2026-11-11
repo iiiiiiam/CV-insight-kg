@@ -265,18 +265,22 @@ def create_app(settings: Settings | None = None):
         return upstream_response(await app.state.c_service.request('GET', '/api/health'))
 
     @app.get('/api/research/{resource}')
-    async def c_research(resource: Literal['papers', 'entities', 'graph'], request: Request):
+    async def c_research(resource: Literal['papers', 'entities', 'graph', 'graph-overview', 'statistics'], request: Request):
         response = await app.state.c_service.research('/api/research/' + resource, request.query_params.multi_items())
         return upstream_response(response)
 
     @app.get('/api/research/{resource}/{entity_id:path}')
-    async def c_detail(resource: Literal['papers', 'entities', 'authors', 'institutions'], entity_id: str, request: Request):
+    async def c_detail(resource: Literal['papers', 'entities', 'authors', 'institutions', 'author-profiles'], entity_id: str, request: Request):
         path = '/api/research/' + resource + '/' + quote(entity_id, safe='')
         return upstream_response(await app.state.c_service.research(path, request.query_params.multi_items()))
 
     @app.get('/api/components/c-paper-detail.js', include_in_schema=False)
     def c_component():
         return FileResponse(Path(__file__).resolve().parents[2] / 'src/graph_query/paper-detail.js', media_type='text/javascript')
+
+    @app.get('/api/components/c-graph-view.js', include_in_schema=False)
+    def c_graph_component():
+        return FileResponse(Path(__file__).resolve().parents[2] / 'src/graph_query/graph-view.js', media_type='text/javascript')
 
     @app.get('/api/admin/graph/preview')
     def graph_preview(batch_id: str = Query(pattern='^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$'),

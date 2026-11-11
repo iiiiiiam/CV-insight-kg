@@ -1,4 +1,4 @@
-import type {CDetail,CNode,EntityDetail,EntityType,Filters,GraphData,Paper,ResearchGateway} from '../types.ts'
+import type {CDetail,CNode,EntityDetail,EntityType,Filters,GraphData,GraphOverview,Paper,ResearchGateway} from '../types.ts'
 import {requestJson} from './http.ts'
 import {safeSourceUrl} from './research.ts'
 
@@ -24,9 +24,9 @@ export function normalizeCPaper(node:CNode,batch:string,detail?:CDetail):Paper{
     batch_id:batch,batch_ids:[batch],batches:[],openalex_id:openalex,doi:'',canonical_key:n.id,sources:[],origin:'c',graph_detail:detail}
 }
 export class CResearchGateway implements ResearchGateway{
-  async getPapers(filters:Filters,signal?:AbortSignal){
-    const query=new URLSearchParams({page_size:'100',sort:'year_desc'})
-    for(const key of ['q','topic','method','year','batch_id'] as const)if(filters[key])query.set(key,filters[key])
+  async getPapers(filters:Filters,signal?:AbortSignal,page=1,pageSize=100){
+    const query=new URLSearchParams({page:String(page),page_size:String(pageSize),sort:'year_desc'})
+    for(const [key,value] of Object.entries(filters))if(value)query.set(key,value)
     const result=checked(await requestJson<{items:CNode[];total:number;batch_id:string;batch_provenance:string}>(`/api/research/papers?${query}`,{signal}))
     if(!Array.isArray(result.items))throw new Error('C 论文列表响应格式不正确。')
     return {items:result.items.map(n=>normalizeCPaper(n,result.batch_id)),total:result.total,batch_id:result.batch_id}
@@ -41,8 +41,8 @@ export class CResearchGateway implements ResearchGateway{
     if(batchId&&result.batch_id!==batchId)throw new Error('C 详情与当前批次不一致。')
     return result
   }
-  async getGraph(seed:string,hops:number,filters:Filters,signal?:AbortSignal):Promise<GraphData>{
-    const query=new URLSearchParams({seed,hops:String(hops),limit:'100'})
+  async getGraph(seed:string,hops:number,filters:Filters,signal?:AbortSignal,limit=100):Promise<GraphData>{
+    const query=new URLSearchParams({seed,hops:String(hops),limit:String(limit)})
     for(const key of ['q','topic','method','year','batch_id'] as const)if(filters[key])query.set(key,filters[key])
     const result=checked(await requestJson<GraphData&{batch_provenance:string}>(`/api/research/graph?${query}`,{signal}))
     if(!Array.isArray(result.nodes)||!Array.isArray(result.edges))throw new Error('C 子图响应格式不正确。')
@@ -57,10 +57,63 @@ export class CResearchGateway implements ResearchGateway{
   }
 }
 export const graphResearch=new CResearchGateway()
-export async function searchGraphEntities(q:string,kind:string,batch:string,signal?:AbortSignal){
-  const query=new URLSearchParams({q,limit:'100'})
+export async function searchGraphEntities(q:string,kind:string,batch:string,signal?:AbortSignal,page=1,pageSize=100){
+  const query=new URLSearchParams({q,limit:String(pageSize),page:String(page)})
   if(kind)query.set('kind',kind)
   if(batch)query.set('batch_id',batch)
-  const result=checked(await requestJson<{items:CNode[];truncated:boolean;batch_id:string;batch_provenance:string}>(`/api/research/entities?${query}`,{signal}))
+  const result=checked(await requestJson<{items:CNode[];total:number;truncated:boolean;batch_id:string;batch_provenance:string}>(`/api/research/entities?${query}`,{signal}))
   return {...result,items:result.items.map(normalizeCNode)}
+}
+export async function getGraphOverview(batch:string,signal?:AbortSignal){
+  return checked(await requestJson<GraphOverview & {batch_provenance:string}>(`/api/research/graph-overview${batchQuery(batch)}`,{signal}))
+}
+
+interface ResearchDistribution {
+  items:Array<{id:string;name:string;paper_count:number;share:number}>
+  truncated:boolean
+  papers_with_effective_relation:number
+  papers_without_effective_relation:number
+}
+export interface ResearchStatistics {
+  batch_id:string
+  batch_provenance:string
+  paper_count:number
+  years:Array<{year:number;paper_count:number}>
+  distributions:Record<'topic'|'method',ResearchDistribution>
+  basis:{unit:string;relations:string}
+}
+export async function getResearchStatistics(batch:string,signal?:AbortSignal){
+  const query = new URLSearchParams({limit:'12'})
+  if(batch)query.set('batch_id',batch)
+  const result = checked(await requestJson<ResearchStatistics>(`/api/research/statistics?${query}`,{signal}))
+  if(batch&&result.batch_id!==batch)throw new Error('统计结果与指定发布批次不一致。')
+  if(result.basis?.unit!=='distinct_papers'||!Array.isArray(result.years)
+    ||!Array.isArray(result.distributions?.topic?.items)||!Array.isArray(result.distributions?.method?.items)){
+    throw new Error('C 返回的统计格式或计数口径不符合预期。')
+  }
+  return result
+}
+
+export interface AuthorProfile {
+  batch_id:string
+  batch_provenance:string
+  author:CNode
+  statistics:Omit<ResearchStatistics,'batch_provenance'>
+  papers:{items:CNode[];total:number;page:number;page_size:number}
+  institutions:Array<{id:string;name:string;paper_ids:string[]}>
+  identity:{same_name_other_ids:number}
+}
+export async function getAuthorProfile(id:string,batch:string,page:number,signal?:AbortSignal){
+  const query = new URLSearchParams({batch_id:batch,page:String(page),page_size:'12',limit:'8'})
+  const profile = checked(await requestJson<AuthorProfile>(
+    `/api/research/author-profiles/${encodeURIComponent(id)}?${query}`,{signal},
+  ))
+  if(profile.batch_id!==batch||profile.statistics?.batch_id!==batch||profile.author?.id!==id){
+    throw new Error('作者画像与指定作者或发布批次不一致。')
+  }
+  if(profile.papers?.page!==page||profile.papers.total!==profile.statistics.paper_count
+    ||!Array.isArray(profile.papers.items)||!Array.isArray(profile.institutions)){
+    throw new Error('C 返回的作者画像统计与论文清单不一致。')
+  }
+  return profile
 }

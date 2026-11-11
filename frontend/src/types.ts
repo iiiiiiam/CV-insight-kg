@@ -1,5 +1,8 @@
 export type EntityType = 'Paper' | 'Author' | 'Institution' | 'Topic' | 'Method' | 'Task' | 'Dataset' | 'Venue'
-export interface Filters { q: string; topic: string; method: string; year: string; batch_id: string }
+export interface Filters {
+  q: string; topic: string; method: string; year: string; batch_id: string
+  author?: string; author_id?: string; institution?: string; task?: string; dataset?: string; venue?: string
+}
 export interface Paper {
   id: string; title: string; year: number; topic: string; method: string; task: string;
   dataset: string; venue: string; authors: string[]; institution: string; abstract: string;
@@ -14,9 +17,12 @@ export interface Paper {
 export interface GraphEvidence {paper_id:string;source_url:string;field:string;quote:string;locator:string;reviewer?:string;reviewed_at?:string}
 export interface CNode {id:string;kind:string;type:EntityType;name:string;label:string;title?:string;year?:number;abstract?:string|null;source_id?:string|null;source_url?:string|null;updated_at?:string;missing_fields?:string[];batch_id?:string}
 export interface CDetail {node:CNode;related:CNode[];relations:GraphEdge[];truncated:boolean;batch_id:string;batch_provenance?:string}
-export interface GraphNode { id: string; label: string; type: EntityType }
-export interface GraphEdge { id: string; source: string; target: string; type: string; evidence: string | GraphEvidence[];kind?:string;status?:string;batch_id?:string }
+export interface GraphNode { id: string; label: string; type: EntityType; hop?:number; isNew?:boolean }
+export interface GraphEdge { id: string; source: string; target: string; type: string; evidence: string | GraphEvidence[];kind?:string;status?:string;batch_id?:string;isNew?:boolean }
 export interface GraphData { nodes: GraphNode[]; edges: GraphEdge[]; truncated: boolean; batch_id: string; basis?: 'paper_metadata'|'published_graph' }
+export interface GraphOverview extends GraphData {
+  paper_count: number; linked_paper_count: number; hub_count: number; total_hubs: number
+}
 export interface PaperPage { items: Paper[]; total: number; batch_id: string }
 export interface EntityDetail { node: GraphNode; papers: Paper[]; total?: number; batch_id: string;graph_detail?:CDetail }
 export interface ResearchGateway {

@@ -146,7 +146,7 @@ def create_app(repository=None, admin_token=None):
 
         r.run(lambda tx: tx.run("RETURN 1").consume())
 
-        return {"status": "ok", "storage": "neo4j", "contract_version": "c-graph/1.0", "implementation_revision":"c-effective-graph-v2"}
+        return {"status": "ok", "storage": "neo4j", "contract_version": "c-graph/1.0", "implementation_revision":"c-effective-graph-v3"}
 
 
 
@@ -220,11 +220,17 @@ def create_app(repository=None, admin_token=None):
 
         limit: int = Query(30, ge=1, le=100),
 
+        page: int = Query(1, ge=1, le=100000),
+
         r=Depends(repo),
 
     ):
 
-        return r.entities(q, kind, batch_id, limit)
+        return r.entities(q, kind, batch_id, limit, page)
+
+    @app.get("/api/research/graph-overview")
+    def graph_overview(batch_id: str | None = None, r=Depends(repo)):
+        return r.graph_overview(batch_id)
 
 
 
@@ -278,7 +284,7 @@ def create_app(repository=None, admin_token=None):
 
     def statistics(
 
-        batch_id: str = Query(..., min_length=1, max_length=80),
+        batch_id: str | None = Query(None, min_length=1, max_length=80),
 
         limit: int = Query(30, ge=1, le=100),
 
@@ -384,7 +390,7 @@ def create_app(repository=None, admin_token=None):
         def operation(tx):
             batch=r.resolve(tx,batch_id)
             counts=[dict(x) for x in tx.run("MATCH (:CVEntity {batch_id:$b})-[r:CV_LINK]->(:CVEntity {batch_id:$b}) RETURN r.kind AS kind,r.status AS status,count(r) AS count ORDER BY kind,status",b=batch)]
-            return {'batch_id':batch,'relations':counts,'implementation_revision':'c-effective-graph-v2'}
+            return {'batch_id':batch,'relations':counts,'implementation_revision':'c-effective-graph-v3'}
         return r.run(operation)
 
     @app.get("/assets/c-paper-detail.js", include_in_schema=False)

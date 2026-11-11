@@ -255,3 +255,26 @@ def test_openapi_and_component(client):
         "export function mountPaperDetail"
         in client.get("/assets/c-paper-detail.js").text
     )
+
+
+def test_workspace_pagination_and_overview_routes():
+    class WorkspaceRepo(BoundaryRepo):
+        def entities(self, q, kind, batch_id, limit, page):
+            assert (q, kind, batch_id, limit, page) == ("Lee", "author", "published", 20, 2)
+            return {"items": [], "total": 20, "page": page, "truncated": False, "batch_id": batch_id}
+
+        def graph_overview(self, batch_id):
+            assert batch_id == "published"
+            return {"nodes": [], "edges": [], "paper_count": 0, "batch_id": batch_id}
+
+    with TestClient(create_app(WorkspaceRepo(), admin_token="test-secret")) as client:
+        page = client.get("/api/research/entities", params={
+            "q": "Lee", "kind": "author", "batch_id": "published", "limit": 20, "page": 2,
+        })
+        assert page.status_code == 200
+        assert page.json()["page"] == 2
+        assert page.json()["total"] == 20
+        assert client.get("/api/research/entities?page=0").status_code == 422
+        overview = client.get("/api/research/graph-overview?batch_id=published")
+        assert overview.status_code == 200
+        assert overview.json()["batch_id"] == "published"

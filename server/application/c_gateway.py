@@ -44,6 +44,9 @@ class CServiceClient:
                 raise ValueError('batch_id')
         except (ValueError, KeyError, TypeError) as exc:
             raise GraphBoundaryError(502, 'C_CONTRACT_INVALID', 'C 研究响应缺少有效批次标识。') from exc
+        requested = httpx.QueryParams(params).get_list('batch_id')
+        if requested and requested[-1] and batch_id != requested[-1]:
+            raise GraphBoundaryError(502, 'C_BATCH_MISMATCH', 'C 返回的结果与指定发布批次不一致。')
         metadata_response = await self.batch(batch_id)
         if not metadata_response.is_success:
             return metadata_response
