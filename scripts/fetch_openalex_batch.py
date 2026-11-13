@@ -18,9 +18,7 @@ SOURCES = {
 FIELDS = "id,display_name,publication_year,doi,authorships,abstract_inverted_index,cited_by_count,primary_location,type"
 ANNOTATION_FIELDS = "primary_topic,topics,keywords"
 
-ANNOTATION_FIELDS = "primary_topic,topics,keywords"
-
-def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, *, with_annotations: bool = False) -> dict:
+def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, page_size: int = 100, *, with_annotations: bool = False) -> dict:
     if venue not in SOURCES:
         raise ValueError(f"No verified OpenAlex source for {venue}")
     if retries < 1 or not 1 <= page_size <= 100:
@@ -37,7 +35,7 @@ def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, *, with_a
     session = requests.Session()
     params = {
         "filter": f"primary_location.source.id:{source_id},publication_year:{year}",
-        "per_page": 100,
+        "per_page": page_size,
         "select": FIELDS + ("," + ANNOTATION_FIELDS if with_annotations else ""),
     }
     if use_cursor:
@@ -130,10 +128,12 @@ def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, *, with_a
         raise RuntimeError(f"Incomplete batch: fetched {count}, expected {expected}")
     partial.replace(output)
     manifest = {"venue": venue, "year": year, "source": "openalex", "source_id": source_id,
-                "count": count, "filter": params["filter"], "url": "https://api.openalex.org/works"}
+                "count": count, "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
+                "filter": params["filter"], "url": "https://api.openalex.org/works"}
     if with_annotations:
         manifest["requested_fields"] = params["select"].split(",")
     output.with_suffix(".manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    checkpoint.unlink(missing_ok=True)
     return manifest
 
 
