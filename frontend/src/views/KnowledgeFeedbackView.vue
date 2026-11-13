@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {computed,onMounted,ref} from 'vue'
+import KnowledgeBatches from '../components/KnowledgeBatches.vue'
 import {auth} from '../stores/auth.ts'
 import {getFeedbackQueue,resolveFeedback,reopenFeedback,downloadEffectiveKnowledge,KIND_NAMES,RELATION_NAMES} from '../services/knowledge-feedback.ts'
 import type {FeedbackQueue,FeedbackRecord} from '../services/knowledge-feedback.ts'
+const tab=ref('feedback'),batchBusy=ref(false)
 const queue=ref<FeedbackQueue|null>(null),selectedId=ref(''),filter=ref('open'),error=ref(''),notice=ref(''),busy=ref(false)
 const action=ref('dismiss'),reason=ref(''),name=ref(''),kind=ref('method'),source=ref(''),aliases=ref('')
 const labels:Record<string,string>={open:'待处理',resolved:'已处理',dismissed:'已说明保留'}
@@ -46,7 +48,7 @@ async function reopen(){
 }
 onMounted(load)
 async function exportKnowledge(){
-  if(busy.value)return
+  if(busy.value||batchBusy.value)return
   busy.value=true;error.value='';notice.value='正在准备完整知识导出，请稍候…'
   try{
     const {blob,filename}=await downloadEffectiveKnowledge()
@@ -58,9 +60,9 @@ async function exportKnowledge(){
   finally{busy.value=false}
 }
 </script>
-<template><section class="standard-page"><div class="page-heading"><div><div class="eyebrow">B · PUBLIC KNOWLEDGE ADMIN</div><h1>用户反馈处理</h1><p>只处理用户主动提交的问题，已撤回的反馈不显示。</p></div><button class="button button-secondary" :disabled="busy" @click="load">刷新反馈</button></div><p class="sync-boundary">处理成功后，B 当前公共知识立即更新；D 后台自动检测版本并发布到 C。若 C 或 Neo4j 暂不可用，B 的处理仍会保存，后台会持续重试。</p>
-  <div class="export-tools"><button class="button button-secondary" :disabled="busy" @click="exportKnowledge">导出当前有效知识</button><span>包含自动结果和已生效的公共修正，可交接给图谱导入。</span></div>
+<template><section class="standard-page"><div class="page-heading"><div><div class="eyebrow">B · PUBLIC KNOWLEDGE ADMIN</div><h1>知识管理</h1><p>统一处理用户反馈和论文批次。</p></div><button v-if="tab==='feedback'" class="button button-secondary" :disabled="busy" @click="load">刷新反馈</button></div><div class="admin-tabs" role="group" aria-label="管理内容"><button class="button button-secondary" :disabled="busy||batchBusy" :aria-pressed="tab==='feedback'" @click="tab='feedback'">用户反馈</button><button class="button button-secondary" :disabled="busy||batchBusy" :aria-pressed="tab==='batches'" @click="tab='batches'">论文批次</button></div>  <div class="export-tools"><button class="button button-secondary" :disabled="busy||batchBusy" @click="exportKnowledge">导出当前有效知识</button><span>包含自动结果和已生效的公共修正，可交接给图谱导入。</span></div>
   <p v-if="error" class="inline-error" role="alert">{{error}}</p><p v-if="notice" class="inline-success" role="status">{{notice}}</p><p v-if="busy" role="status">正在读取或处理，请稍候…</p>
+<KnowledgeBatches v-if="tab==='batches'" @changed="load" @busy-change="batchBusy=$event"/><div v-show="tab==='feedback'"><p class="sync-boundary">处理成功后，B 当前公共知识立即更新；D 后台自动检测版本并发布到 C。若 C 或 Neo4j 暂不可用，B 的处理仍会保存，后台会持续重试。</p>
   <template v-if="queue"><div class="feedback-counts"><button v-for="s in ['open','resolved','dismissed']" :key="s" class="panel count-card" :class="{active:filter===s}" @click="filter=s"><strong>{{queue.counts[s as keyof typeof queue.counts]}}</strong><span>{{labels[s]}}</span><div class="bar" :style="{width:queue.counts[s as keyof typeof queue.counts]/Math.max(1,queue.requests.length)*100+'%'}"></div></button></div>
     <div class="feedback-layout"><section class="panel queue-panel"><label>查看范围<select v-model="filter" class="form-input"><option value="all">全部反馈</option><option v-for="(label,s) in labels" :key="s" :value="s">{{label}}</option></select></label><button v-for="r in rows" :key="r.id" class="request-row" :class="{active:selectedId===r.id}" :disabled="busy" @click="pick(r)"><small>{{labels[r.status]}} · {{r.term?'遗漏名称':'内容问题'}}</small><strong>{{r.term??r.paper_title}}</strong><span>{{r.message}}</span></button><p v-if="!rows.length">当前范围没有反馈。</p></section>
     <section class="panel handling-panel"><template v-if="selected"><h2>{{selected.paper_title}}</h2><div class="target-card"><strong>{{selected.term?'遗漏名称':KIND_NAMES[content?.kind??'']??'关联'}}：{{targetName}}</strong><p>用户反馈：{{selected.message}}</p><blockquote v-for="(proof,index) in proofs" :key="index">{{proof.field==='title'?'标题':proof.field==='abstract'?'摘要':'来源字段'}}：{{proof.quote}}</blockquote><blockquote v-if="selected.term">原文片段：{{selected.context.quote}}</blockquote></div><a :href="'/research/knowledge?paper_id='+encodeURIComponent(selected.paper_id)" target="_blank" rel="noopener noreferrer" class="text-button">打开对应论文与完整依据 ↗</a><details><summary>更多原始记录</summary><pre>{{JSON.stringify(selected.context,null,2)}}</pre></details>
@@ -72,8 +74,9 @@ async function exportKnowledge(){
       <details v-if="selected.processing_history?.length"><summary>已撤回的处理历史（{{selected.processing_history.length}}）</summary><article v-for="(event,index) in selected.processing_history" :key="index"><p>原处理：{{event.resolution.reviewer}} · {{event.resolution.reason}}</p><p>撤回：{{event.reopened_by}} · {{event.reopened_at}}</p></article></details>
     </template><p v-else>选择一条用户反馈，先核对原文，再作出处理。</p></section></div>
     <section class="panel terms"><h2>通过反馈补充的词条（{{queue.terms.length}}）</h2><p v-if="!queue.terms.length">暂无补充词条。</p><article v-for="t in queue.terms" :key="t.term.kind+':'+t.term.name"><strong>{{t.term.name}}</strong> · {{t.term.kind}}<p>{{t.term.aliases.join(' / ')}}</p><a :href="t.source_url" target="_blank" rel="noopener noreferrer">公开依据</a></article></section>
-  </template></section></template>
+  </template></div></section></template>
 <style scoped>
+.admin-tabs{display:flex;gap:12px;margin:16px 0}.admin-tabs [aria-pressed=true]{background:#e4f3eb;border-color:#69a98b}
 .export-tools{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 0}.export-tools span{font-size:14px;color:#55766d;line-height:1.7}
 .sync-boundary{padding:12px 14px;background:#f3f8f6;border:1px solid #d8e9e2;border-radius:8px;color:#55766d;font-size:12px;line-height:1.8;margin:0 0 18px}
 .target-card,.impact-note{padding:16px;background:#f0f7f3;border:1px solid #d0e2d6;border-radius:8px;margin:18px 0;font-size:15px;line-height:1.8}.target-card p,.impact-note p{margin:10px 0;white-space:pre-wrap}.target-card blockquote{margin:12px 0;padding:10px;border-left:3px solid #7daa94;overflow-wrap:anywhere}.handling-panel .button,.standard-page>.page-heading .button{font-size:15px;min-height:44px;padding:10px 18px}.handling-panel .form-input{font-size:15px}.handling-panel>.text-button{font-size:15px;display:inline-block;padding:8px 0}.request-row{font-size:15px}.feedback-counts{display:flex;gap:16px;margin:24px 0}.count-card{padding:18px;flex:1;text-align:left;min-width:0;border:1px solid #dce8e5}.count-card strong{display:block;font-size:28px}.count-card span{font-size:15px}.bar{height:5px;background:#72b09a;margin-top:12px}.active{background:#edf8f3;border-color:#83bca6}.feedback-layout{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(350px,1.2fr);gap:20px}.queue-panel,.handling-panel,.terms{padding:24px;min-width:0}.request-row{display:block;width:100%;text-align:left;margin-top:12px;padding:14px;background:white;border:1px solid #dce8e5;border-radius:8px}.request-row strong,.request-row span{display:block;margin-top:8px;overflow-wrap:anywhere}.request-row small{color:#648075}.handling-panel>p{line-height:1.8;margin:16px 0;white-space:pre-wrap}.handling-panel label,.queue-panel label{display:block;margin:16px 0;font-size:15px}.handling-panel h2{line-height:1.7;overflow-wrap:anywhere}textarea{display:block;width:100%;margin-top:8px;padding:10px;border:1px solid #cedfd7;border-radius:6px;font:inherit}.handling-panel pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f6faf8;padding:12px;font-size:12px;max-height:400px;overflow:auto}.handling-panel details{margin:18px 0;font-size:15px}.terms{margin-top:24px}.terms article{margin-top:14px;padding:12px;border-top:1px solid #e3ece8}@media(max-width:850px){.feedback-layout{grid-template-columns:1fr}.feedback-counts{flex-wrap:wrap}}</style>

@@ -46,6 +46,8 @@ class FeedbackReopen(BaseModel):
 
 def feedback_router(settings):
     router = APIRouter()
+    from server.api.knowledge_batches import batch_router
+    router.include_router(batch_router(settings))
 
     def workspace():
         return reading_workspace(settings, snapshot_factory=KnowledgeSnapshot)

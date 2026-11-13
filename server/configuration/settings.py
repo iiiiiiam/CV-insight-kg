@@ -18,6 +18,9 @@ class Settings:
     b_vocabulary_path: str | None = None
     b_reviews_directory: str | None = None
     b_source_corpus: str | None = None
+    b_batch_registry: str | None = None
+    b_source_cache: str | None = None
+    b_source_offline: bool = False
     c_base_url: str = 'http://127.0.0.1:8002'
     c_admin_token: str = ''
     auto_graph_sync: bool = True
@@ -51,6 +54,9 @@ class Settings:
             c_sync_timeout_seconds=max(60, int(os.getenv('C_SYNC_TIMEOUT_SECONDS', '240'))),
             b_vocabulary_path=os.getenv('B_VOCABULARY_PATH') or None,
             b_source_corpus=os.getenv('B_SOURCE_CORPUS') or None,
+            b_batch_registry=os.getenv('B_BATCH_REGISTRY') or None,
+            b_source_cache=os.getenv('B_SOURCE_CACHE') or None,
+            b_source_offline=os.getenv('B_SOURCE_OFFLINE', 'false').lower() == 'true',
             b_reviews_directory=(os.getenv('B_REVIEWS_DIR') or
                                  (str(Path(os.environ['KNOWLEDGE_WORKBENCH_DATA']) / 'reviews')
                                   if os.getenv('KNOWLEDGE_WORKBENCH_DATA') else None)),

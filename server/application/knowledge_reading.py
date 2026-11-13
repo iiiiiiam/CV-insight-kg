@@ -6,11 +6,27 @@ from server.application.knowledge import KnowledgeSnapshot, KnowledgeSnapshotInv
 from src.knowledge_builder.extraction import load_vocabulary
 from src.knowledge_builder.feedback import FeedbackStore, KnowledgeFeedback
 from src.knowledge_builder.source_corpus import load_reading_corpus
+from src.knowledge_builder.batches import BatchStoreInvalid
+from src.knowledge_builder.batch_sources import BatchSourcesInvalid
+from server.application.knowledge_batches import batch_registry, batch_sources
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def reading_workspace(settings, *, snapshot_factory=KnowledgeSnapshot):
+    # Once the first batch has been accepted, even an empty active snapshot is
+    # authoritative. Never silently resurrect the fixed demonstration corpus.
+    registry = batch_registry(settings)
+    try:
+        managed = bool(registry.read()["batches"])
+        if managed:
+            path = Path(settings.b_vocabulary_path) if settings.b_vocabulary_path else None
+            if path is not None and not path.is_absolute():
+                path = ROOT / path
+            return registry.workspace(registry.path.parent / "feedback/state.json", load_vocabulary(path),
+                                      source_store=batch_sources(settings))
+    except (BatchStoreInvalid, BatchSourcesInvalid) as exc:
+        raise KnowledgeSnapshotInvalid("批次存档无法校验，请检查后重试；不会退回旧样本") from exc
     snapshot = snapshot_factory(vocabulary_path=settings.b_vocabulary_path,
                                 reviews_directory=settings.b_reviews_directory)
     path = Path(settings.b_vocabulary_path) if settings.b_vocabulary_path else None
