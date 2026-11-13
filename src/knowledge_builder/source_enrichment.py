@@ -12,6 +12,7 @@ from .extraction import extract_candidates, fingerprint, validate_result, valida
 from .enrichment_sources import same_paper
 from .curated_vocabulary import merge_curated_vocabulary
 from .text_signals import explicit_signals, VERSION as TEXT_RULE_VERSION
+from .research_directions import classify_directions
 
 FORMAT = "source-enrichment-experiment/1"
 TASK_PATTERN = re.compile(r"(?:object detection|instance segmentation|semantic segmentation|image segmentation|image classification|depth estimation|object tracking)$", re.I)
@@ -99,9 +100,25 @@ def _analyze_sources(paper, vocabulary, records, *, fallback=False):
             for i, topic in enumerate(payload.get("topics") or []):
                 if not isinstance(topic, dict) or not isinstance(topic.get("display_name"), str) or not topic.get("id"):
                     continue
-                facts.append(dict(kind="topic", name=topic["display_name"], source_id=topic["id"],
+                classification = dict(kind="topic", name=topic["display_name"], source_id=topic["id"],
                     score=topic.get("score"), basis="source_classification", source="openalex", source_url=record["url"],
-                    source_path=["topics", i], source_digest=record["digest"]))
+                    source_path=["topics", i], source_digest=record["digest"])
+                # OpenAlex's subfield is ABOVE the topic, not a finer topic.
+                # Optional source metadata keeps the eight-entity/seven-relation
+                # contract intact and never pretends to be a literal text quote.
+                hierarchy = {}
+                for level in ("subfield", "field", "domain"):
+                    parent = topic.get(level)
+                    if not isinstance(parent, dict):
+                        continue
+                    identifier, name = parent.get("id"), parent.get("display_name")
+                    if (isinstance(identifier, str) and identifier.strip()
+                            and isinstance(name, str) and name.strip()):
+                        hierarchy[level] = dict(source_id=identifier.strip(), name=name.strip(),
+                                                source_path=["topics", i, level])
+                if hierarchy:
+                    classification["hierarchy"] = hierarchy
+                facts.append(classification)
                 # Literal mentions may use the existing relation contract. The rest
                 # stay classifications: do not turn an inferred topic into a quote.
                 propose("topic", topic["display_name"], topic["display_name"], record, ["topics", i], "typed_source_topic_and_text")
@@ -155,6 +172,7 @@ def _analyze_sources(paper, vocabulary, records, *, fallback=False):
                                 "catalog_benchmark_and_explicit_dataset_context")
                     else:
                         skipped.append(dict(name=name, reason="benchmark_dataset_type_unknown", source=record["source"]))
+    facts.extend(classify_directions(paper, records))
     rule_signals = []
     if fallback:
         local = dict(source="text_rules", url=paper.source_url, digest=fingerprint(asdict(paper)))

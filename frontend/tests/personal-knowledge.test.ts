@@ -15,6 +15,24 @@ function memory(): LocalStoragePort {
   return {getItem:key=>values.get(key)??null,setItem:(key,value)=>{values.set(key,value)},removeItem:key=>{values.delete(key)}}
 }
 
+test('B direction display nodes stay distinct from tasks and never mutate public items',()=>{
+  const base=fixture()
+  base.source_enrichment={source_classifications:[
+    {kind:'research_direction',name:'图像分割',source:'b_rules',source_url:'',source_id:'cv-direction:segmentation',selection:'primary'},
+    {kind:'research_direction',name:'其他',source:'b_rules',source_url:'',source_id:'cv-direction:other',selection:'fallback'},
+  ],source_records:[],accepted_signals:[],added_entities:[]}
+  base.entities.push({candidate_id:'task',content:{key:'task:1',kind:'task',name:'图像分割',source_id:null},evidence:[]})
+  const before=JSON.stringify(base),graph=knowledgeGraph(base)
+  const direction=graph.nodes.find(n=>n.type==='ResearchDirection')!
+  assert.equal(direction.label,'图像分割')
+  assert.equal(graph.nodes.find(n=>n.id==='task')?.type,'Task')
+  assert.equal(graph.nodes.filter(n=>n.type==='ResearchDirection').length,1)
+  assert.equal(graph.edges.find(e=>e.target===direction.id)?.type,'属于研究方向')
+  assert.equal(JSON.stringify(base),before)
+  const hidden=applyPersonal(base,{...emptyPersonal(base.revision),hidden:['p']})
+  assert.equal(knowledgeGraph(hidden).nodes.some(n=>n.type==='ResearchDirection'),false)
+})
+
 test('hiding an object removes incident edges in both list and graph, preserving public data',()=>{
   const base=fixture(),before=JSON.stringify(base),draft={...emptyPersonal(base.revision),hidden:['d']}
   const result=applyPersonal(base,draft),graph=knowledgeGraph(result)

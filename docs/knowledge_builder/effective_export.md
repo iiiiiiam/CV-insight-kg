@@ -1,6 +1,88 @@
 # B → C 当前有效知识导出 v1
 
-协议：`knowledge-effective/1.0`。实现分支：`knowledge-enrich`。本文件定义 B 的中期交接格式，C 的导入/发布适配仍需 C 自行接入；B 不操作 Neo4j。
+### B 页面展示补充
+
+后续试用已在 B 的单篇关联图中投影子方向：前端专用 ResearchDirection 显示类型、棕橙色六边形、连线“属于研究方向”，点击只读查看分类依据；其他不入图。显示节点不进入后端 entities/relations，不改变本协议实体类别、关系种类和计数，C 不需要因为本次前端投影新增图节点。下段描述的“未在单篇图展示”属于前一阶段，正式图谱契约未升级这一边界仍保持。
+
+后续已在 B 的 `KnowledgeEvidence.vue` 增加独立“研究子方向”区域：显示 1—3 个方向，其他显示暂未归类说明；可展开查看归类依据及“当前论文 → 属于研究方向 → 方向名称”的含义。原有“研究主题”只展示 kind=topic，不再混入子方向。仅修改 B 证据组件及其 TypeScript 数据类型，44 项前端测试和构建通过；未进行浏览器视觉验收。
+
+概念上可将“研究子方向”视为实体，论文与其关系建议称“属于研究方向”（分类关联），而非把关系命名为“方向”。**本轮只实现 B 的结构化分类与页面展示，不把该概念塞进现有八类实体/七类关系，也不在单篇图中伪造节点或连线。** 如果团队决定新增正式 Direction 实体和关系，仍需共同升级图模型、导入和查询契约；不是只改 B 一个枚举即可完成。
+
+## 当前子方向规则：组合识别、默认一个（2026-11-13）
+
+下方 tasks-only 段落为第一步试验记录，现已由 `cv-combined-directions/2` 替代。具体实现仍在 B 的 `research_directions.py`，不修改 A、C 或前端。
+
+当前从标题中的明确任务表达，以及 OpenAlex 关键词、首选主题、目录 tasks 与冻结摘要中相互支持的线索归类。标题命中可以独立支持归类；否则需要“关键词＋任务/主题/摘要”，或“任务＋摘要”“具体首选主题＋摘要”。摘要单独提及不足以分类；多次重复同一字段也不会增加权重。来源一致不等于独立验证，仍可能把背景内容当作研究方向。
+
+默认只选择排名第一项。只有第一项和附加项都在标题中明确出现，附加项还有其他字段支持，且排名权重接近时，才允许增加第二、第三项，硬上限 3。排名使用固定规则权重，不是模型置信度，不输出伪装成概率的分数。不要求每篇一定只有一个，也不会把所有来源标签简单合并。
+
+新增记录沿用 `kind=research_direction`、稳定 `source_id` 和 `parent_name`；`classification_method=combined_rules`，`mapping_version=cv-combined-directions/2`，`selection=primary` 或 `additional`。`primary` 只表示规则优先展示项，不表示已验证为论文的唯一主贡献。`source=b_rules` 表明这是 B 组合归类，`mapped_from` 的每个元素记录 channel（title/abstract/keyword/task/primary_topic）、原始文字 name、命中 quote 与字符位置、source_url、source_digest、source_path。标题和摘要的位置相对于对应输入字符串；关键词等的位置相对于其 name，不相对于摘要。
+
+没有合适结果时只返回一条 `name=其他`、`source_id=cv-direction:other`、`selection=fallback`、`classification_method=unclassified_fallback`，原因是 `insufficient_supported_direction`，`mapped_from=[]`。这是“暂未得到足够分类依据”，不是来源提供了“其他”，也不能与具体方向同时返回。输入指纹只供追溯，不是假造的来源分类证据。此次不输出未选择的弱候选，不要求任何人工审核。
+
+通用归类表适度补充了视觉语言、视觉模型效率、视觉安全等方向，避免强塞到检测或生成；仍允许确实不好归类的论文保留“其他”。当前 150 篇为 136 篇单方向、1 篇双方向、13 篇其他；开发实验 40 篇为 36 篇单方向、4 篇其他。这是规则分布而非准确率，也不是产品必须维持的比例或阈值。
+
+阅读结果、完整有效导出共用本次选择；C 的离线读取与存档仍兼容，实体及关系数量不因此增加。已有整合服务启用自动同步时，新内容版本可能触发正常同步发布；本次离线验证没有启动服务、覆盖旧导出或写 Neo4j。B 前端现已独立显示子方向，历史 tasks-only 段落里的混合展示描述不再代表当前页面。
+
+## 一级研究子方向：基于 tasks 的最小接入（2026-11-13）
+
+产品约定：以“计算机视觉”为统一主方向，只整理一层子方向，如目标检测、图像分割、图像分类、三维视觉等；不照搬 OpenAlex 的多级学科体系。`subfield` 仍是来源所属学科，不等于产品的子方向。
+
+已验证身份的论文目录记录中，`tasks` 经 B 的小规模显式归类规则整理为 `kind="research_direction"`，与原有 `kind="topic"` 一起放在现有 `source_classifications` 数组中。例如：
+
+```json
+{
+  "kind": "research_direction",
+  "name": "图像分割",
+  "source_id": "cv-direction:image-segmentation",
+  "parent_name": "计算机视觉",
+  "basis": "source_classification",
+  "classification_method": "task_mapping",
+  "mapping_version": "cv-task-directions/1",
+  "source": "paperswithcode",
+  "mapped_from": [
+    {"name": "Instance Segmentation", "source_path": ["tasks", 0]}
+  ]
+}
+```
+
+示例省略的 `source_url`、`source_digest`、`source_path` 在实际输出中保留；来源校验后才进行映射。`source_id` 是 B 的稳定分类键，不是 OpenAlex ID 或可点击的网页链接。消费端应按 `kind` 区分来源主题和产品子方向，展示标签可用 `name`；不要要求所有分类 ID 都是 URL。
+
+同篇同方向的多个任务合并，原始任务名和位置保留在 `mapped_from`，一篇可以有多个方向。未配置的任务、泛泛的 Retrieval 或非视觉任务不强行归类；没有匹配时不编造“其他”或默认方向。本版先使用 tasks，暂未实现 OpenAlex 主题/关键词对产品子方向的兜底归类，也不新增人工审核步骤。
+
+源目录任务可以支持来源分类，但不一定出现在冻结摘要中，所以这些记录不生成伪造的原文依据、不加入八类实体和七类关系，不影响其计数。现有 C 的离线读取器能够保留新分类记录；是否将其建成图节点、筛选条件或专门页面，由后续接入决定，本次没有修改 C。
+
+前端代码未修改。现有 B 页面会遍历 `source_classifications` 的名称，因此会在原有“研究主题”区域同时显示这些中文子方向，但尚没有专门分组或子方向筛选；不能称为完成了独立子方向界面。正式图谱的实际展示和数据库发布本次未验证。
+
+规则位于 `src/knowledge_builder/research_directions.py`；该文件纳入有效导出的规则指纹，规则调整会产生新内容版本。使用现有 `preview_topics` 脚本可以离线查看“计算机视觉 → 子方向 [来源 tasks]”，无须 Neo4j。
+
+## 研究主题所属分类：兼容补充（2026-11-13）
+
+B 在 `papers[].source_classifications[]` 的现有主题记录内，增加可选的 `hierarchy`，同样出现在 B 阅读结果的 `source_enrichment.source_classifications` 中。实体、关系、顶层结构及 `knowledge-effective/1.0` 不变。
+
+```json
+{
+  "kind": "topic",
+  "name": "具体研究主题（来源原名）",
+  "hierarchy": {
+    "subfield": {
+      "source_id": "https://openalex.org/subfields/1707",
+      "name": "Computer Vision and Pattern Recognition",
+      "source_path": ["topics", 0, "subfield"]
+    }
+  }
+}
+```
+
+上例为字段示意，实际数据仍保留原有 `source_id`、`source_url`、`source_digest`、`basis` 等字段。`hierarchy` 按来源实际提供的有效内容包含 `subfield`、`field`、`domain`；缺失时不编造，也不要求旧数据补齐。父分类只保存 `source_id`、`name` 和其在原始来源中的 `source_path`，沿用所属主题的来源地址和摘要指纹。
+
+语义从宽到细是 `domain → field → subfield → topic`。**subfield 是主题的上一级，不是主题下面的新子方向**；本次支持“按所属分类理解研究主题”，没有新增第九类实体，也没有创建分类之间的正式图谱关系。这些是 OpenAlex 来源分类，不假装是摘要原句或人工确认结果。
+
+C 当前读取器的离线校验、投影兼容测试已覆盖新增字段：可随论文分区存档保留，不增加图节点或边。是否展示分类层级、增加筛选或形成正式层级关系，由相关模块后续决定；B 本次不修改 C 或前端，不声称页面已经展示层级。新增分类内容会正常影响有效结果的内容版本，不能期待仍与旧文件版本相同。
+
+本地查看：激活 `insight-prototype` 后，在项目根目录运行 `python -m scripts.knowledge_builder.preview_topics`。使用已有语料离线统计并打印“所属分类 → 研究主题”，不修改反馈、原始输入或旧导出文件，也不需要 Neo4j。
+
+协议：`knowledge-effective/1.0`。中期实现最初位于 `knowledge-enrich`；本次分类补充位于基于 `graph-front-week2` 的 `knowledge-topics`。下方 2026-11-08 的附件数量、版本和当时待联调状态是历史记录；当前整合分支已有 C 的接入代码，不据此宣称本机 Neo4j 已验证。B 本次仍不操作 Neo4j。
 
 ## 本次随附数据的实际状态（2026-11-08）
 

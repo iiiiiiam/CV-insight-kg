@@ -19,7 +19,7 @@ REVIEW_STATES = {"automatic", "human_confirmed", "human_corrected"}
 def _rule_fingerprint(workspace):
     names = ["extraction.py", "feedback.py", "effective_export.py"]
     if workspace.source_records is not None:
-        names += ["source_enrichment.py", "text_signals.py", "curated_vocabulary.py", "vocabulary_cv.json"]
+        names += ["source_enrichment.py", "research_directions.py", "text_signals.py", "curated_vocabulary.py", "vocabulary_cv.json"]
     root = Path(__file__).parent
     return fingerprint({name: (root / name).read_text(encoding="utf-8") for name in names})
 

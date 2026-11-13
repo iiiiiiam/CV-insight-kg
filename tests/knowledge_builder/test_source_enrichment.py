@@ -66,9 +66,60 @@ class SourceEnrichmentTests(unittest.TestCase):
         record = source("openalex", dict(id=self.paper.openalex_id,
             topics=[dict(id="https://openalex.org/T1",display_name="Broad source classification",score=.9)], keywords=[]))
         report = analyze_sources(self.paper, self.vocabulary, [record])
-        self.assertEqual(len(report["source_classifications"]), 1)
+        self.assertEqual(len([t for t in report["source_classifications"] if t["kind"] == "topic"]), 1)
         self.assertEqual(report["enriched"], report["baseline"])
         self.assertEqual(report["source_classifications"][0]["basis"], "source_classification")
+
+    def test_topic_hierarchy_preserves_shared_parent_without_inventing_entities(self):
+        parent = dict(id="https://openalex.org/subfields/1707", display_name="Computer Vision")
+        record = source("openalex", dict(id=self.paper.openalex_id, topics=[
+            dict(id="https://openalex.org/T1", display_name="Research topic one", subfield=parent,
+                 field=dict(id="https://openalex.org/fields/17", display_name="Computer Science")),
+            dict(id="https://openalex.org/T2", display_name="Research topic two", subfield=parent)]))
+        original = deepcopy(record)
+        report = analyze_sources(self.paper, self.vocabulary, [record])
+        topics = [t for t in report["source_classifications"] if t["kind"] == "topic"]
+        self.assertEqual(len(topics), 2)
+        self.assertEqual([t["hierarchy"]["subfield"]["source_id"] for t in topics], [parent["id"]] * 2)
+        self.assertEqual(topics[1]["hierarchy"]["subfield"]["source_path"], ["topics", 1, "subfield"])
+        self.assertEqual(topics[0]["hierarchy"]["field"]["name"], "Computer Science")
+        self.assertEqual(report["enriched"], report["baseline"])
+        self.assertEqual(record, original)
+
+    def test_missing_or_incomplete_parent_does_not_create_a_fake_classification(self):
+        record = source("openalex", dict(id=self.paper.openalex_id, topics=[
+            dict(id="https://openalex.org/T1", display_name="Research topic", subfield=None,
+                 field=dict(display_name="Missing ID"), domain="not an object")]))
+        topic = analyze_sources(self.paper, self.vocabulary, [record])["source_classifications"][0]
+        self.assertNotIn("hierarchy", topic)
+
+    def test_catalog_tasks_form_one_level_directions_with_source_paths(self):
+        record = self.catalog(tasks=[dict(name="Image segmentation"), dict(name="Instance Segmentation"),
+            dict(name="Object Detection"), dict(name="  image   CLASSIFICATION ")])
+        report = analyze_sources(self.paper, self.vocabulary, [record])
+        directions = report["source_classifications"]
+        # Only classification has corroboration in this fixture's abstract.
+        self.assertEqual({t["name"] for t in directions}, {"图像分类"})
+        self.paper.title = "Image Segmentation with Instance Segmentation"
+        record["payload"]["title"] = self.paper.title
+        record["digest"] = fingerprint(record["payload"])
+        directions = analyze_sources(self.paper, self.vocabulary, [record])["source_classifications"]
+        segmentation = next(t for t in directions if t["name"] == "图像分割")
+        task_signals = [s for s in segmentation["mapped_from"] if s["channel"] == "task"]
+        self.assertEqual(len(task_signals), 2)
+        self.assertEqual(task_signals[1]["source_path"], ["tasks", 1])
+        self.assertEqual(task_signals[0]["source_digest"], record["digest"])
+        self.assertTrue(all(t["kind"] == "research_direction" and t["parent_name"] == "计算机视觉"
+                            for t in directions))
+        # Source classification need not occur literally in our abstract; it is
+        # not converted into an invented mentions_task/mentions_topic relation.
+        self.assertEqual(report["enriched"], report["baseline"])
+
+    def test_unknown_and_generic_non_visual_tasks_do_not_get_guessed_directions(self):
+        report = analyze_sources(self.paper, self.vocabulary, [self.catalog(tasks=[
+            dict(name="Language Modeling"), dict(name="Retrieval"), dict(name="FutureTask"),
+            dict(name="Reinforcement Learning"), {}, None])])
+        self.assertEqual([t["name"] for t in report["source_classifications"]], ["其他"])
 
     def test_typed_catalog_mentions_add_method_dataset_and_real_character_evidence(self):
         record = self.catalog(methods=[dict(name="StarNet")], abstract_mentions=[

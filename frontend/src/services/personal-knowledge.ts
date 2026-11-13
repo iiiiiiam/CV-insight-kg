@@ -74,11 +74,23 @@ export function applyPersonal(base: ReadingKnowledge, draft: PersonalKnowledge):
 export function knowledgeGraph(view: ReadingKnowledge): GraphData {
   const kinds: Record<string, EntityType> = {paper: 'Paper', author: 'Author', institution: 'Institution', venue: 'Venue', topic: 'Topic', method: 'Method', task: 'Task', dataset: 'Dataset'}
   const ids = new Map(view.entities.map(item => [(item.content as EntityContent).key, item.candidate_id]))
-  return {
+  const graph: GraphData = {
     nodes: view.entities.map(item => {const c = item.content as EntityContent; return {id: item.candidate_id, label: c.name, type: kinds[c.kind]!}}),
     edges: view.relations.map(item => {const c = item.content as RelationContent; return {
       id: item.candidate_id, source: ids.get(c.source)!, target: ids.get(c.target)!, type: RELATION_NAMES[c.kind] ?? c.kind,
       evidence: item.evidence.map(e => e.quote).join('\n'),
     }}), truncated: false, batch_id: '',
   }
+  const paper = view.entities.find(item => (item.content as EntityContent).kind === 'paper')
+  if (paper) {
+    for (const direction of view.source_enrichment?.source_classifications ?? []) {
+      if (direction.kind !== 'research_direction' || direction.selection === 'fallback' || direction.source_id === 'cv-direction:other') continue
+      const id = 'local-direction:' + direction.source_id
+      if (graph.nodes.some(n => n.id === id)) continue
+      graph.nodes.push({id, label: direction.name, type: 'ResearchDirection'})
+      graph.edges.push({id: 'local-direction-link:' + direction.source_id, source: paper.candidate_id,
+        target: id, type: '属于研究方向', evidence: ''})
+    }
+  }
+  return graph
 }

@@ -36,7 +36,7 @@ onBeforeUnmount(()=>controller.abort())
       <div><div class="eyebrow">论文阅读</div><h1>知识与证据</h1><p>浏览论文涉及的方法、任务和数据集，点击条目查看依据。</p></div>
       <RouterLink v-if="route.query.from==='research'" :to="{path:'/research/papers',query:{batch_id:route.query.batch_id,seed:route.query.seed,q:route.query.q,topic:route.query.topic,method:route.query.method,year:route.query.year}}" class="button button-secondary">返回公共知识图谱</RouterLink>
     </div>
-    <details class="knowledge-boundary"><summary>内容更新说明</summary><p>管理员处理反馈后，刷新本页可查看更新。个人调整只影响当前浏览器；其他检索和图谱页面暂未同步这些修正。</p></details>
+    <details class="knowledge-boundary"><summary>本次更新</summary><p>新增研究子方向，通常展示一个方向，明确涉及多个方向时最多展示三个；暂时无法归类的列为“其他”。展开“查看归类依据”，可了解分类参考的论文内容和来源信息。</p><p>研究子方向与原有研究主题分开展示；本页的单篇关联图仍用于查看论文条目及依据。</p></details>
     <p v-if="loading" role="status">正在读取论文…</p>
     <p v-if="error" class="inline-error" role="alert">{{error}}</p>
     <section v-if="papers.length" class="panel reading-panel">

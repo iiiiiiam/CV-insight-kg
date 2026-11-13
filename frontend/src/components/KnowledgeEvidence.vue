@@ -14,6 +14,11 @@ const props=defineProps<{paperId:string}>()
 const base=ref<ReadingKnowledge|null>(null),loading=ref(false),error=ref(''),selectedId=ref(''),proofIndex=ref(0)
 const draft=ref<PersonalKnowledge>(emptyPersonal('')),localError=ref(''),localNote=ref('')
 const view=computed(()=>base.value?applyPersonal(base.value,draft.value):null)
+const sourceTopics=computed(()=>view.value?.source_enrichment?.source_classifications.filter(t=>t.kind==='topic')??[])
+const researchDirections=computed(()=>view.value?.source_enrichment?.source_classifications.filter(t=>t.kind==='research_direction')??[])
+const directionId=ref('')
+const selectedDirection=computed(()=>researchDirections.value.find(t=>'local-direction:'+t.source_id===directionId.value))
+const directionChannels:Record<string,string>={title:'论文标题',abstract:'论文摘要',keyword:'来源关键词',task:'来源任务',primary_topic:'来源主题'}
 const graph=computed(()=>view.value?knowledgeGraph(view.value):null)
 const editor=ref<'rename'|'add'|null>(null),localName=ref(''),localKind=ref('dataset')
 const detailPanel=ref<HTMLElement|null>(null),nameInput=ref<HTMLInputElement|null>(null)
@@ -31,8 +36,8 @@ const problemType=ref('信息不准确')
 let generation=0,controller:AbortController|undefined
 const items=computed(()=>view.value?.[collection.value]??[])
 const selectedHidden=computed(()=>draft.value.hidden.includes(selectedId.value))
-const selected=computed(()=>items.value.find(i=>i.candidate_id===selectedId.value)
-  ?? (selectedHidden.value?unhidden.value?.[collection.value].find(i=>i.candidate_id===selectedId.value):undefined))
+const selected=computed(()=>selectedDirection.value?undefined:(items.value.find(i=>i.candidate_id===selectedId.value)
+  ?? (selectedHidden.value?unhidden.value?.[collection.value].find(i=>i.candidate_id===selectedId.value):undefined)))
 const proof=computed(()=>selected.value?.evidence[proofIndex.value])
 const excerpt=computed(()=>{
   if(!proof.value||!view.value||proof.value.field==='metadata')return null
@@ -52,13 +57,13 @@ function proofQuote(p:Evidence){
 }
 async function load(){
   const current=++generation;controller?.abort();controller=new AbortController()
-  loading.value=true;error.value='';localError.value='';localNote.value='';base.value=null;form.value=null;editor.value=null;selectedId.value='';undoDraft.value=null;actionNote.value='';showChanges.value=false;feedbackVersion.value=0
+  loading.value=true;error.value='';localError.value='';localNote.value='';directionId.value='';base.value=null;form.value=null;editor.value=null;selectedId.value='';undoDraft.value=null;actionNote.value='';showChanges.value=false;feedbackVersion.value=0
   try{const result=await getReading(props.paperId,controller.signal);if(current===generation){base.value=result;readLocal()}}
   catch(e){if(current===generation&&!(e instanceof DOMException&&e.name==='AbortError'))error.value=e instanceof Error?e.message:'知识读取失败'}
   finally{if(current===generation)loading.value=false}
 }
 watch(()=>props.paperId,()=>{notice.value='';void load()},{immediate:true})
-watch([collection,view],()=>{if(!selected.value)selectedId.value=items.value[0]?.candidate_id??''})
+watch([collection,view],()=>{if(!selected.value&&!selectedDirection.value)selectedId.value=items.value[0]?.candidate_id??''})
 watch(selectedId,()=>{const index=selected.value?.evidence.findIndex(p=>p.field==='title'||p.field==='abstract'||['display_name','title','venue'].includes(String(p.path.at(-1))))??-1;proofIndex.value=Math.max(0,index);form.value=null;editor.value=null;message.value=''})
 function readLocal(){
   if(!base.value)return
@@ -89,9 +94,16 @@ async function revealDetail(){
 }
 function choose(id:string,kind:'entities'|'relations'=collection.value){
   if(saving.value)return
+  directionId.value=''
   collection.value=kind;selectedId.value=id;void revealDetail()
 }
+function chooseGraph(id:string){
+  if(!id.startsWith('local-direction:')){choose(id,'entities');return}
+  if(saving.value)return
+  directionId.value=id;form.value=null;editor.value=null;void revealDetail()
+}
 async function edit(mode:'rename'|'add'){
+  directionId.value=''
   editor.value=mode;localName.value=mode==='rename'&&selected.value&&'name' in selected.value.content?selected.value.content.name:'';form.value=null
   await revealDetail();nameInput.value?.scrollIntoView({block:'nearest'});nameInput.value?.focus({preventScroll:true})
 }
@@ -157,10 +169,29 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
     <p v-if="localError" class="inline-error" role="alert">{{localError}} <button class="action-button" @click="reset">恢复默认</button></p>
     <p v-if="localNote" class="privacy-note" role="status">{{localNote}}</p>
     <template v-if="view">
-      <section v-if="view.source_enrichment?.source_classifications.length" class="source-summary" aria-label="研究主题">
+      <section v-if="researchDirections.length" class="direction-summary" aria-label="研究子方向">
+        <h4>研究子方向 <span class="direction-parent">计算机视觉</span></h4>
+        <div class="direction-labels">
+          <span v-for="direction in researchDirections" :key="direction.source_id" class="direction-label" :class="{'direction-other':direction.selection==='fallback'}">{{direction.name}}</span>
+        </div>
+        <p class="privacy-note">{{researchDirections[0]?.selection==='fallback'?'暂未找到足够的归类依据，先归入“其他”。':'按论文内容与来源信息自动归类，通常展示一个方向，明确涉及多个方向时会补充展示。'}}</p>
+        <details v-if="researchDirections[0]?.selection!=='fallback'" :key="paperId" class="direction-basis">
+          <summary>查看归类依据</summary>
+          <article v-for="direction in researchDirections" :key="direction.source_id">
+            <h5>{{direction.name}}</h5>
+            <p class="direction-relation">当前论文 → 属于研究方向 → {{direction.name}}</p>
+            <ul><li v-for="(signal,index) in direction.mapped_from??[]" :key="index">
+              <span>{{directionChannels[signal.channel??'task']??'来源记录'}}：</span>
+              <q>{{signal.quote??signal.name}}</q>
+              <a v-if="safeSourceUrl(signal.source_url??'')" :href="safeSourceUrl(signal.source_url??'')!" target="_blank" rel="noopener noreferrer">查看来源 ↗</a>
+            </li></ul>
+          </article>
+        </details>
+      </section>
+      <section v-if="sourceTopics.length" class="source-summary" aria-label="研究主题">
         <h4>研究主题</h4>
-        <div v-if="view.source_enrichment.source_classifications.length" class="source-topics">
-          <a v-for="topic in view.source_enrichment.source_classifications" :key="topic.source_id" :href="safeSourceUrl(topic.source_id) || undefined" target="_blank" rel="noopener noreferrer">{{topic.name}}</a>
+        <div class="source-topics">
+          <a v-for="topic in sourceTopics" :key="topic.source_id" :href="safeSourceUrl(topic.source_id) || undefined" target="_blank" rel="noopener noreferrer">{{topic.name}}</a>
         </div>
         <p class="privacy-note">由文献来源提供的分类，点击主题可查看来源。</p>
       </section>
@@ -195,8 +226,8 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
         <div class="explorer">
           <section v-if="graph" class="personal-graph" aria-label="本篇论文关联图">
             <h4>本篇论文关联图</h4>
-            <p class="graph-hint">点击节点或下方条目，查看依据并调整自己的视图。</p>
-            <GraphPanel :graph="graph" :selected-id="selectedId" @select="node=>choose(node.id,'entities')"/>
+            <p class="graph-hint">点击节点查看依据；拖动空白处浏览全图，拖动节点调整位置。“适应画布”可查看全图。关系文字在选中或悬停时显示。</p>
+            <GraphPanel :graph="graph" :selected-id="selectedDirection?directionId:selectedId" stable-knowledge :layout-key="paperId" @select="node=>chooseGraph(node.id)"/>
           </section>
           <section class="item-browser">
             <div class="collection-tabs" aria-label="条目类型">
@@ -215,7 +246,17 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
           </section>
         </div>
         <section ref="detailPanel" class="proof-panel" tabindex="-1" aria-label="当前条目详情与操作">
-          <template v-if="selected">
+          <template v-if="selectedDirection">
+            <p class="panel-label">研究子方向</p>
+            <h4>{{selectedDirection.name}}</h4>
+            <p class="direction-relation">当前论文 → 属于研究方向 → {{selectedDirection.name}}</p>
+            <p class="privacy-note">子方向表示论文的研究分类；任务节点表示论文提及的具体任务。</p>
+            <ul><li v-for="(signal,index) in selectedDirection.mapped_from??[]" :key="index">
+              {{directionChannels[signal.channel??'task']??'来源记录'}}：<q>{{signal.quote??signal.name}}</q>
+              <a v-if="safeSourceUrl(signal.source_url??'')" :href="safeSourceUrl(signal.source_url??'')!" target="_blank" rel="noopener noreferrer">查看来源 ↗</a>
+            </li></ul>
+          </template>
+          <template v-else-if="selected">
             <p class="panel-label">当前选择</p>
             <h4>{{itemName(selected,view)}}</h4>
             <div class="item-actions">
@@ -259,7 +300,7 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
             </template>
             <p v-if="!selected.evidence.length" class="privacy-note">这是个人补充，没有自动提取的原文依据。</p>
           </template>
-          <details class="feedback-entry">
+          <details v-if="!selectedDirection" class="feedback-entry">
             <summary>需要修正公共内容？</summary>
             <p class="privacy-note">仅在你主动提交后，后台才会收到问题。</p>
             <div class="item-actions">
@@ -287,6 +328,7 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
 </template>
 
 <style scoped>
+.direction-summary{padding:18px;margin-bottom:16px;border:1px solid #b8d7ce;border-radius:10px;background:#f7fbf9}.direction-summary h4{margin:0 0 12px;font-size:17px}.direction-parent{font-size:13px;font-weight:400;color:#62776f;margin-left:8px}.direction-labels{display:flex;flex-wrap:wrap;gap:8px}.direction-label{padding:6px 14px;border-radius:18px;background:#e2f1ea;color:#205b48;font-weight:600}.direction-other{background:#edf0ef;color:#596663}.direction-basis{margin-top:12px}.direction-basis summary{cursor:pointer;color:#276953}.direction-basis h5{font-size:15px;margin:14px 0 6px}.direction-basis ul{padding-left:20px}.direction-basis li{margin:8px 0;overflow-wrap:anywhere}.direction-basis a{margin-left:8px}.direction-relation{font-size:14px;color:#526c62}
 .recognition-details{margin:0 0 18px;border-bottom:1px solid #dce8e2;padding:0 0 14px;color:#557168;font-size:14px}.recognition-details summary{cursor:pointer;padding:8px 0;font-weight:600}.recognition-details p{margin:8px 0;overflow-wrap:anywhere}
 .source-summary{padding:16px 18px;margin:0 0 18px;background:#f1f7f6;border:1px solid #d6e6e1;border-radius:10px}.source-summary h4{margin:0 0 8px;font-size:16px}.source-summary p{margin:6px 0}.source-topics{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.source-topics a{padding:3px 10px;border:1px solid #c8ddd6;border-radius:16px;color:#236956;background:white}
 .knowledge-evidence{container-type:inline-size;margin:24px 0;min-width:0;color:#365660;font-size:15px;line-height:1.7}
@@ -310,7 +352,7 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
 .personal-graph{overflow:hidden;margin-bottom:16px}
 .personal-graph h4{font-size:16px;padding:14px 16px;margin:0}
 .graph-hint{font-size:14px;line-height:1.7;margin:0;padding:0 16px 12px;color:#557168}
-.personal-graph :deep(.graph-stage){height:380px;min-height:380px}
+.personal-graph :deep(.graph-stage){height:520px;min-height:520px}
 .personal-graph :deep(.cy-canvas){min-height:0;height:auto}
 .personal-graph :deep(.graph-legend button){font-size:12px;min-height:30px}
 .personal-graph :deep(.graph-controls .icon-button){width:36px;height:36px}
@@ -346,7 +388,7 @@ summary{cursor:pointer;font-size:14px;padding:8px 0}
   .section-heading{align-items:flex-start}
   .bar-buttons .action-button{flex:1 1 40%;padding:8px}
   .proof-panel{padding:15px;scroll-margin-top:210px}
-  .personal-graph :deep(.graph-stage){height:320px;min-height:320px}
+  .personal-graph :deep(.graph-stage){height:440px;min-height:440px}
   .change-row{align-items:flex-start;flex-direction:column}
 }
 </style>

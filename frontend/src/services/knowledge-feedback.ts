@@ -7,11 +7,16 @@ const FEEDBACK_WRITE_TIMEOUT=300000
 export interface KnowledgeItem {
   candidate_id:string;content:EntityContent|RelationContent;evidence:Evidence[]
 }
+export interface SourceClassification {
+  kind:string;name:string;source:string;source_url:string;source_id:string
+  parent_name?:string;selection?:'primary'|'additional'|'fallback'
+  mapped_from?:Array<{channel?:string;name:string;quote?:string;source_url?:string;source_path:Array<string|number>}>
+}
 export interface ReadingKnowledge {
   paper:{openalex_id:string;title:string;abstract:string|null;year:number;venue:string;source_url:string}
   entities:KnowledgeItem[];relations:KnowledgeItem[];revision:string;vocabulary_version:string
   source_enrichment?:{
-    source_classifications:Array<{kind:string;name:string;source:string;source_url:string;source_id:string}>
+    source_classifications:SourceClassification[]
     source_records:Array<{source:string;url:string;fetched_at:string;digest:string}>
     accepted_signals:Array<{key:string;name:string;source:string;source_url:string;alias:string}>
     added_entities:EntityContent[]

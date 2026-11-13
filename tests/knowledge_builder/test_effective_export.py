@@ -60,6 +60,53 @@ class EffectiveExportTests(unittest.TestCase):
             self.assertEqual(part["origin"]["public_revision"], public["revision"])
         self.assertEqual(validate_effective_export(document), document)
 
+    def test_source_hierarchy_reaches_export_and_existing_c_reader_without_graph_changes(self):
+        from src.graph_query.effective import project, validate_effective
+        payload = dict(id=self.pid, topics=[dict(id="https://openalex.org/T1", display_name="Research topic",
+            subfield=dict(id="https://openalex.org/subfields/1707", display_name="Computer Vision"))])
+        self.workspace.source_records = {self.pid: [dict(source="openalex", url=self.pid,
+            fetched_at="2026-11-13T00:00:00+00:00", payload=payload, digest=fingerprint(payload))]}
+        document = self.export()
+        public = self.workspace.view(self.pid)
+        topic = document["papers"][0]["source_classifications"][0]
+        self.assertEqual(topic["hierarchy"]["subfield"]["name"], "Computer Vision")
+        self.assertEqual(document["papers"][0]["source_classifications"],
+                         public["source_enrichment"]["source_classifications"])
+        self.assertEqual(document["revision"], self.export()["revision"])
+        validate_effective(document)
+        with_hierarchy = project(document)
+        without = deepcopy(document)
+        del without["papers"][0]["source_classifications"][0]["hierarchy"]
+        without["revision"] = fingerprint({k: v for k, v in without.items() if k not in {"revision", "generated_at"}})
+        self.assertEqual(with_hierarchy[1], project(without)[1])
+        self.assertEqual(
+            [{k: v for k, v in n.items() if k != "effective_partition_json"} for n in with_hierarchy[0]],
+            [{k: v for k, v in n.items() if k != "effective_partition_json"} for n in project(without)[0]])
+        stored = next(n["effective_partition_json"] for n in with_hierarchy[0] if n["kind"] == "paper"
+                      and json.loads(n["effective_partition_json"])["input"]["openalex_id"] == self.pid)
+        self.assertIn("hierarchy", json.loads(stored)["source_classifications"][0])
+
+    def test_task_direction_is_exported_and_accepted_by_existing_c_without_extra_graph_nodes(self):
+        from src.graph_query.effective import project, validate_effective
+        self.papers[0].title = "Instance Segmentation"
+        payload = dict(title=self.papers[0].title, authors=["Ada"], published="2024-01-01",
+                       tasks=[dict(name="Instance Segmentation")])
+        # Catalog identity requires an author, so use a separate valid input.
+        self.papers[0].authorships = [{"author": {"display_name": "Ada"}}]
+        self.workspace.source_records = {self.pid: [dict(source="paperswithcode", url="https://example.test/paper",
+            fetched_at="2026-11-13T00:00:00+00:00", payload=payload, digest=fingerprint(payload))]}
+        document = self.export()
+        part = document["papers"][0]
+        direction = part["source_classifications"][0]
+        self.assertEqual(direction["name"], "图像分割")
+        self.assertEqual(direction["mapping_version"], "cv-combined-directions/2")
+        validate_effective(document)
+        nodes, _ = project(document)
+        self.assertFalse(any(n["kind"] == "research_direction" for n in nodes))
+        self.assertEqual(self.workspace.view(self.pid)["source_enrichment"]["source_classifications"],
+                         part["source_classifications"])
+        self.assertFalse(self.store.path.exists())
+
     def test_pending_report_and_withdrawal_do_not_change_effective_revision_or_leak_private_fields(self):
         before = self.export()
         request = self.submit()

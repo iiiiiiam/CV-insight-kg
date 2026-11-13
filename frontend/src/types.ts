@@ -1,4 +1,5 @@
-export type EntityType = 'Paper' | 'Author' | 'Institution' | 'Topic' | 'Method' | 'Task' | 'Dataset' | 'Venue'
+// ResearchDirection is a B-only display node, not a new C storage contract.
+export type EntityType = 'Paper' | 'Author' | 'Institution' | 'Topic' | 'Method' | 'Task' | 'Dataset' | 'Venue' | 'ResearchDirection'
 export interface Filters {
   q: string; topic: string; method: string; year: string; batch_id: string
   author?: string; author_id?: string; institution?: string; task?: string; dataset?: string; venue?: string
@@ -37,9 +38,9 @@ export interface AdminSession {
 export const EMPTY_FILTERS: Filters = { q: '', topic: '', method: '', year: '', batch_id: '' }
 export const TYPE_LABELS: Record<EntityType, string> = {
   Paper: '论文', Author: '作者', Institution: '机构', Topic: '主题', Method: '方法',
-  Task: '任务', Dataset: '数据集', Venue: '会议期刊',
+  Task: '任务', Dataset: '数据集', Venue: '会议期刊', ResearchDirection: '研究子方向',
 }
 export const TYPE_COLORS: Record<EntityType, string> = {
-  Paper: '#287c91', Author: '#9072b0', Institution: '#ac718a', Topic: '#d39b43',
+  Paper: '#287c91', Author: '#9072b0', Institution: '#ac718a', Topic: '#d39b43', ResearchDirection: '#b36a24',
   Method: '#198c79', Task: '#778b45', Dataset: '#5583c2', Venue: '#7f8999',
 }
