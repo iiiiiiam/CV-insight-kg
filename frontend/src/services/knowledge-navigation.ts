@@ -1,5 +1,8 @@
 /** Title search and browser-local reading history for the knowledge page. */
 export interface PaperChoice {paper_id:string;title:string}
+export function filterPaperDirections<T extends PaperChoice & {research_directions:Array<{id:string;name:string}>}>(papers:T[],query:string,direction:string):T[]{
+  return filterPaperTitles(papers,query).filter(p=>!direction||p.research_directions.some(d=>d.id===direction))
+}
 export const LAST_KNOWLEDGE_PAPER='research-insight:knowledge:last-paper:1'
 interface ReadingStorage {getItem(key:string):string|null;setItem(key:string,value:string):void}
 

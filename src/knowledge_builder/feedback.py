@@ -229,6 +229,22 @@ class KnowledgeFeedback:
         return [dict(paper_id=p.openalex_id, title=p.title, year=p.year, venue=p.venue)
                 for p in self.papers.values()]
 
+    def direction_catalog(self):
+        """Same one-level classification as reading; never queries external sources."""
+        from .research_directions import DIRECTIONS, classify_directions
+        options = [dict(id="cv-direction:"+key, name=value[0], count=0)
+                   for key, value in DIRECTIONS.items()]
+        options.append(dict(id="cv-direction:other", name="其他", count=0))
+        counts = {item["id"]: item for item in options}
+        papers = self.list_papers()
+        for item in papers:
+            paper = self.papers[item["paper_id"]]
+            directions = classify_directions(paper, (self.source_records or {}).get(paper.openalex_id, []))
+            item["research_directions"] = [dict(id=d["source_id"], name=d["name"]) for d in directions]
+            for direction in item["research_directions"]:
+                counts[direction["id"]]["count"] += 1
+        return dict(directions=options, papers=papers)
+
     def view(self, paper_id):
         return self._material(paper_id, self.store.read())[0]
 

@@ -70,6 +70,10 @@ def feedback_router(settings):
     def papers():
         return call("list_papers")
 
+    @router.get("/api/knowledge/research-directions")
+    def directions():
+        return call("direction_catalog")
+
     @router.get("/api/knowledge/paper")
     def paper(paper_id: str = Query(min_length=1, max_length=300)):
         return call("view", paper_id)

@@ -122,3 +122,15 @@ class BatchSourceTests(unittest.TestCase):
         view = self.registry.workspace(self.directory/"feedback.json").view(self.paper.openalex_id)
         self.assertIn("NewSet", {item["content"]["name"] for item in view["entities"]})
         self.assertIn("source_enrichment", view)
+
+    def test_direction_catalog_matches_reading_and_counts_papers_once(self):
+        self.registry.ingest(self.batch(1))
+        self.sources.prepare([self.paper], client=self.client())
+        workspace = self.registry.workspace(self.directory/"feedback.json")
+        catalog = workspace.direction_catalog()
+        self.assertEqual(len(catalog["directions"]), 18)
+        expected = [{"id":d["source_id"], "name":d["name"]} for d in
+            workspace.view(self.paper.openalex_id)["source_enrichment"]["source_classifications"]
+            if d["kind"] == "research_direction"]
+        self.assertEqual(catalog["papers"][0]["research_directions"], expected)
+        self.assertEqual(next(d["count"] for d in catalog["directions"] if d["id"]==expected[0]["id"]),1)

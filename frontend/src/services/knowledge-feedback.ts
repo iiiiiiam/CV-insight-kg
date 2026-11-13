@@ -49,6 +49,12 @@ export function getReading(paperId:string,signal?:AbortSignal){
 export function getReadingPapers(signal?:AbortSignal){
   return requestJson<Array<{paper_id:string;title:string;year:number;venue:string}>>('/api/knowledge/papers',{signal})
 }
+export interface DirectionPaper {paper_id:string;title:string;year:number;venue:string;research_directions:Array<{id:string;name:string}>}
+export function getReadingDirections(signal?:AbortSignal){
+  return requestJson<{directions:Array<{id:string;name:string;count:number}>;papers:DirectionPaper[]}>('/api/knowledge/research-directions',{
+    signal:signal??AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),
+  })
+}
 export function sendFeedback(body:{paper_id:string;revision:string;message:string;candidate_id?:string;term?:string;owner_token?:string}){
   return requestJson<{id:string;status:string;duplicate:boolean}>('/api/knowledge/feedback',{
     method:'POST',body:JSON.stringify(body),signal:AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),

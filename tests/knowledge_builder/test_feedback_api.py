@@ -56,6 +56,10 @@ class FeedbackAPITests(unittest.TestCase):
         return {"X-CSRF-Token":result.json()["csrf_token"]}
 
     def test_public_view_report_and_minimal_status_without_admin_history(self):
+        directions = self.client.get("/api/knowledge/research-directions")
+        self.assertEqual(directions.status_code, 200)
+        self.assertEqual(len(directions.json()["directions"]), 18)
+        self.assertEqual(directions.json()["papers"][0]["paper_id"], self.paper.openalex_id)
         self.assertEqual(self.client.get("/api/knowledge/papers").status_code, 200)
         self.assertNotIn("status", str(self.reading()))
         response = self.submit()

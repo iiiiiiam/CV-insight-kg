@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {filterPaperTitles,LAST_KNOWLEDGE_PAPER,readLastPaper,rememberPaper,resolveReadingPaper} from '../src/services/knowledge-navigation.ts'
+import {filterPaperDirections,filterPaperTitles,LAST_KNOWLEDGE_PAPER,readLastPaper,rememberPaper,resolveReadingPaper} from '../src/services/knowledge-navigation.ts'
+
+test('direction and title combine over the complete input without duplicating multi-direction papers',()=>{
+  const rows=[{paper_id:'1',title:'Image Generation',research_directions:[{id:'generation',name:'生成'},{id:'3d',name:'三维'}]},
+    {paper_id:'2',title:'Video Generation',research_directions:[{id:'generation',name:'生成'}]},
+    {paper_id:'3',title:'Other',research_directions:[{id:'other',name:'其他'}]}]
+  assert.deepEqual(filterPaperDirections(rows,'image','generation').map(p=>p.paper_id),['1'])
+  assert.equal(filterPaperDirections(rows,'','generation').length,2)
+  assert.equal(filterPaperDirections(rows,'','').length,3)
+  assert.equal(filterPaperDirections(rows,'','unknown').length,0)
+  assert.equal(filterPaperDirections(rows,'','other')[0]?.paper_id,'3')
+})
 
 const papers=[{paper_id:'W1',title:'DETR for Object Detection'},{paper_id:'W2',title:'Stable Diffusion for Panorama Generation'},{paper_id:'W3',title:'Video Diffusion Models'}]
 
