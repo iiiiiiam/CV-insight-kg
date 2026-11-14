@@ -12,8 +12,9 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
+from server.api.schemas import FormalWithdrawalRequest
 from server.api.schemas import (ImportRequest, LoginRequest, KnowledgeReviewRequest,
-                                GraphImportRequest, GraphPublishRequest, OnlineJobRequest, FileImportRequest, SourceUpdateRequest, ReserveImportRequest, FormalWithdrawalRequest)
+                                GraphImportRequest, GraphPublishRequest, OnlineJobRequest, FileImportRequest, SourceUpdateRequest, ReserveImportRequest)
 from server.application.a_gateway import AServiceClient, AServiceUnavailable
 from server.application.c_gateway import CServiceClient
 from server.application.graph_policy import GraphBoundaryError, require_reviewed_batch
