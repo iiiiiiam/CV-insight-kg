@@ -1,0 +1,61 @@
+{
+  "checked_at_utc": "2026-11-14T15:09:25.298031+00:00",
+  "b_branch": "knowledge-topics",
+  "b_commit": "c7f898974f7db1dcf1ecb7497bb6cf415f116e2e",
+  "actual_http_receiver": true,
+  "input_sha256": {
+    "01-first-batch.json": "274b5bfea8eb6fb5308642a1fc3d63f51514bd36205735925c07d98c2e841e6f",
+    "02-second-batch.json": "e88b5db7ee1ace871bb8eade4e5f647532029d3964444d227f0db00a3a455034"
+  },
+  "counts": [
+    20,
+    30,
+    20
+  ],
+  "overlap": 10,
+  "second_only": 10,
+  "first_receipt": {
+    "status": "accepted",
+    "batch_code": "BATCH-000001",
+    "accepted": 20,
+    "new": 20,
+    "updated": 0,
+    "duplicates": 0,
+    "failed": 0,
+    "not_applied": 0,
+    "upstream_excluded": 0,
+    "snapshot_revision": "a848a290910965a74055664db29bfd5a473fba3e64974464e6be44cb236e0fdc"
+  },
+  "second_receipt": {
+    "status": "accepted",
+    "batch_code": "BATCH-000002",
+    "accepted": 20,
+    "new": 10,
+    "updated": 3,
+    "duplicates": 7,
+    "failed": 0,
+    "not_applied": 0,
+    "upstream_excluded": 0,
+    "snapshot_revision": "1e20ca04b9939e59bb4ec41a37059257fb2b55ebde1bc00494cea8ac4c251485"
+  },
+  "withdrawal_receipt": {
+    "status": "withdrawn",
+    "batch_code": "BATCH-000002",
+    "removed": 10,
+    "retained": 10,
+    "restored": 3,
+    "snapshot_revision": "a848a290910965a74055664db29bfd5a473fba3e64974464e6be44cb236e0fdc"
+  },
+  "same_batch_replay": "unchanged",
+  "repeated_withdrawal": "unchanged",
+  "stable_ids_and_first_input_restored": true,
+  "effective_export_counts": [
+    20,
+    30,
+    20
+  ],
+  "effective_revision_changed": true,
+  "source_enrichment": "offline",
+  "c_d_publication": "not invoked",
+  "b_personal_environment_confirmation": "pending"
+}

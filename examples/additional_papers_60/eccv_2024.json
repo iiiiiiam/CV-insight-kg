@@ -1,0 +1,906 @@
+[
+  {
+    "openalex_id": "https://openalex.org/W4403943254",
+    "title": "Relation DETR: Exploring Explicit Position Relation Prior for Object Detection",
+    "abstract": "\"This paper presents a general scheme for enhancing the convergence and performance of DETR (DEtection TRansformer). We investigate the slow convergence problem in transformers from a new perspective, suggesting that it arises from the self-attention that introduces no structural bias over inputs. To address this issue, we explore incorporating position relation prior as attention bias to augment object detection, following the verification of its statistical significance using a proposed quantitative macroscopic correlation (MC) metric. Our approach, termed Relation-DETR, introduces an encoder to construct position relation embeddings for progressive attention refinement, which further extends the traditional streaming pipeline of DETR into a contrastive relation pipeline to address the conflicts between non-duplicate predictions and positive supervision. Extensive experiments on both generic and task-specific datasets demonstrate the effectiveness of our approach. Under the same configurations, Relation-DETR achieves a significant improvement (+2.0% AP compared to DINO), state-of-the-art performance (51.7% AP for 1× and 52.1% AP for 2× settings), and a remarkably faster convergence speed (over 40% AP with only 2 training epochs) than existing DETR detectors on COCO val2017. Moreover, the proposed relation encoder serves as a universal plug-in-and-play component, bringing clear improvements for theoretically any DETR-like methods. Furthermore, we introduce a class-agnostic detection dataset, SA-Det-100k. The experimental results on the dataset illustrate that the proposed explicit position relation achieves a clear improvement of 1.3% AP, highlighting its potential towards universal object detection. The code and dataset are available at https://github.com/xiuqhou/Relation-DETR.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Xiuquan Hou"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Meiqin Liu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Senlin Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Ping Wei"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Badong Chen"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xuguang Lan"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6646_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403889064",
+    "title": "\"Category-level Object Detection, Pose Estimation and Reconstruction from Stereo Images\"",
+    "abstract": "\"We study the 3D object understanding task for manipulating everyday objects with different material properties (diffuse, specular, transparent and mixed). Existing monocular and RGB-D methods suffer from scale ambiguity due to missing or imprecise depth measurements. We present CODERS, a one-stage approach for Category-level Object Detection, pose Estimation and Reconstruction from Stereo images. The base of our pipeline is an Implicit Stereo Matching module that combines stereo image features with 3D position information. Concatenating this presented module and the following transform-decoder architecture leads to end-to-end learning of multiple tasks required by robot manipulation. Our approach significantly outperforms all competing methods in the public TOD dataset. Furthermore, trained on simulated data, CODERS generalize well to unseen category-level object instances in real-world robot manipulation experiments. Our dataset, code, and demos will be available at https://xingyoujun.github.io/coders.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Chuanrui Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Yonggen Ling"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Minglei Lu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Minghan Qin"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Haoqian Wang"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/5039_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403943467",
+    "title": "Towards Stable 3D Object Detection",
+    "abstract": "\"In autonomous driving, the temporal stability of 3D object detection greatly impacts the driving safety. However, the detection stability cannot be accessed by existing metrics such as mAP and MOTA, and consequently is less explored by the community. To bridge this gap, this work proposes (), a new metric that can comprehensively evaluate the stability of 3D detectors in terms of confidence, box localization, extent, and heading. By benchmarking state-of-the-art object detectors on the Waymo Open Dataset, reveals interesting properties of object stability that have not been previously discovered by other metrics. To help models improve their stability, we further introduce a general and effective training strategy, called Prediction Consistency Learning (PCL). PCL essentially encourages the prediction consistency of the same objects under different timestamps and augmentations, leading to enhanced detection stability. Furthermore, we examine the effectiveness of PCL with the widely-used CenterPoint, and achieve a remarkable of 86.00 for vehicle class, surpassing the baseline by 5.48. We hope our work could serve as a reliable baseline and draw the community’s attention to this crucial issue in 3D object detection.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Jiabao Wang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Qiang Meng"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Guochao Liu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Liujiang Yan"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Ke Wang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Ming-Ming Cheng"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Qibin Hou"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6670_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404612908",
+    "title": "Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set Object Detection",
+    "abstract": "\"In this paper, we develop an open-set object detector, called Grounding DINO, by marrying Transformer-based detector DINO with grounded pre-training, which can detect arbitrary objects with human inputs such as category names or referring expressions. The key solution of open-set object detection is introducing language to a closed-set detector for open-set concept generalization. To effectively fuse language and vision modalities, we conceptually divide a closed-set detector into three phases and propose a tight fusion solution, which includes a feature enhancer, a language-guided query selection, and a cross-modality decoder for modalities fusion. We first pre-train Grounding DINO on large-scale datasets, including object detection data, grounding data, and caption data, and evaluate the model on both open-set object detection and referring object detection benchmarks. Grounding DINO performs remarkably well on all three settings, including benchmarks on COCO, LVIS, ODinW, and RefCOCO/+/g. Grounding DINO achieves a 52.5 AP on the COCO zero-shot1 detection benchmark. It sets a new record on the ODinW zero-shot benchmark with a mean 26.1 AP. We release some checkpoints and inference codes at https://github.com/ IDEA-Research/GroundingDINO. 1 In this paper, ‘zero-shot’ refers to scenarios where the training split of the test dataset is not utilized in the training process.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Shilong Liu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Zhaoyang Zeng"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Tianhe Ren"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Feng Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Hao Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jie Yang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Qing Jiang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Chunyuan Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jianwei Yang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Hang Su"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jun Zhu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Lei Zhang"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6319_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403878234",
+    "title": "Look Around and Learn: Self-Training Object Detection by Exploration",
+    "abstract": "\"When an object detector is deployed in a novel setting it often experiences a drop in performance. This paper studies how an embodied agent can automatically fine-tune a pre-existing object detector while exploring and acquiring images in a new environment without relying on human intervention, i.e., a fully self-supervised approach. In our setting, an agent initially learns to explore the environment using a pre-trained off-the-shelf detector to locate objects and associate pseudo-labels. By assuming that pseudo-labels for the same object must be consistent across different views, we learn the exploration policy “Look Around” to mine hard samples, and we devise a novel mechanism called “Disagreement Reconciliation” for producing refined pseudo-labels from the consensus among observations. We implement a unified benchmark of the current state-of-the-art and compare our approach with pre-existing exploration policies and perception mechanisms. Our method is shown to outperform existing approaches, improving the object detector by 6.2% in a simulated scenario, a 3.59% advancement over other state-of-the-art methods, and by 9.97% in the real robotic test without relying on ground-truth. Code for the proposed approach and baselines are available at https:// iit-pavis.github.io/Look_Around_And_Learn/.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Gianluca Scarpellini"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Stefano Rosa"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Pietro Morerio"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Lorenzo Natale"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Alessio Del Bue"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7259_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403908247",
+    "title": "Weak-to-Strong Compositional Learning from Generative Models for Language-based Object Detection",
+    "abstract": "\"Vision-language (VL) models often exhibit a limited understanding of complex expressions of visual objects (, attributes, shapes, and their relations), given complex and diverse language queries. Traditional approaches attempt to improve VL models using hard negative synthetic text, but their effectiveness is limited. In this paper, we harness the exceptional compositional understanding capabilities of generative foundational models. We introduce a novel method for structured synthetic data generation aimed at enhancing the compositional understanding of VL models in language-based object detection. Our framework generates densely paired positive and negative triplets (image, text descriptions, and bounding boxes) in both image and text domains. By leveraging these synthetic triplets, we transform ‘weaker’ VL models into ‘stronger’ models in terms of compositional understanding, a process we call “Weak-to-Strong Compositional Learning” (WSCL). To achieve this, we propose a new compositional contrastive learning formulation that discovers semantics and structures in complex descriptions from synthetic triplets. As a result, VL models trained with our synthetic data generation exhibit a significant performance boost in the Omnilabel benchmark by up to +5AP and the D3 benchmark by +6.9AP upon existing baselines.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Kwanyong Park"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Kuniaki Saito"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Donghyun Kim"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/3307_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403947141",
+    "title": "Approaching Outside: Scaling Unsupervised 3D Object Detection from 2D Scene",
+    "abstract": "\"The unsupervised 3D object detection is to accurately detect objects in unstructured environments with no explicit supervisory signals. This task, given sparse LiDAR point clouds, often results in compromised performance for detecting distant or small objects due to the inherent sparsity and limited spatial resolution. In this paper, we are among the early attempts to integrate LiDAR data with 2D images for unsupervised 3D detection and introduce a new method, dubbed LiDAR-2D Self-paced Learning (LiSe). We argue that RGB images serve as a valuable complement to LiDAR data, offering precise 2D localization cues, particularly when scarce LiDAR points are available for certain objects. Considering the unique characteristics of both modalities, our framework devises a self-paced learning pipeline that incorporates adaptive sampling and weak model aggregation strategies. The adaptive sampling strategy dynamically tunes the distribution of pseudo labels during training, countering the tendency of models to overfit easily detected samples, such as nearby and large-sized objects. By doing so, it ensures a balanced learning trajectory across varying object scales and distances. The weak model aggregation component consolidates the strengths of models trained under different pseudo label distributions, culminating in a robust and powerful final model. Experimental evaluations validate the efficacy of our proposed LiSe method, manifesting significant improvements of +7.1% APBEV and +3.4% AP3D on nuScenes, and +8.3% APBEV and +7.4% AP3D on Lyft compared to existing techniques.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Ruiyang Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Hu Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Hang Yu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Zhedong Zheng"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/1751_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404582597",
+    "title": "MarvelOVD: Marrying Object Recognition and Vision-Language Models for Robust Open-Vocabulary Object Detection",
+    "abstract": "\"Learning from pseudo-labels that generated with VLMs (Vision Language Models) has been shown as a promising solution to assist open vocabulary detection (OVD) in recent studies. However, due to the domain gap between VLM and vision-detection tasks, pseudo-labels produced by the VLMs are prone to be noisy, while the training design of the detector further amplifies the bias. In this work, we investigate the root cause of VLMs’ biased prediction under the OVD context. Our observations lead to a simple yet effective paradigm, coded , that generates significantly better training targets and optimizes the learning procedure in an online manner by marrying the capability of the detector with the vision-language model. Our key insight is that the detector itself can act as a strong auxiliary guidance to accommodate VLM’s inability of understanding both the “background” and the context of a proposal within the image. Based on it, we greatly purify the noisy pseudo-labels via Online Mining and propose Adaptive Reweighting to effectively suppress the biased training boxes that are not well aligned with the target object. In addition, we also identify a neglected “base-novel-conflict” problem and introduce stratified label assignments to prevent it. Extensive experiments on COCO and LVIS datasets demonstrate that our method outperforms the other state-of-the-arts by significant margins. Codes are available at https://github.com/wkfdb/ MarvelOVD.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Kuo Wang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Lechao Cheng"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Weikai Chen"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Pingping Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Liang Lin"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Fan Zhou"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Guanbin Li"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/2551_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404002755",
+    "title": "Multi-scale Cross Distillation for Object Detection in Aerial Images",
+    "abstract": "\"Object detection in aerial images is a longstanding yet challenging task. Despite the significant advancements in recent years, most works still show unsatisfactory performance due to the scale variation of objects. A standard strategy to address this problem is multi-scale training, aiming to learn scale-invariant feature representations. Albeit achieving inspiring improvements, such a multi-scale strategy is impractical for real application as inference time increases considerably. Besides, the original images are resized to different scales and subsequently trained separately, lacking information interaction across different scales. This paper presents a novel method called multi-scale cross distillation (MSCD) to address the issues mentioned above. MSCD combines the merits of multi-scale training and knowledge distillation, enabling single-scale inference to achieve comparable or superior performance than multi-scale inference. Specifically, we first construct a parallel multi-branch architecture, in which each branch shares the same parameters yet takes images with different scales as input. Furthermore, we design an adaptive cross-scale distillation module that adaptively integrates the knowledge of different branches into one. Thus, the detectors trained with MSCD only require single-scale inference. Extensive experiments demonstrate the effectiveness of MSCD. Without bells and whistles, MSCD can facilitate prevalent two-stage detectors to outperform corresponding single-scale models by ∼5 and ∼7 mAP improvement on DOTA and DIOR-R datasets, respectively.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Kun Wang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Zi Wang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Zhang Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xichao Teng"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Yang Li"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6619_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403726563",
+    "title": "T-Rex2: Towards Generic Object Detection via Text-Visual Prompt Synergy",
+    "abstract": "\"We present , a highly practical model for open-set object detection. Previous open-set object detection methods relying on text prompts effectively encapsulate the abstract concept of common objects, but struggle with rare or complex object representation due to data scarcity and descriptive limitations. Conversely, visual prompts excel in depicting novel objects through concrete visual examples, but fall short in conveying the abstract concept of objects as effectively as text prompts. Recognizing the complementary strengths and weaknesses of both text and visual prompts, we introduce that synergizes both prompts within a single model through contrastive learning. accepts inputs in diverse formats, including text prompts, visual prompts, and the combination of both, so that it can handle different scenarios by switching between the two prompt modalities. Comprehensive experiments demonstrate that exhibits remarkable zero-shot object detection capabilities across a wide spectrum of scenarios. We show that text prompts and visual prompts can benefit from each other within the synergy, which is essential to cover massive and complicated real-world scenarios and pave the way towards generic object detection. API code is available at https://github.com/IDEA-Research/T-Rex.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Qing Jiang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Feng Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Zhaoyang Zeng"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Shilong Liu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Tianhe Ren"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Lei Zhang"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/4804_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403889749",
+    "title": "Diff3DETR: Agent-based Diffusion Model for Semi-supervised 3D Object Detection",
+    "abstract": "\"3D object detection is essential for understanding 3D scenes. Contemporary techniques often require extensive annotated training data, yet obtaining point-wise annotations for point clouds is time-consuming and laborious. Recent developments in semi-supervised methods seek to mitigate this problem by employing a teacher-student framework to generate pseudo-labels for unlabeled point clouds. However, these pseudo-labels frequently suffer from insufficient diversity and inferior quality. To overcome these hurdles, we introduce an Agent-based Diffusion Model for Semi-supervised 3D Object Detection (Diff3DETR). Specifically, an agent-based object query generator is designed to produce object queries that effectively adapt to dynamic scenes while striking a balance between sampling locations and content embedding. Additionally, a box-aware denoising module utilizes the DDIM denoising process and the long-range attention in the transformer decoder to refine bounding boxes incrementally. Extensive experiments on ScanNet and SUN RGB-D datasets demonstrate that Diff3DETR outperforms state-of-the-art semi-supervised 3D object detection methods.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Jiacheng Deng"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jiahao Lu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Tianzhu Zhang"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/4960_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403081532",
+    "title": "Frequency-Spatial Entanglement Learning for Camouflaged Object Detection",
+    "abstract": "\"Camouflaged object detection has attracted a lot of attention in computer vision. The main challenge lies in the high degree of similarity between camouflaged objects and their surroundings in the spatial domain, making identification difficult. Existing methods attempt to reduce the impact of pixel similarity by maximizing the distinguishing ability of spatial features with complicated design, but often ignore the sensitivity and locality of features in the spatial domain, leading to sub-optimal results. In this paper, we propose a new approach to address this issue by jointly exploring the representation in the frequency and spatial domains, introducing the Frequency-Spatial Entanglement Learning (FSEL) method. This method consists of a series of well-designed Entanglement Transformer Blocks (ETB) for representation learning, a Joint Domain Perception Module for semantic enhancement, and a Dual-domain Reverse Parser for feature integration in the frequency and spatial domains. Specifically, the ETB utilizes frequency self-attention to effectively characterize the relationship between different frequency bands, while the entanglement feed-forward network facilitates information interaction between features of different domains through entanglement learning. Our extensive experiments demonstrate the superiority of our FSEL over 21 state-of-the-art methods, through comprehensive quantitative and qualitative comparisons in three widely-used datasets. The source code is available at: bluehttps://github.com/CSYSI/FSEL.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Yanguang Sun"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Chunyan Xu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jian Yang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Hanyu Xuan"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Lei Luo"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/1001_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404879642",
+    "title": "FocusDiffuser: Perceiving Local Disparities for Camouflaged Object Detection",
+    "abstract": "\"Detecting objects seamlessly blended into their surroundings represents a complex task for both human cognitive capabilities and advanced artificial intelligence algorithms. Currently, the majority of methodologies for detecting camouflaged objects mainly focus on utilizing discriminative models with various unique designs. However, it has been observed that generative models, such as Stable Diffusion, possess stronger capabilities for understanding various objects in complex environments; Yet their potential for the cognition and detection of camouflaged objects has not been extensively explored. In this study, we present a novel denoising diffusion model, namely FocusDiffuser, to investigate how generative models can enhance the detection and interpretation of camouflaged objects. We believe that the secret to spotting camouflaged objects lies in catching the subtle nuances in details. Consequently, our FocusDiffuser innovatively integrates specialized enhancements, notably the Boundary-Driven LookUp (BDLU) module and Cyclic Positioning (CP) module, to elevate standard diffusion models, significantly boosting the detail-oriented analytical capabilities. Our experiments demonstrate that FocusDiffuser, from a generative perspective, effectively addresses the challenge of camouflaged object detection, surpassing leading models on benchmarks like CAMO, COD10K and NC4K. Code and pre-trained models are available at https://github.com/JWZhao-uestc/FocusDiffuser.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Jianwei Zhao"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xin Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Fan Yang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Qiang Zhai"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Ao Luo"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Zhicheng Jiao"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Hong Cheng"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6966_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404124946",
+    "title": "DeTra: A Unified Model for Object Detection and Trajectory Forecasting",
+    "abstract": "\"The tasks of object detection and trajectory forecasting play a crucial role in understanding the scene for autonomous driving. These tasks are typically executed in a cascading manner, making them prone to compounding errors. Furthermore, there is usually a very thin interface between the two tasks, creating a lossy information bottleneck. To address these challenges, our approach formulates the union of the two tasks as a trajectory refinement problem, where the first pose is the detection (current time), and the subsequent poses are the waypoints of the multiple forecasts (future time). To tackle this unified task, we design a refinement transformer that infers the presence, pose, and multi-modal future behaviors of objects directly from LiDAR point clouds and high-definition maps. We call this model , short for object Detection and Trajectory forecasting. In our experiments, we observe that outperforms the state-of-the-art on Argoverse 2 Sensor and Waymo Open Dataset by a large margin, across a broad range of metrics. Finally, we perform extensive ablation studies that show the value of refinement for this task and that key design choices were made.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Sergio Casas"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Ben T Agro"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jiageng Mao"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Thomas Gilles"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "ALEXANDER Y CUI"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Enxu Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Raquel Urtasun"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/12207_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403888715",
+    "title": "Embracing Events and Frames with Hierarchical Feature Refinement Network for Object Detection",
+    "abstract": "\"In frame-based vision, object detection faces substantial performance degradation under challenging conditions due to the limited sensing capability of conventional cameras. Event cameras output sparse and asynchronous events, providing a potential solution to solve these problems. However, effectively fusing two heterogeneous modalities remains an open issue. In this work, we propose a novel hierarchical feature refinement network for event-frame fusion. The core concept is the design of the coarse-to-fine fusion module, denoted as the cross-modality adaptive feature refinement (CAFR) module. In the initial phase, the bidirectional cross-modality interaction (BCI) part facilitates information bridging from two distinct sources. Subsequently, the features are further refined by aligning the channel-level mean and variance in the two-fold adaptive feature refinement (TAFR) part. We conducted extensive experiments on two benchmarks: the low-resolution PKU-DDD17-Car dataset and the high-resolution DSEC dataset. Experimental results show that our method surpasses the state-of-the-art by an impressive margin of 8.0% on the DSEC dataset. Besides, our method exhibits significantly better robustness (69.5% versus 38.7%) when introducing 15 different corruption types to the frame images. The code can be found at the link (https://github.com/HuCaoFighting/FRN).\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Hu Cao"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Zehua Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Yan Xia"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xinyi Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jiahao Xia"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Guang Chen"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Alois C. Knoll"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/11201_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404582914",
+    "title": "Interactive 3D Object Detection with Prompts",
+    "abstract": "\"The evolution of 3D object detection hinges not only on advanced models but also on effective and efficient annotation strategies. Despite this progress, the labor-intensive nature of 3D object annotation remains a bottleneck, hindering further development in the field. This paper introduces a novel approach, incorporated with “prompt in 2D, detect in 3D” and “detect in 3D, refine in 3D” strategies, to 3D object annotation: multi-modal interactive 3D object detection. Firstly, by allowing users to engage with simpler 2D interaction prompts (e.g., clicks or boxes on a camera image or a bird’s eye view), we bridge the complexity gap between 2D and 3D spaces, reimagining the annotation workflow. Besides, Our framework also supports flexible iterative refinement to the initial 3D annotations, further assisting annotators in achieving satisfying results. Evaluation on the nuScenes dataset demonstrates the effectiveness of our method. And thanks to the prompt-driven and interactive designs, our approach also exhibits outstanding performance in open-set scenarios. This work not only offers a potential solution to the 3D object annotation problem but also paves the way for further innovations in the 3D object detection community.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Ruifei Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xiangru Lin"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Wei Zhang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jincheng Lu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xuekuan Wang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xiao Tan"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Yingying Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Errui Ding"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jingdong Wang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Guanbin Li"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/2556_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404545547",
+    "title": "Bayesian Detector Combination for Object Detection with Crowdsourced Annotations",
+    "abstract": "\"Acquiring fine-grained object detection annotations in unconstrained images is time-consuming, expensive, and prone to noise, especially in crowdsourcing scenarios. Most prior object detection methods assume accurate annotations; A few recent works have studied object detection with noisy crowdsourced annotations, with evaluation on distinct synthetic crowdsourced datasets of varying setups under artificial assumptions. To address these algorithmic limitations and evaluation inconsistency, we first propose a novel Bayesian Detector Combination (BDC) framework to more effectively train object detectors with noisy crowdsourced annotations, with the unique ability of automatically inferring the annotators’ label qualities. Unlike previous approaches, BDC is model-agnostic, requires no prior knowledge of the annotators’ skill level, and seamlessly integrates with existing object detection models. Due to the scarcity of real-world crowdsourced datasets, we introduce large synthetic datasets by simulating varying crowdsourcing scenarios. This allows consistent evaluation of different models at scale. Extensive experiments on both real and synthetic crowdsourced datasets show that BDC outperforms existing state-of-the-art methods, demonstrating its superiority in leveraging crowdsourced data for object detection. Our code and data are available at: https://github.com/zhiqin1998/bdc.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Zhi Qin Tan"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Olga Isupova"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Gustavo Carneiro"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xiatian Zhu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Yunpeng Li"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/8038_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404719253",
+    "title": "CLIFF: Continual Latent Diffusion for Open-Vocabulary Object Detection",
+    "abstract": "\"Open-vocabulary object detection (OVD) utilizes image-level cues to expand the linguistic space of region proposals, thereby facilitating the detection of diverse novel classes. Recent works adapt CLIP embedding by minimizing the object-image and object-text discrepancy combinatorially in a discriminative paradigm. However, they ignore the underlying distribution and the disagreement between the image and text objective, leading to the misaligned distribution between the vision and language sub-space. To address the deficiency, we explore the advanced generative paradigm with distribution perception and propose a novel framework based on the diffusion model, coined Continual Latent Diffusion (CLIFF), which formulates a continual distribution transfer among the object, image, and text latent space probabilistically. CLIFF consists of a Variational Latent Sampler (VLS) enabling the probabilistic modeling and a Continual Diffusion Module (CDM) for the distribution transfer. Specifically, in VLS, we first establish a probabilistic object space with region proposals by estimating distribution parameters. Then, the object-centric noise is sampled from the estimated distribution to generate text embedding for OVD. To achieve this generation process, CDM conducts a short-distance object-to-image diffusion from the sampled noise to generate image embedding as the medium, which guides the long-distance diffusion to generate text embedding. Extensive experiments verify that CLIFF can significantly surpass state-of-the-art methods on benchmarks. The code is available at https://github.com/CUHK-AIM-Group/CLIFF.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Wuyang Li"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Xinyu Liu"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Jiayi Ma"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Yixuan Yuan"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7221_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402951669",
+    "title": "Weakly Supervised 3D Object Detection via Multi-Level Visual Guidance",
+    "abstract": "\"Weakly supervised 3D object detection aims to learn a 3D detector with lower annotation cost, e.g., 2D labels. Unlike prior work which still relies on few accurate 3D annotations, we propose a framework to study how to leverage constraints between 2D and 3D domains without requiring any 3D labels. Specifically, we employ visual data from three perspectives to establish connections between 2D and 3D domains. First, we design a feature-level constraint to align LiDAR and image features based on object-aware regions. Second, the output-level constraint is developed to enforce the overlap between 2D and projected 3D box estimations. Finally, the training-level constraint is utilized by producing accurate and consistent 3D pseudo-labels that align with the visual data. We conduct extensive experiments on the KITTI dataset to validate the effectiveness of the proposed three constraints. Without using any 3D labels, our method achieves favorable performance against state-of-the-art approaches and is competitive with the method that uses 500-frame 3D annotations. Code and models will be made publicly available.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Kuan-Chih Huang"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Yi-Hsuan Tsai"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Ming-Hsuan Yang"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/55_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403705821",
+    "title": "Revisiting Domain-Adaptive Object Detection in Adverse Weather by the Generation and Composition of High-Quality Pseudo-Labels",
+    "abstract": "\"Due to data collection challenges, the mean-teacher learning paradigm has emerged as a critical approach for cross-domain object detection, especially in adverse weather conditions. Despite significant progress, existing methods are still plagued by low-quality pseudo-labels in degraded images. This paper proposes a generation-composition paradigm training framework that includes the tiny-object-friendly loss, i.e., IAoU loss with a joint-filtering and student-aware strategy to improve pseudo-labels generation quality and refine the filtering scheme. Specifically, in the generation phase of pseudo-labels, we observe that bounding box regression is essential for feature alignment and develop the IAoU loss to enhance the precision of bounding box regression, further facilitating subsequent feature alignment. We also find that selecting bounding boxes based solely on classification confidence performs poorly in cross-domain noisy image scenes. Moreover, relying exclusively on predictions from the teacher model could cause the student model to collapse. Accordingly, in the composition phase, we introduce the mean-teacher model with a joint-filtering and student-aware strategy combining classification and regression thresholds from both the student and the teacher models. Our extensive experiments, conducted on synthetic and real-world adverse weather datasets, clearly demonstrate that the proposed method surpasses state-of-the-art benchmarks across all scenarios, particularly achieving a 12.4% improvement of mAP, i.e., Cityscapes to RTTS. Our code will be available at https://github.com/iu110/GCHQ/.\"",
+    "year": 2024,
+    "venue": "ECCV",
+    "authorships": [
+      {
+        "author": {
+          "display_name": "Rui Zhao"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Huibin Yan"
+        },
+        "institutions": []
+      },
+      {
+        "author": {
+          "display_name": "Shuoyao Wang"
+        },
+        "institutions": []
+      }
+    ],
+    "source_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/5312_ECCV_2024_paper.php",
+    "dataset_id": "additional-eccv2024-detection-20-v1"
+  }
+]

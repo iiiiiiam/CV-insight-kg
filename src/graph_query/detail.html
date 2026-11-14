@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>CV Insight · 论文详情</title>
+  <style>
+    :root {
+      font: 16px/1.6 system-ui;
+      color: #182b3b;
+      background: #f2f5f8;
+    }
+    body {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 {
+      font-size: 28px;
+      line-height: 1.35;
+    }
+    h2 {
+      font-size: 19px;
+    }
+    small,
+    .muted {
+      color: #62778a;
+    }
+    .card {
+      background: white;
+      border: 1px solid #dce4ec;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 18px 0;
+    }
+    form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    input,
+    select,
+    button {
+      font: inherit;
+      padding: 9px 12px;
+      border: 1px solid #cbd6e0;
+      border-radius: 8px;
+    }
+    button {
+      background: #166f80;
+      color: white;
+      cursor: pointer;
+    }
+    input {
+      flex: 1;
+      min-width: 100px;
+    }
+    a {
+      color: #166f80;
+      overflow-wrap: anywhere;
+    }
+    li {
+      margin: 12px 0;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    blockquote {
+      margin: 12px 0;
+      padding: 12px 16px;
+      background: #f5f8fa;
+      border-left: 3px solid #4a96a1;
+    }
+    #status {
+      padding: 12px;
+      color: #735310;
+    }
+    .tag {
+      display: inline-block;
+      border-radius: 16px;
+      padding: 3px 10px;
+      background: #e9f4f3;
+      margin: 4px;
+      font-size: 13px;
+    }
+    .meta {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    details {
+      margin: 14px 0;
+    }
+    svg {
+      width: 100%;
+      height: 400px;
+      background: #f8fafc;
+      border-radius: 12px;
+    }
+    svg text {
+      font-size: 18px;
+    }
+    svg g {
+      cursor: pointer;
+    }
+    #graphInfo {
+      font-size: 13px;
+      color: #62778a;
+    }
+  </style>
+  <header>
+    <b>CV INSIGHT / 文献调研</b><small>第一周 · C 详情与图谱组件</small>
+  </header>
+  <h1>从论文到可追溯的关联</h1>
+  <p class="muted">仅查询已发布数据。列表、详情与图谱固定使用同一批次。</p>
+  <section class="card">
+    <form id="search">
+      <input id="q" placeholder="论文标题" aria-label="论文标题" /><input
+        id="topic"
+        placeholder="主题名称或 ID"
+        aria-label="主题"
+      /><input
+        id="method"
+        placeholder="方法名称或 ID"
+        aria-label="方法"
+      /><input
+        id="year"
+        type="number"
+        placeholder="年份"
+        aria-label="年份"
+      /><button>检索</button><button type="button" id="reset">清除</button>
+    </form>
+    <p id="scope" class="muted"></p>
+    <ul id="list"></ul>
+  </section>
+  <p id="status" role="status" aria-live="polite"></p>
+  <main id="detail"></main>
+  <section class="card" id="graphCard" hidden>
+    <h2>关联图谱</h2>
+    <label
+      >范围
+      <select id="hops">
+        <option value="1">1 跳</option>
+        <option value="2">2 跳</option>
+      </select></label
+    >
+    <button id="expand">刷新图谱</button>
+    <p id="graphInfo"></p>
+    <svg
+      id="graph"
+      viewBox="0 0 1000 400"
+      role="img"
+      aria-label="可点击节点的关联图谱"
+    ></svg>
+  </section>
+  <script type="module">
+    import { mountPaperDetail } from "/assets/c-paper-detail.js";
+    function el(tag, text, cls) {
+      const n = document.createElement(tag);
+      if (text !== undefined) n.textContent = text;
+      if (cls) n.className = cls;
+      return n;
+    }
+    let batch = null,
+      seed = null,
+      selected = null,
+      controller;
+    const $ = (s) => document.querySelector(s),
+      status = (text) => ($("#status").textContent = text);
+    const filters = () =>
+      Object.fromEntries(
+        ["q", "topic", "method", "year"]
+          .map((k) => [k, $("#" + k).value])
+          .filter((x) => x[1]),
+      );
+    async function api(path, params = {}, signal) {
+      const r = await fetch(
+        "/api/research/" + path + "?" + new URLSearchParams(params),
+        { signal },
+      );
+      const d = await r.json();
+      if (!r.ok) throw Error(d.error?.message || "请求失败");
+      return d;
+    }
+    async function detail(id) {
+      selected = id;
+      status("正在读取详情…");
+      try {
+        const d = await api("entities/" + encodeURIComponent(id), {
+          batch_id: batch,
+        });
+        mountPaperDetail($("#detail"), d, detail);
+        seed = id;
+        $("#graphCard").hidden = false;
+        await graph();
+        status("");
+      } catch (e) {
+        status(e.message);
+      }
+    }
+    async function graph() {
+      if (!seed) return;
+      const d = await api("graph", {
+        ...filters(),
+        seed,
+        hops: $("#hops").value,
+        batch_id: batch,
+        limit: 80,
+      });
+      $("#graphInfo").textContent =
+        `批次 ${d.batch_id} · ${d.nodes.length} 节点 / ${d.edges.length} 关系${d.truncated ? " · 结果已截断" : ""} · 点击节点查看详情`;
+      const svg = $("#graph");
+      svg.replaceChildren();
+      const ns = "http://www.w3.org/2000/svg";
+      const positions = new Map();
+      d.nodes.forEach((n, i) =>
+        positions.set(
+          n.id,
+          i === 0
+            ? [500, 200]
+            : [
+                500 +
+                  390 *
+                    Math.cos(
+                      ((i - 1) * 2 * Math.PI) / Math.max(1, d.nodes.length - 1),
+                    ),
+                200 +
+                  150 *
+                    Math.sin(
+                      ((i - 1) * 2 * Math.PI) / Math.max(1, d.nodes.length - 1),
+                    ),
+              ],
+        ),
+      );
+      for (const e of d.edges) {
+        const [x1, y1] = positions.get(e.source),
+          [x2, y2] = positions.get(e.target);
+        const l = document.createElementNS(ns, "line");
+        for (const [k, v] of Object.entries({
+          x1,
+          y1,
+          x2,
+          y2,
+          stroke: "#c6d6df",
+        }))
+          l.setAttribute(k, v);
+        svg.append(l);
+      }
+      for (const n of d.nodes) {
+        const [x, y] = positions.get(n.id);
+        const g = document.createElementNS(ns, "g");
+        g.setAttribute("tabindex", "0");
+        g.setAttribute("role", "button");
+        g.setAttribute("aria-label", n.name);
+        const c = document.createElementNS(ns, "circle");
+        for (const [k, v] of Object.entries({
+          cx: x,
+          cy: y,
+          r: n.id === selected ? 13 : 7,
+          fill: n.id === selected ? "#e4a34c" : "#398493",
+        }))
+          c.setAttribute(k, v);
+        const t = document.createElementNS(ns, "text");
+        t.setAttribute("x", x + (x > 500 ? -12 : 12));
+        t.setAttribute("text-anchor", x > 500 ? "end" : "start");
+        t.setAttribute("y", y + 4);
+        t.textContent = n.name.length > 23 ? n.name.slice(0, 23) + "…" : n.name;
+        const title = document.createElementNS(ns, "title");
+        title.textContent = n.name;
+        g.append(c, t, title);
+        g.onclick = () => detail(n.id);
+        g.onkeydown = (e) => {
+          if (e.key === "Enter") detail(n.id);
+        };
+        svg.append(g);
+      }
+    }
+    async function search() {
+      controller?.abort();
+      controller = new AbortController();
+      status("正在查询已发布数据…");
+      $("#list").replaceChildren();
+      $("#detail").replaceChildren();
+      $("#graphCard").hidden = true;
+      batch = null;
+      try {
+        const d = await api(
+          "papers",
+          { ...filters(), page_size: 20 },
+          controller.signal,
+        );
+        batch = d.batch_id;
+        $("#scope").textContent =
+          `${d.total} 篇 · 批次 ${batch} · 当前显示前 20 篇`;
+        for (const p of d.items) {
+          const li = el("li"),
+            a = el("a", `${p.year} · ${p.title}`);
+          a.href =
+            "/research/papers/" +
+            encodeURIComponent(p.id) +
+            "?batch_id=" +
+            encodeURIComponent(batch);
+          a.onclick = (e) => {
+            e.preventDefault();
+            detail(p.id);
+          };
+          li.append(a);
+          $("#list").append(li);
+        }
+        status(d.total ? "" : "没有符合条件的已发布论文。");
+      } catch (e) {
+        if (e.name !== "AbortError") status(e.message);
+      }
+    }
+    $("#search").onsubmit = (e) => {
+      e.preventDefault();
+      search();
+    };
+    $("#reset").onclick = () => {
+      $("#search").reset();
+      search();
+    };
+    $("#expand").onclick = () => graph().catch((e) => status(e.message));
+    const path = location.pathname.split("/research/papers/")[1];
+    if (path) {
+      batch = new URLSearchParams(location.search).get("batch_id");
+      if (!batch) {
+        const d = await api("papers");
+        batch = d.batch_id;
+      }
+      detail(decodeURIComponent(path));
+    } else search();
+  </script>
+</html>
