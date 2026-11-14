@@ -58,3 +58,8 @@ class ReserveImportRequest(BaseModel):
     year: int = Field(ge=1980,le=2100)
     source: Literal['openalex'] = 'openalex'
     count: int = Field(default=20,ge=1,le=100)
+
+
+class FormalWithdrawalRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
+    reason: str = Field(min_length=1, max_length=2000)

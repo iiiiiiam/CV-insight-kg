@@ -9,9 +9,10 @@ const first=ref(0),second=ref(0),busy=ref(false),error=ref('')
 const result=ref<BatchComparison|null>(null),details=ref<JobInfo[]>([])
 let generation=0
 const sourceName=(s:string)=>({openalex:'OpenAlex',cvf:'CVF',ecva:'ECVA',dblp:'DBLP'} as Record<string,string>)[s]??s
+const batchSource=(job:{source:string;source_names?:string[]|null})=>(job.source_names??[job.source]).map(sourceName).join(' + ')
 const statusName=(s:string)=>({succeeded:'已完成',partial:'需处理',failed:'失败',queued:'等待中',running:'导入中'} as Record<string,string>)[s]??s
 const number=(value:number|null|undefined)=>value==null?'—':value.toLocaleString('zh-CN')
-function label(job:JobInfo){return `${batchCode(job)} · ${job.venue} ${job.year} · ${sourceName(job.source)}${job.kind==='demo'?' · 演示批次':''}`}
+function label(job:JobInfo){return `${batchCode(job)} · ${job.venue} ${job.year} · ${batchSource(job)}${job.kind==='demo'?' · 演示批次':''}${job.batch_state==='withdrawn'?' · 已撤回':''}`}
 function completeness(index:number,key:'with_abstract'|'with_doi'|'with_authors'){
   const quality=details.value[index]?.quality
   return quality?.total?`${(quality[key]/quality.total*100).toFixed(1)}%（${quality[key]}/${quality.total}）`:'—'
@@ -20,8 +21,9 @@ const rows=computed(()=>{
   if(!result.value)return []
   const a=result.value.first,b=result.value.second
   return [
-    {label:'成功处理',values:[number(a.succeeded),number(b.succeeded)]},
+    {label:'成功来源记录',values:[number(a.succeeded),number(b.succeeded)]},
     {label:'新增论文',values:[number(a.new_papers),number(b.new_papers)]},
+    ...(a.kind==='formal'||b.kind==='formal'?[{label:'更新论文',values:[number(a.updated_papers),number(b.updated_papers)]}]:[]),
     {label:'重复论文',values:[number(a.duplicate_papers),number(b.duplicate_papers)]},
     {label:'处理失败',values:[number(a.failed),number(b.failed)]},
     {label:'批次论文数',values:[number(a.paper_count),number(b.paper_count)]},
@@ -55,7 +57,7 @@ watch([choices,()=>props.currentJobId],([list,currentId])=>{
   first.value=previous.id;second.value=target.id
   void compare()
 },{immediate:true})
-watch(()=>props.jobs.map(j=>`${j.id}:${j.status}:${j.attempted}:${j.succeeded}:${j.failed}`).join('|'),()=>{
+watch(()=>props.jobs.map(j=>`${j.id}:${j.status}:${j.attempted}:${j.succeeded}:${j.failed}:${j.batch_state}`).join('|'),()=>{
   if(result.value||busy.value)void compare()
 })
 
@@ -76,9 +78,9 @@ watch(()=>props.jobs.map(j=>`${j.id}:${j.status}:${j.attempted}:${j.succeeded}:$
     <p v-else-if="busy" class="comparison-message" role="status">正在读取所选批次…</p>
     <div v-else-if="result" aria-live="polite">
       <p v-if="scopesDiffer" class="comparison-message scope-note">两个批次的会议、年份或来源不同，请结合各自范围查看结果。</p>
-      <div class="comparison-table"><table><thead><tr><th scope="col">对比指标</th><th scope="col">基准 · {{batchCode(result.first)}}<small>{{result.first.venue}} {{result.first.year}} · {{sourceName(result.first.source)}} · {{statusName(result.first.status)}}</small></th><th scope="col">对比 · {{batchCode(result.second)}}<small>{{result.second.venue}} {{result.second.year}} · {{sourceName(result.second.source)}} · {{statusName(result.second.status)}}</small></th></tr></thead><tbody><tr v-for="row in rows" :key="row.label"><th scope="row">{{row.label}}</th><td>{{row.values[0]}}</td><td>{{row.values[1]}}</td></tr></tbody></table></div>
+      <div class="comparison-table"><table><thead><tr><th scope="col">对比指标</th><th scope="col">基准 · {{batchCode(result.first)}}<small>{{result.first.venue}} {{result.first.year}} · {{batchSource(result.first)}} · {{result.first.batch_state==='withdrawn'?'已撤回':statusName(result.first.status)}}</small></th><th scope="col">对比 · {{batchCode(result.second)}}<small>{{result.second.venue}} {{result.second.year}} · {{batchSource(result.second)}} · {{result.second.batch_state==='withdrawn'?'已撤回':statusName(result.second.status)}}</small></th></tr></thead><tbody><tr v-for="row in rows" :key="row.label"><th scope="row">{{row.label}}</th><td>{{row.values[0]}}</td><td>{{row.values[1]}}</td></tr></tbody></table></div>
       <div class="overlap-summary"><span>两批共有论文 <strong>{{number(result.shared_papers)}}</strong></span><span>仅基准批次 <strong>{{number(result.only_first)}}</strong></span><span>仅对比批次 <strong>{{number(result.only_second)}}</strong></span></div>
-      <p class="comparison-footnote">新增与重复按导入时的记录统计，完整率按批次当前关联论文统计；未记录或没有论文时显示“—”。</p>
+      <p class="comparison-footnote">新增、更新与重复按导入结果统计；正式批次的论文与完整率使用导入时快照，其他批次使用当前关联论文；未记录或没有论文时显示“—”。</p>
     </div>
     <p v-else class="comparison-message">已更改批次，点击“开始对比”查看结果。</p>
   </template>

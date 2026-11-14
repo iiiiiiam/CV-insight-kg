@@ -1,14 +1,16 @@
 """Build an explicitly labelled demo database without rewriting an existing database."""
 import argparse
-from datetime import datetime,timedelta
+from datetime import datetime
 import json
 from pathlib import Path
-from collections import defaultdict
+import sqlite3
 from sqlalchemy import select
-from .models import database,Job,JobEvent,Paper,PaperSource,PaperBatch,Source,now
+from .models import database,Paper,Source,ImportCandidate
 
 
-def create_demo(path, cvpr_jsonl=None):
+def create_demo(path, cvpr_jsonl=None, *, paper_limit=420, reserve_db=None):
+    if paper_limit < 80:
+        raise ValueError('Keep at least the 80 shared sample papers in the preview')
     path=Path(path).resolve()
     if path.exists():
         raise ValueError('Demo destination exists; existing data is preserved')
@@ -26,44 +28,50 @@ def create_demo(path, cvpr_jsonl=None):
             db.add_all([Source(name=s) for s in ('cvf','ecva','openalex','dblp')]);db.commit()
             import_sample(db)
             for dataset in DATASETS:import_additional(db,dataset)
-            if cvpr_jsonl:
-                with Path(cvpr_jsonl).open(encoding='utf-8') as handle:
+            from .paths import PROJECT_ROOT
+            cvpr_file=Path(cvpr_jsonl) if cvpr_jsonl else PROJECT_ROOT/'examples/cvpr_2024_full/cvpr_2024.jsonl'
+            if cvpr_jsonl or cvpr_file.exists():
+                from .reserve import stage_openalex
+                # Keep the entire input available for later manual imports; only a
+                # small subset belongs to the initial preview collection.
+                stage_openalex(db,cvpr_file,'CVPR',2024)
+                imported=len(list(db.scalars(select(Paper.id).where(research_paper_scope()))))
+                with cvpr_file.open(encoding='utf-8') as handle:
                     for line in handle:
+                        if not line.strip():continue
                         work=json.loads(line)
                         if ((work.get('primary_location') or {}).get('source') or {}).get('id')!='https://openalex.org/S4210176548':
                             raise ValueError('Demo input is not a verified CVPR source')
                         row=openalex_work_row(work,'CVPR',2024)
-                        if not is_front_matter(row):upsert_paper(db,row,'openalex')
+                        if imported >= paper_limit:continue
+                        if is_front_matter(row):continue
+                        existing=db.scalar(select(Paper.id).where(Paper.openalex_id==row['source_id']))
+                        upsert_paper(db,row,'openalex')
+                        if existing is None:imported+=1
                 db.commit()
-            from .paths import PROJECT_ROOT
             reserve_file=PROJECT_ROOT/'examples/supplementary_pool/iccv_2023.jsonl'
             if reserve_file.exists():
                 from .batch_import import checked_rows
                 from .reserve import stage_openalex
                 checked_rows(reserve_file,'ICCV',2023,'openalex')
                 stage_openalex(db,reserve_file,'ICCV',2023)
-            for job in db.scalars(select(Job)):job.kind='archive'
-            groups=defaultdict(list)
-            for paper in db.scalars(select(Paper).where(research_paper_scope()).order_by(Paper.id)):
-                sources=set(db.scalars(select(PaperSource.source).where(PaperSource.paper_id==paper.id)))
-                source='ecva' if 'ecva' in sources else 'cvf' if 'cvf' in sources else 'openalex'
-                groups[(paper.venue,paper.year,source)].append(paper)
-            for (venue,year,source),papers in groups.items():
-                weights=[8,12,9,15,11,17,13,18,16,22,19,25,21,28]
-                counts=[len(papers)*weight//sum(weights) for weight in weights]
-                for i in range(len(papers)-sum(counts)):counts[(13-i)%14]+=1
-                offset=0
-                for i,count in enumerate(counts):
-                    if not count:continue
-                    day=datetime.combine(now().date()-timedelta(days=13-i),datetime.min.time())+timedelta(hours=9)
-                    job=Job(venue=venue,year=year,source=source,kind='demo',dataset_id=f'demo-{venue}-{day.date()}',status='succeeded',stage='done',attempted=count,succeeded=count,failed=0,created_at=day,started_at=day,finished_at=day+timedelta(minutes=8))
-                    db.add(job);db.flush()
-                    for paper in papers[offset:offset+count]:
-                        paper.first_seen_at=day
-                        db.add(PaperBatch(job_id=job.id,paper_id=paper.id,is_new=True,imported_at=day))
-                    db.add(JobEvent(job_id=job.id,stage='done',level='info',message='演示批次：真实论文按模拟日期分批导入。',created_at=day))
-                    offset+=count
-            db.commit()
+            if reserve_db:
+                # Restore every candidate from the previous preview without its
+                # old task claim. Existing papers are excluded by available_scope.
+                source=Path(reserve_db).resolve()
+                with sqlite3.connect(source.as_uri()+'?mode=ro',uri=True) as previous:
+                    previous.row_factory=sqlite3.Row
+                    known=set(db.execute(select(ImportCandidate.source,ImportCandidate.source_id)).all())
+                    for record in previous.execute('SELECT * FROM import_candidates ORDER BY id'):
+                        values=dict(record)
+                        identity=(values['source'],values['source_id'])
+                        if identity in known:continue
+                        values.pop('id');values['claimed_job_id']=None
+                        values['created_at']=datetime.fromisoformat(values['created_at'])
+                        db.add(ImportCandidate(**values));known.add(identity)
+                db.commit()
+            from .demo_presentation import rebuild_history
+            rebuild_history(db)
         factory.kw['bind'].dispose()
         build.replace(path)
     except BaseException:
@@ -76,6 +84,8 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('output',type=Path)
     parser.add_argument('--cvpr-jsonl',type=Path)
-    args=parser.parse_args();print(create_demo(args.output,args.cvpr_jsonl))
+    parser.add_argument('--paper-limit',type=int,default=420)
+    parser.add_argument('--reserve-db',type=Path,help='Retain every supplementary candidate from an existing demo DB')
+    args=parser.parse_args();print(create_demo(args.output,args.cvpr_jsonl,paper_limit=args.paper_limit,reserve_db=args.reserve_db))
 
 if __name__=='__main__':main()

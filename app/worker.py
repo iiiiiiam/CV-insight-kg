@@ -63,7 +63,11 @@ def work(check_owner=None):
         with SessionLocal() as db:
             job = db.get(Job, job_id)
             try:
-                run_job(db, job)
+                if job.kind=='formal':
+                    from .formal_batches import process_batch
+                    process_batch(db,job)
+                else:
+                    run_job(db, job)
             except Exception as exc:
                 from .pipeline import safe_error
                 db.rollback()

@@ -1,7 +1,7 @@
 import type {JobInfo} from './admin.ts'
 
-export function batchCode(job:Pick<JobInfo,'id'> & {batch_code?:string}){
-  return job.batch_code||`BATCH-${String(job.id).padStart(6,'0')}`
+export function batchCode(job:Pick<JobInfo,'id'> & {batch_code?:string;display_code?:string;import_mode?:string}){
+  return job.display_code||(job.import_mode?`${job.import_mode==='manual'?'M':'A'}-${String(job.id).padStart(6,'0')}`:job.batch_code)||`BATCH-${String(job.id).padStart(6,'0')}`
 }
 export function importProgress(job:JobInfo){
   const total=Math.max(0,job.progress?.total??job.paper_count??0)

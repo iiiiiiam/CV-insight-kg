@@ -13,7 +13,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from server.api.schemas import (ImportRequest, LoginRequest, KnowledgeReviewRequest,
-                                GraphImportRequest, GraphPublishRequest, OnlineJobRequest, FileImportRequest, SourceUpdateRequest, ReserveImportRequest)
+                                GraphImportRequest, GraphPublishRequest, OnlineJobRequest, FileImportRequest, SourceUpdateRequest, ReserveImportRequest, FormalWithdrawalRequest)
 from server.application.a_gateway import AServiceClient, AServiceUnavailable
 from server.application.c_gateway import CServiceClient
 from server.application.graph_policy import GraphBoundaryError, require_reviewed_batch
@@ -278,6 +278,22 @@ def create_app(settings: Settings | None = None):
     def confirmed_knowledge(paper_id: str = Query(min_length=1, max_length=300)):
         return JSONResponse(content=read_knowledge().confirmed(paper_id), headers={'Cache-Control': 'no-store'})
 
+    @app.get('/api/admin/quality')
+    async def data_quality(_session: Session = Depends(require_admin)):
+        return await call_a('GET','/api/admin/quality')
+
+    @app.get('/api/admin/formal/batches/{job_id}/receipts')
+    async def handoff_receipts(job_id: int, _session: Session = Depends(require_admin)):
+        return await call_a('GET',f'/api/admin/formal/batches/{job_id}/receipts')
+
+    @app.get('/api/admin/formal/batches/{job_id}')
+    async def formal_batch(job_id: int, _session: Session = Depends(require_admin)):
+        return await call_a('GET', f'/api/admin/formal/batches/{job_id}')
+
+    @app.post('/api/admin/formal/batches/{job_id}/withdraw')
+    async def withdraw_formal_batch(job_id: int, body: FormalWithdrawalRequest, _session: Session = Depends(require_admin_write)):
+        return await call_a('POST', f'/api/admin/formal/batches/{job_id}/withdraw', body=body.model_dump())
+
     @app.get('/api/admin/datasets')
     async def list_datasets(_session: Session = Depends(require_admin)):
         return await call_a('GET', '/api/admin/datasets')
@@ -334,6 +350,10 @@ def create_app(settings: Settings | None = None):
     async def get_job(job_id: int, _session: Session = Depends(require_admin)):
         return await call_a('GET', f'/api/admin/jobs/{job_id}')
 
+    @app.get('/api/admin/jobs/{job_id}/records')
+    async def job_records(job_id:int,request:Request,_session:Session=Depends(require_admin)):
+        return await call_a('GET',f'/api/admin/jobs/{job_id}/records',params=dict(request.query_params))
+
     @app.get('/api/admin/jobs/{job_id}/papers')
     async def get_job_papers(job_id: int, request: Request, _session: Session = Depends(require_admin)):
         return await call_a('GET', f'/api/admin/jobs/{job_id}/papers', params=dict(request.query_params))
@@ -341,6 +361,14 @@ def create_app(settings: Settings | None = None):
     @app.post('/api/admin/jobs/{job_id}/retry')
     async def retry_job(job_id: int, _session: Session = Depends(require_admin_write)):
         return await call_a('POST', f'/api/admin/jobs/{job_id}/retry')
+
+    @app.get('/api/admin/jobs/{job_id}/withdrawal')
+    async def batch_withdrawal(job_id:int,_session:Session=Depends(require_admin)):
+        return await call_a('GET',f'/api/admin/jobs/{job_id}/withdrawal')
+
+    @app.post('/api/admin/jobs/{job_id}/withdraw')
+    async def withdraw_import(job_id:int,body:FormalWithdrawalRequest,_session:Session=Depends(require_admin_write)):
+        return await call_a('POST',f'/api/admin/jobs/{job_id}/withdraw',body=body.model_dump())
 
     app.include_router(feedback_router(settings))
 

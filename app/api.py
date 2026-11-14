@@ -24,7 +24,8 @@ from .db import SessionLocal, seed_sources
 from .datasets import DATASET_ID, ImportConflict, import_sample, load_sample
 from .additional_samples import DATASETS as ADDITIONAL_DATASETS, import_additional, list_additional_datasets
 from .paper_quality import research_paper_scope
-from .data_overview import batch_summary, dashboard, compare_batches, handoff
+from .data_overview import batch_summary, dashboard, compare_batches, handoff, has_batch_history
+from .batch_labels import batch_labels
 from scripts.fetch_openalex_batch import SOURCES as OPENALEX_SOURCES
 
 @asynccontextmanager
@@ -94,10 +95,17 @@ class FileImportRequest(BaseModel):
     manifest: dict
 
 
+class BatchWithdrawalRequest(BaseModel):
+    reason: str = Field(min_length=1,max_length=2000)
+
+
 class JobView(BaseModel):
     id: int
     batch_id: int
     batch_code: str
+    display_code: str
+    import_mode: str
+    is_simulated: bool = False
     kind: str
     dataset_id: str | None
     venue: str
@@ -109,6 +117,8 @@ class JobView(BaseModel):
     succeeded: int
     failed: int
     skipped: int = 0
+    batch_state: str | None = None
+    source_names: list[str] | None = None
     error: str | None
     created_at: datetime
     updated_at: datetime
@@ -127,7 +137,7 @@ def job_data(job: Job) -> dict:
             "venue": job.venue, "year": job.year, "source": job.source, "status": job.status, "stage": job.stage,
             "attempted": job.attempted, "succeeded": job.succeeded, "failed": job.failed, "skipped": job.skipped,
             "error": job.error, "created_at": job.created_at, "updated_at": job.updated_at,
-            "started_at": job.started_at, "finished_at": job.finished_at}
+            "started_at": job.started_at, "finished_at": job.finished_at,**batch_labels(job)}
 
 
 @app.get("/health")
@@ -210,7 +220,7 @@ def get_paper(paper_id: int, db: Session = Depends(db_session)):
     if paper is None:
         raise HTTPException(404, "Paper not found")
     result = paper_data(paper)
-    result["batches"] = [{"batch_id": job.id, "batch_code": f"BATCH-{job.id:06d}", "dataset_id": job.dataset_id,
+    result["batches"] = [{"batch_id": job.id, "batch_code": f"BATCH-{job.id:06d}", **batch_labels(job),"dataset_id": job.dataset_id,
                           "status": job.status, "imported_at": imported_at}
                          for job, imported_at in db.execute(select(Job, PaperBatch.imported_at)
                             .join(PaperBatch, PaperBatch.job_id == Job.id).where(PaperBatch.paper_id == paper_id)
@@ -277,7 +287,14 @@ def data_overview(days: int = Query(default=7, ge=1, le=30), db: Session = Depen
 
 @app.get("/api/admin/new-papers", dependencies=[Depends(admin)])
 def new_papers(day: date, page: int = Query(default=1, ge=1),
-               page_size: int = Query(default=10, ge=1, le=100), db: Session = Depends(db_session)):
+               page_size: int = Query(default=10, ge=1, le=100), view:Literal['current','additions']='current',db: Session = Depends(db_session)):
+    if view=='additions':
+        from .data_activity import additions,withdrawal_events
+        added=sorted((p for p in additions(db) if p['first_seen_at'].date()==day),key=lambda p:(p['first_seen_at'],p['id']),reverse=True)
+        withdrawn=[{k:v for k,v in event.items() if k not in ('paper_ids','retained_ids')} for event in withdrawal_events(db) if event['withdrawn_at'].date()==day]
+        removed=sum(event['removed_papers'] for event in withdrawn)
+        return {'date':day.isoformat(),'timezone':'UTC','total':len(added),'page':page,'page_size':page_size,
+            'items':added[(page-1)*page_size:page*page_size],'withdrawals':withdrawn,'withdrawn_papers':removed,'net_papers':len(added)-removed}
     start = datetime.combine(day, time.min)
     end = start + timedelta(days=1)
     scope = (Paper.first_seen_at >= start, Paper.first_seen_at < end, research_paper_scope())
@@ -434,7 +451,12 @@ def create_job(payload: JobCreate, db: Session = Depends(db_session)):
 
 @app.get("/api/admin/jobs", dependencies=[Depends(admin)], response_model=list[JobView])
 def list_jobs(db: Session = Depends(db_session)):
-    return [job_data(x) for x in db.scalars(select(Job).where(Job.kind != "archive").order_by(Job.created_at.desc(), Job.id.desc()).limit(100))]
+    from .models import BatchLedger
+    from .models import JobRecord
+    source_names = {}
+    for job_id,source in db.execute(select(JobRecord.job_id,JobRecord.source).join(Job,Job.id==JobRecord.job_id).where(Job.kind=='formal').distinct()):source_names.setdefault(job_id,[]).append(source)
+    states = {b.job_id: 'withdrawn' if b.withdrawn else 'active' for b in db.scalars(select(BatchLedger))}
+    return [job_data(x) | {'batch_state': states.get(x.id), 'source_names': sorted(source_names.get(x.id,[])) or None} for x in db.scalars(select(Job).where(Job.kind != "archive").order_by(Job.id.desc()).limit(100))]
 
 
 @app.get("/api/admin/jobs/{job_id}", dependencies=[Depends(admin)])
@@ -451,11 +473,15 @@ def get_job(job_id: int, db: Session = Depends(db_session)):
         values = list(db.scalars(select(CvfRecord.status).where(CvfRecord.job_id == job.id)))
         result['progress'] = {'total':len(values),'succeeded':values.count('succeeded'),'failed':values.count('failed'),'pending':values.count('pending'),'skipped':0}
 
-    batch_papers = db.scalars(select(Paper).join(PaperBatch, PaperBatch.paper_id == Paper.id).where(PaperBatch.job_id == job.id, research_paper_scope())).all()
+    if has_batch_history(db,job):
+        from .data_overview import frozen_batch_papers
+        batch_papers = frozen_batch_papers(db, job.id)
+    else:
+        batch_papers = [paper_data(p) for p in db.scalars(select(Paper).join(PaperBatch, PaperBatch.paper_id == Paper.id).where(PaperBatch.job_id == job.id, research_paper_scope()))]
     result['quality'] = {'total': len(batch_papers),
-                         'with_abstract': sum(bool((p.abstract or '').strip()) for p in batch_papers),
-                         'with_doi': sum(bool(p.doi) for p in batch_papers),
-                         'with_authors': sum(bool(json.loads(p.authors_json)) for p in batch_papers)}
+                         'with_abstract': sum(bool((p.get('abstract') or '').strip()) for p in batch_papers),
+                         'with_doi': sum(bool(p.get('doi')) for p in batch_papers),
+                         'with_authors': sum(bool(p.get('authors')) for p in batch_papers)}
 
     result["events"] = [{"stage": e.stage, "level": e.level, "message": e.message, "created_at": e.created_at}
                         for e in db.scalars(select(JobEvent).where(JobEvent.job_id == job_id).order_by(JobEvent.id.desc()).limit(100))]
@@ -465,11 +491,34 @@ def get_job(job_id: int, db: Session = Depends(db_session)):
 @app.get("/api/admin/jobs/{job_id}/papers", dependencies=[Depends(admin)])
 def get_batch_papers(job_id: int, page: int = Query(default=1, ge=1),
                      page_size: int = Query(default=20, ge=1, le=100), q: str | None = Query(default=None, max_length=200), db: Session = Depends(db_session)):
-    if db.get(Job, job_id) is None:
+    job = db.get(Job, job_id)
+    if job is None:
         raise HTTPException(404, "Batch not found")
+    if has_batch_history(db,job):
+        from .data_overview import frozen_batch_papers
+        values = frozen_batch_papers(db, job_id)
+        if q:
+            values = [p for p in values if q.casefold() in (p['title'] + ' ' + (p.get('abstract') or '')).casefold()]
+        return {'batch_id': job_id, 'total': len(values), 'page': page, 'page_size': page_size,
+                'items': values[(page-1)*page_size:page*page_size]}
     result = list_papers(q=q, venue=None, year=None, page=page, page_size=page_size, batch_id=job_id, db=db)
     result["batch_id"] = job_id
     return result
+
+
+@app.get('/api/admin/jobs/{job_id}/withdrawal',dependencies=[Depends(admin)])
+def read_withdrawal(job_id:int,db:Session=Depends(db_session)):
+    from .batch_withdrawal import withdrawal_state
+    try:return withdrawal_state(db,job_id)
+    except LookupError as exc:raise HTTPException(404,str(exc)) from exc
+
+
+@app.post('/api/admin/jobs/{job_id}/withdraw',dependencies=[Depends(admin)])
+def withdraw_import_batch(job_id:int,body:BatchWithdrawalRequest,db:Session=Depends(db_session)):
+    from .batch_withdrawal import withdraw_import
+    try:return withdraw_import(db,job_id,body.reason)
+    except LookupError as exc:raise HTTPException(404,str(exc)) from exc
+    except ValueError as exc:raise HTTPException(409,str(exc)) from exc
 
 
 @app.post("/api/admin/jobs/{job_id}/retry", dependencies=[Depends(admin)])
@@ -479,6 +528,13 @@ def retry_job(job_id: int, db: Session = Depends(db_session)):
         raise HTTPException(404, "Job not found")
     if job.status not in ("failed", "partial"):
         raise HTTPException(409, "Only failed or partial jobs can be retried")
+    if job.kind in ('formal','reserve'):
+        from .models import BatchLedger
+        from .formal_batches import lock_scope
+        lock_scope(db,job.venue,job.year)
+        ledger=db.get(BatchLedger,job.id,populate_existing=True)
+        if ledger and ledger.withdrawn:
+            raise HTTPException(409, 'Withdrawn batches cannot be retried; use a new batch')
     if job.kind == "sample":
         try:
             retried = (import_additional(db, job.dataset_id, job=job) if job.dataset_id in ADDITIONAL_DATASETS
@@ -512,3 +568,10 @@ def retry_job(job_id: int, db: Session = Depends(db_session)):
         db.rollback()
         raise HTTPException(409, "A job is already active for this venue/year")
     return job_data(job)
+
+# A-owned extensions keep the existing import and handoff endpoints compatible.
+from .formal_api import create_formal_router
+app.include_router(create_formal_router(db_session,admin))
+
+from .operations import create_operations_router
+app.include_router(create_operations_router(db_session,admin))

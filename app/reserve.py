@@ -4,18 +4,18 @@ import hashlib
 import json
 from pathlib import Path
 from sqlalchemy import select,func,exists,update
-from .models import ImportCandidate as Candidate,Paper,PaperSource,Source,Job
+from .models import ImportCandidate as Candidate,Paper,PaperSource,Source,Job,BatchLedger
 from .ingest import openalex_work_row,normalize_title
-from .paper_quality import is_front_matter
+from .paper_quality import is_front_matter,research_paper_scope
 from .pipeline import save_snapshot
 from scripts.fetch_openalex_batch import SOURCES
 
 
 def available_scope():
-    known_source=exists(select(PaperSource.id).where(PaperSource.source==Candidate.source,PaperSource.source_id==Candidate.source_id)).correlate(Candidate)
-    known_id=exists(select(Paper.id).where(Paper.openalex_id==Candidate.source_id)).correlate(Candidate)
-    known_doi=exists(select(Paper.id).where(Paper.doi==Candidate.doi)).correlate(Candidate)
-    known_title=exists(select(Paper.id).where(Paper.venue==Candidate.venue,Paper.year==Candidate.year,Paper.title_normalized==Candidate.title_normalized)).correlate(Candidate)
+    known_source=exists(select(PaperSource.id).join(Paper,Paper.id==PaperSource.paper_id).where(PaperSource.source==Candidate.source,PaperSource.source_id==Candidate.source_id,research_paper_scope())).correlate(Candidate)
+    known_id=exists(select(Paper.id).where(Paper.openalex_id==Candidate.source_id,research_paper_scope())).correlate(Candidate)
+    known_doi=exists(select(Paper.id).where(Paper.doi==Candidate.doi,research_paper_scope())).correlate(Candidate)
+    known_title=exists(select(Paper.id).where(Paper.venue==Candidate.venue,Paper.year==Candidate.year,Paper.title_normalized==Candidate.title_normalized,research_paper_scope())).correlate(Candidate)
     return (Candidate.claimed_job_id.is_(None),~known_source,~known_id,~known_doi,~known_title)
 
 
@@ -62,15 +62,20 @@ def queue_import(db,venue,year,source,count):
     if not 1<=count<=100:raise ValueError('Choose between 1 and 100 papers per import')
     configured=db.scalar(select(Source).where(Source.name==source))
     if not configured or not configured.enabled:raise ValueError('该数据来源已停用，请先启用后再导入')
+    from .formal_batches import lock_scope,digest
+    lock_scope(db,venue,year)
     candidates=list(db.scalars(select(Candidate).where(Candidate.venue==venue,Candidate.year==year,Candidate.source==source,*available_scope()).order_by(Candidate.id).limit(count)))
     if not candidates:raise ValueError('所选范围没有待导入的新论文，请选择其他范围')
-    job=Job(venue=venue,year=year,source=source,kind='reserve',dataset_id=f'reserve:{venue}:{year}',status='queued',active_key=f'{venue}:{year}')
+    job=Job(venue=venue,year=year,source=source,kind='reserve',import_mode='manual',dataset_id=f'reserve:{venue}:{year}',status='queued',active_key=f'{venue}:{year}')
     try:
         db.add(job);db.flush()
         ids=[item.id for item in candidates]
         result=db.execute(update(Candidate).where(Candidate.id.in_(ids),Candidate.claimed_job_id.is_(None)).values(claimed_job_id=job.id))
         if result.rowcount!=len(ids):raise ValueError('这批论文已被其他任务选中，请刷新后重试')
-        rows=[{'source_id':item.source_id,'raw':json.loads(item.payload_json),'openalex_work':True} for item in candidates]
+        rows=[openalex_work_row(json.loads(item.payload_json),venue,year) for item in candidates]
+        key=f'reserve:{venue}:{year}:{job.id}'
+        job.dataset_id=key
+        db.add(BatchLedger(job_id=job.id,batch_key=key,input_sha256=digest(rows)))
         save_snapshot(db,job,rows,source)
     except BaseException:
         db.rollback();raise

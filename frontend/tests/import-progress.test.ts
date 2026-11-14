@@ -6,6 +6,9 @@ const job=(status:string,succeeded=0,failed=0,skipped=0)=>({id:47,status,succeed
 test('batch identity uses the server batch code with a stable ID fallback',()=>{
  assert.equal(batchCode({id:47}),'BATCH-000047')
  assert.equal(batchCode({id:47,batch_code:'BATCH-000047'}),'BATCH-000047')
+ assert.equal(batchCode({id:47,batch_code:'BATCH-000047',import_mode:'manual'}),'M-000047')
+ assert.equal(batchCode({id:48,import_mode:'automatic'}),'A-000048')
+ assert.equal(batchCode({id:48,batch_code:'BATCH-000048',display_code:'A-000048'}),'A-000048')
 })
 test('queued and partial real processing counts produce actual progress',()=>{
  assert.deepEqual([importProgress(job('queued')).percent,importProgress(job('queued')).label],[0,'等待处理'])
