@@ -20,6 +20,11 @@ def client():
     ('/api/admin/batch-comparison?first=1&second=2', '/api/admin/batch-comparison'),
     ('/api/admin/handoff?batch_id=1', '/api/admin/handoff'),
     ('/api/admin/reserve', '/api/admin/reserve'),
+    ('/api/admin/jobs/7/records?status=failed&page=2', '/api/admin/jobs/7/records'),
+    ('/api/admin/quality', '/api/admin/quality'),
+    ('/api/admin/formal/batches/7/receipts', '/api/admin/formal/batches/7/receipts'),
+    ('/api/admin/formal/batches/7', '/api/admin/formal/batches/7'),
+    ('/api/admin/jobs/7/withdrawal', '/api/admin/jobs/7/withdrawal'),
 ])
 def test_data_routes_require_login_and_preserve_response(client, monkeypatch, path, upstream):
     calls = []
@@ -53,6 +58,8 @@ def test_online_job_requires_csrf_and_forwards_options(client, monkeypatch):
 
 
 @pytest.mark.parametrize(('method','path','payload'), [
+    ('POST','/api/admin/formal/batches/7/withdraw',{'reason':'acceptance rollback'}),
+    ('POST','/api/admin/jobs/7/withdraw',{'reason':'manual import rollback'}),
     ('POST','/api/admin/reserve/imports',{'venue':'ICCV','year':2023,'source':'openalex','count':20}),
     ('POST','/api/admin/file-imports',{'content':'{}\n','manifest':{'source':'openalex'}}),
     ('PUT','/api/admin/sources/openalex',{'enabled':False,'page_size':50,'max_retries':2}),

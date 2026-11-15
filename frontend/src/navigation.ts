@@ -6,6 +6,8 @@ export const MENU:MenuItem[]=[
  {id:'NAV08',group:'研究分析',section:'统计与下钻',label:'研究分析看板',path:'/research/trends',implemented:true,owner:'C / D'},
  {id:'NAV10',group:'研究分析',section:'作者调研',label:'作者证据画像',path:'/research/authors',implemented:true,owner:'C / D；完整合作统计后续'},
  {id:'NAV11',group:'研究分析',section:'机构调研',label:'机构证据画像',path:'/research/institutions',implemented:true,owner:'C / D'},
+ {id:'A-SOURCES',group:'数据管理',section:'数据源',label:'来源配置',path:'/admin/sources',implemented:true,owner:'A'},
+ {id:'A-QUALITY',group:'数据管理',section:'数据源',label:'数据质量',path:'/admin/quality',implemented:true,owner:'A'},
  {id:'A-DATA',group:'数据管理',section:'数据概览',label:'数据管理概览',path:'/admin/overview',implemented:true,owner:'A'},
  {id:'NAV12',group:'数据管理',section:'数据集',label:'数据集',path:'/admin/datasets',implemented:true,owner:'A / D'},
  {id:'NAV13',group:'数据管理',section:'导入任务',label:'论文导入',path:'/admin/imports',implemented:true,owner:'A / D'},

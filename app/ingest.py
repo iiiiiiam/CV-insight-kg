@@ -342,6 +342,12 @@ def run_openalex_job(db: Session, job: Job) -> None:
 
 
 def run_job(db: Session, job: Job, http: requests.Session | None = None) -> None:
+    if job.kind == 'reserve':
+        from .models import BatchLedger
+        if db.get(BatchLedger,job.id) is not None:
+            from .formal_batches import process_batch
+            process_batch(db,job)
+            return
     if job.kind == "sample":
         from .datasets import import_sample
         from .additional_samples import DATASETS, import_additional

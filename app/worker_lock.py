@@ -5,10 +5,10 @@ from sqlalchemy import text
 
 
 @contextmanager
-def worker_lock(factory):
+def worker_lock(factory, *, role="worker"):
     engine = factory.kw['bind']
     if engine.dialect.name == 'mysql':
-        lock_name = "cv_worker_" + hashlib.sha256((engine.url.database or "").encode()).hexdigest()[:32]
+        lock_name = "cv_" + role + "_" + hashlib.sha256((engine.url.database or "").encode()).hexdigest()[:32]
         with engine.connect() as connection:
             if connection.scalar(text("SELECT GET_LOCK(:name, 0)"), {"name": lock_name}) != 1:
                 raise RuntimeError('Another worker is already running for this database')
@@ -24,7 +24,7 @@ def worker_lock(factory):
         from pathlib import Path
         import tempfile
         identity = str(Path(engine.url.database).resolve()) if engine.url.database else str(id(engine))
-        path = Path(tempfile.gettempdir()) / ('tupu-worker-' + hashlib.sha256(identity.encode()).hexdigest() + '.lock')
+        path = Path(tempfile.gettempdir()) / ('tupu-' + role + '-' + hashlib.sha256(identity.encode()).hexdigest() + '.lock')
         with path.open('a+b') as handle:
             try:
                 import fcntl

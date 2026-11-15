@@ -209,3 +209,18 @@ class DataOverviewTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+    def test_concurrent_source_row_absent_from_loaded_papers_does_not_break_overview(self):
+        from app.data_overview import dashboard
+        from types import SimpleNamespace
+        with self.Session() as db:
+            db.add(Paper(canonical_key='snapshot-test',title='Snapshot paper',title_normalized='snapshot paper',venue='CVPR',year=2024));db.commit()
+            original=db.execute
+            def concurrent(statement,*args,**kwargs):
+                result=original(statement,*args,**kwargs)
+                if [c.key for c in getattr(statement,'selected_columns',[]) ]==['paper_id','source']:
+                    return list(result)+[SimpleNamespace(paper_id=999999,source='openalex')]
+                return result
+            with patch.object(db,'execute',side_effect=concurrent):report=dashboard(db,7)
+            self.assertEqual(report['total_papers'],1)
+            self.assertEqual(sum(s['papers'] for s in report['source_summary']),1)

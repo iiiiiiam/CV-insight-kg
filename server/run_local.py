@@ -7,6 +7,7 @@ import socket
 import subprocess
 import sys
 import time
+from urllib.parse import urlsplit
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -19,6 +20,8 @@ def main():
     parser.add_argument('--demo-db',type=Path,help='Optional persistent demo database path')
     parser.add_argument('--skip-build',action='store_true')
     parser.add_argument('--cvpr-jsonl',type=Path,help='Optional full CVPR input when creating a new demo database')
+    parser.add_argument('--preview-paper-limit',type=int,default=420,help='Maximum initial preview papers; remaining records stay in the supplementary library')
+    parser.add_argument('--reserve-db',type=Path,help='Restore all supplementary candidates when creating a new preview')
     args=parser.parse_args()
     for port in (args.port,args.api_port):
         with socket.socket() as listener:
@@ -48,7 +51,7 @@ def main():
         target=args.demo_db.resolve() if args.demo_db else local/'a-demo.db'
         if not target.exists():
             from app.demo import create_demo
-            create_demo(target,args.cvpr_jsonl)
+            create_demo(target,args.cvpr_jsonl,paper_limit=args.preview_paper_limit,reserve_db=args.reserve_db)
         database_url='sqlite:///'+str(target)
     else:
         database_url=os.getenv('D_A_DATABASE_URL') or os.getenv('DATABASE_URL') or 'sqlite:///'+str(local/'a.db')
@@ -82,7 +85,11 @@ def main():
             async def preview(request:Request):
                 if not request.client or request.client.host not in ('127.0.0.1','::1'):raise HTTPException(404)
                 request.app.state.auth.login(request,settings.username,settings.password)
-                return RedirectResponse('/admin/overview?preview=clean-v2',status_code=303)
+                target=request.query_params.get('next','/admin/overview?preview=clean-v2')
+                parsed=urlsplit(target)
+                if parsed.scheme or parsed.netloc or parsed.path not in ('/admin/overview','/admin/jobs','/admin/imports') or any(ord(c)<32 for c in target):
+                    target='/admin/overview?preview=clean-v2'
+                return RedirectResponse(target,status_code=303)
             app.router.routes.insert(0,app.router.routes.pop())
             app.router.routes.insert(0,app.router.routes.pop())
         suffix='/preview' if args.demo else '/admin/login'
