@@ -12,6 +12,8 @@ test('feedback ownership persists in the same browser and differs between browse
   assert.match(token,/^[0-9a-f]{64}$/)
   assert.equal(feedbackOwner(browser),token)
   assert.notEqual(feedbackOwner(memory()),token)
+  const accountToken='b'.repeat(64)
+  assert.equal(feedbackOwner(memory(),accountToken),accountToken)
 })
 test('receipts are scoped by paper and withdrawal updates status without duplicating the receipt',()=>{
   const browser=memory(),receipt={id:'r1',message:'test',status:'open' as const,created_at:'now'}

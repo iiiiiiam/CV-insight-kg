@@ -4,7 +4,8 @@ import type {LocalStoragePort} from './personal-knowledge.ts'
 const OWNER_KEY='research-insight:feedback-owner:1'
 export interface FeedbackReceipt {id:string;message:string;status:FeedbackRecord['status'];created_at:string}
 export function receiptKey(paperId:string){return `research-insight:feedback-receipts:1:${paperId}`}
-export function feedbackOwner(storage:LocalStoragePort):string{
+export function feedbackOwner(storage:LocalStoragePort,authenticated?:string):string{
+  if(authenticated){if(!/^[0-9a-f]{64}$/.test(authenticated))throw new Error('当前账号的反馈凭证无法读取。');return authenticated}
   const saved=storage.getItem(OWNER_KEY)
   if(saved){if(!/^[0-9a-f]{64}$/.test(saved))throw new Error('当前浏览器的反馈凭证无法读取。');return saved}
   const token=(crypto.randomUUID()+crypto.randomUUID()).replaceAll('-','')

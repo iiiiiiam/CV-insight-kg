@@ -1,8 +1,8 @@
 import { reactive } from 'vue'
-import type { AdminSession } from '../types.ts'
+import type { AccountSession } from '../types.ts'
 import { ApiError, requestJson } from '../services/http.ts'
 
-export const auth=reactive({session:null as AdminSession|null,loaded:false,backend:'checking' as 'checking'|'online'|'offline',error:''})
+export const auth=reactive({session:null as AccountSession|null,loaded:false,backend:'checking' as 'checking'|'online'|'offline',error:''})
 let pending:Promise<void>|null=null
 let generation=0
 export function refreshSession(force=false):Promise<void>{
@@ -10,7 +10,7 @@ export function refreshSession(force=false):Promise<void>{
   if(auth.loaded&&!force)return Promise.resolve()
   const current=generation
   pending=(async()=>{
-    try{const session=await requestJson<AdminSession>('/api/admin/session');if(current===generation){auth.session=session;auth.backend='online';auth.error=''}}
+    try{const session=await requestJson<AccountSession>('/api/session');if(current===generation){auth.session=session;auth.backend='online';auth.error=''}}
     catch(e){
       if(current===generation){
         auth.session=null
@@ -21,14 +21,27 @@ export function refreshSession(force=false):Promise<void>{
   })()
   return pending
 }
-export async function login(username:string,password:string){
+export async function adminLogin(username:string,password:string){
   generation++
-  auth.session=await requestJson<AdminSession>('/api/admin/sessions',{method:'POST',body:JSON.stringify({username,password})})
+  auth.session=await requestJson<AccountSession>('/api/admin/sessions',{method:'POST',body:JSON.stringify({username,password})})
+  auth.backend='online';auth.error='';auth.loaded=true
+}
+export const login=adminLogin
+export async function userLogin(username:string,password:string){
+  generation++
+  auth.session=await requestJson<AccountSession>('/api/user/sessions',{method:'POST',body:JSON.stringify({username,password})})
+  auth.backend='online';auth.error='';auth.loaded=true
+}
+export async function registerUser(username:string,displayName:string,password:string){
+  generation++
+  auth.session=await requestJson<AccountSession>('/api/users',{
+    method:'POST',body:JSON.stringify({username,display_name:displayName,password}),
+  })
   auth.backend='online';auth.error='';auth.loaded=true
 }
 export async function logout(){
   generation++
-  try{await requestJson<void>('/api/admin/session',{method:'DELETE',headers:{'X-CSRF-Token':auth.session?.csrf_token??''}})}
+  try{await requestJson<void>('/api/session',{method:'DELETE',headers:{'X-CSRF-Token':auth.session?.csrf_token??''}})}
   catch(e){if(!(e instanceof ApiError&&e.status===401))throw e}
   auth.session=null;auth.loaded=true
 }

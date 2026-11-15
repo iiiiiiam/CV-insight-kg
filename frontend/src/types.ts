@@ -36,9 +36,11 @@ export interface ResearchGateway {
   getGraph(seed: string, hops: number, filters: Filters, signal?: AbortSignal): Promise<GraphData>;
   getEntity(id: string, signal?: AbortSignal, batchId?:string): Promise<EntityDetail>;
 }
-export interface AdminSession {
-  authenticated: true; username: string; role: 'admin'; csrf_token: string; expires_at: string;
+export interface AccountSession {
+  authenticated: true; username: string; display_name:string; role: 'admin'|'user'; csrf_token: string; expires_at: string;
+  user_id?:string; feedback_token?:string;
 }
+export type AdminSession = AccountSession & {role:'admin'}
 export const EMPTY_FILTERS: Filters = { q: '', topic: '', method: '', year: '', batch_id: '', sort: 'year_desc' }
 export const TYPE_LABELS: Record<EntityType, string> = {
   Paper: '论文', Author: '作者', Institution: '机构', Topic: '主题', Method: '方法',

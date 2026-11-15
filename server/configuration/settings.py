@@ -26,6 +26,7 @@ class Settings:
     auto_graph_sync: bool = True
     graph_sync_interval_seconds: int = 30
     c_sync_timeout_seconds: int = 240
+    user_store: str | None = None
 
     @classmethod
     def from_env(cls):
@@ -52,6 +53,7 @@ class Settings:
             auto_graph_sync=os.getenv('AUTO_GRAPH_SYNC', 'true').lower() == 'true',
             graph_sync_interval_seconds=max(10, int(os.getenv('GRAPH_SYNC_INTERVAL_SECONDS', '30'))),
             c_sync_timeout_seconds=max(60, int(os.getenv('C_SYNC_TIMEOUT_SECONDS', '240'))),
+            user_store=os.getenv('D_USER_STORE') or None,
             b_vocabulary_path=os.getenv('B_VOCABULARY_PATH') or None,
             b_source_corpus=os.getenv('B_SOURCE_CORPUS') or None,
             b_batch_registry=os.getenv('B_BATCH_REGISTRY') or None,

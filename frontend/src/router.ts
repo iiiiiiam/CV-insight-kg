@@ -29,6 +29,9 @@ export const router=createRouter({
         meta:{title:kind==='authors'?'作者证据画像':'机构证据画像'}},
     ]),
     {path:'/research/papers/:id',component:()=>import('./views/PaperView.vue'),meta:{title:'论文详情'}},
+    {path:'/login',component:()=>import('./views/UserLoginView.vue'),meta:{title:'用户登录'}},
+    {path:'/register',component:()=>import('./views/UserLoginView.vue'),meta:{title:'用户注册'}},
+    {path:'/account',component:()=>import('./views/AccountView.vue'),meta:{title:'账号状态'}},
     {path:'/admin/login',component:()=>import('./views/LoginView.vue'),meta:{title:'管理员登录'}},
     {path:'/admin/access-check',component:()=>import('./views/SessionView.vue'),meta:{title:'会话与权限验证',requiresAuth:true}},
     {path:'/admin/sources',component:()=>import('./views/SourceSettingsView.vue'),meta:{title:'来源配置',requiresAuth:true}},
@@ -59,7 +62,7 @@ export const router=createRouter({
   },
 })
 router.beforeEach(async to=>{
-  if(to.meta.requiresAuth){await refreshSession(true);if(!auth.session)return {path:'/admin/login',query:{redirect:to.fullPath}}}
+  if(to.meta.requiresAuth){await refreshSession(true);if(auth.session?.role!=='admin')return {path:'/admin/login',query:{redirect:to.fullPath}}}
   return true
 })
 router.afterEach(to=>{document.title=`${String(to.meta.title??'研究工作台')} · 知域 Atlas`})

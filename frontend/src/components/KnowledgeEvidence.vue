@@ -10,6 +10,7 @@ import {applyPersonal,emptyPersonal,knowledgeGraph,personalAddition,personalKey,
 import GraphPanel from './GraphPanel.vue'
 import MyKnowledgeFeedback from './MyKnowledgeFeedback.vue'
 import {feedbackOwner,saveReceipt} from '../services/feedback-receipts.ts'
+import {auth} from '../stores/auth.ts'
 const props=defineProps<{paperId:string}>()
 const base=ref<ReadingKnowledge|null>(null),loading=ref(false),error=ref(''),selectedId=ref(''),proofIndex=ref(0)
 const draft=ref<PersonalKnowledge>(emptyPersonal('')),localError=ref(''),localNote=ref('')
@@ -143,7 +144,7 @@ async function submit(){
   const target=form.value==='missing'?{term:term.value}:{candidate_id:originalSelected.value?.candidate_id}
   saving.value=true;error.value=''
   try{
-    const ownerToken=feedbackOwner(window.localStorage)
+    const ownerToken=feedbackOwner(window.localStorage,auth.session?.feedback_token)
     const result=await sendFeedback({paper_id:paperId,revision,message:description,owner_token:ownerToken,...target})
     let saved=true
     try{saveReceipt(window.localStorage,paperId,{id:result.id,message:description,status:'open',created_at:new Date().toISOString()})}

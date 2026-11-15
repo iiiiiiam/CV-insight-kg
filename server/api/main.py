@@ -16,7 +16,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from server.api.schemas import FormalWithdrawalRequest
 from server.api.schemas import (ImportRequest, LoginRequest, KnowledgeReviewRequest,
                                 GraphImportRequest, GraphPublishRequest, EffectiveGraphSyncRequest,
-                                OnlineJobRequest, FileImportRequest, SourceUpdateRequest, ReserveImportRequest)
+                                OnlineJobRequest, FileImportRequest, SourceUpdateRequest, ReserveImportRequest,
+                                UserRegistrationRequest)
 from server.application.a_gateway import AServiceClient, AServiceUnavailable
 from server.application.c_gateway import CServiceClient
 from server.application.graph_policy import GraphBoundaryError, require_reviewed_batch
@@ -26,19 +27,26 @@ from server.application.knowledge import (KnowledgeSnapshot, UnknownSnapshotPape
                                           KnowledgeSnapshotInvalid, KnowledgeSnapshotChanged,
                                           KnowledgeReviewRejected, KnowledgeReviewStorageError)
 from server.configuration.settings import Settings
-from server.domain.auth import AuthService, Session, require_admin, require_admin_write
+from server.domain.auth import (AuthService, Session, require_admin, require_admin_write,
+                                require_authenticated, require_session_write)
 from server.api.knowledge_feedback import feedback_router
 from src.knowledge_builder.feedback import FeedbackConflict
 
 
 def session_data(session: Session):
-    return {
+    result = {
         'authenticated': True,
         'username': session.username,
-        'role': 'admin',
+        'display_name': session.display_name,
+        'role': session.role,
         'csrf_token': session.csrf,
         'expires_at': datetime.fromtimestamp(session.expires, timezone.utc).isoformat(),
     }
+    if session.user_id:
+        result['user_id'] = session.user_id
+    if session.feedback_token:
+        result['feedback_token'] = session.feedback_token
+    return result
 
 
 def upstream_response(upstream):
@@ -106,7 +114,7 @@ def create_app(settings: Settings | None = None):
         response = await call_next(request)
         response.headers['X-Request-ID'] = request.state.request_id
         response.headers['X-Content-Type-Options'] = 'nosniff'
-        if request.url.path.startswith('/api/admin/'):
+        if request.url.path.startswith('/api/admin/') or request.url.path in ('/api/session', '/api/users') or request.url.path.startswith('/api/user/'):
             response.headers['Cache-Control'] = 'no-store'
         return response
 
@@ -358,7 +366,24 @@ def create_app(settings: Settings | None = None):
 
     @app.post('/api/admin/sessions')
     async def login(body: LoginRequest, request: Request):
-        return session_data(app.state.auth.login(request, body.username, body.password))
+        return session_data(app.state.auth.login_admin(request, body.username, body.password))
+
+    @app.post('/api/users', status_code=201)
+    async def register_user(body: UserRegistrationRequest, request: Request):
+        return session_data(app.state.auth.register_user(request, body.username, body.password, body.display_name))
+
+    @app.post('/api/user/sessions')
+    async def login_user(body: LoginRequest, request: Request):
+        return session_data(app.state.auth.login_user(request, body.username, body.password))
+
+    @app.get('/api/session')
+    async def account_session(session: Session = Depends(require_authenticated)):
+        return session_data(session)
+
+    @app.delete('/api/session', status_code=204)
+    async def account_logout(request: Request, _session: Session = Depends(require_session_write)):
+        app.state.auth.logout(request)
+        return Response(status_code=204)
 
     @app.get('/api/admin/session')
     async def current(session: Session = Depends(require_admin)):

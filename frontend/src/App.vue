@@ -12,10 +12,11 @@ const route=useRoute(),router=useRouter(),mobileOpen=ref(false),query=ref(''),no
 const collapsed=ref<string[]>(route.path.startsWith('/admin/')?['系统管理']:['数据管理','系统管理'])
 const lastResearchQuery=ref<LocationQueryRaw>({})
 const researchHome=computed(()=>({path:'/research/papers',query:lastResearchQuery.value}))
-const loginStatus=computed(()=>auth.backend==='checking'?'正在检查登录':auth.backend==='offline'?'登录状态不可用':auth.session?`${auth.session.username} · 已登录`:'未登录')
-const loginHint=computed(()=>auth.backend==='checking'?'正在连接鉴权服务':auth.backend==='offline'?'请检查 D 后端连接':auth.session?'管理员会话有效':'访客模式 · 点击登录')
-const groups=computed(()=>[...new Set(MENU.map(n=>n.group))].map(group=>({name:group,
-  sections:[...new Set(MENU.filter(n=>n.group===group).map(n=>n.section))].map(section=>({name:section,items:MENU.filter(n=>n.group===group&&n.section===section)}))})))
+const loginStatus=computed(()=>auth.backend==='checking'?'正在检查登录':auth.backend==='offline'?'登录状态不可用':auth.session?`${auth.session.display_name} · 已登录`:'未登录')
+const loginHint=computed(()=>auth.backend==='checking'?'正在连接鉴权服务':auth.backend==='offline'?'请检查 D 后端连接':auth.session?.role==='admin'?'管理员会话有效':auth.session?'普通用户会话有效':'访客模式 · 登录或注册')
+const visibleMenu=computed(()=>auth.session?.role==='admin'?MENU:MENU.filter(item=>!item.path.startsWith('/admin/')))
+const groups=computed(()=>[...new Set(visibleMenu.value.map(n=>n.group))].map(group=>({name:group,
+  sections:[...new Set(visibleMenu.value.filter(n=>n.group===group).map(n=>n.section))].map(section=>({name:section,items:visibleMenu.value.filter(n=>n.group===group&&n.section===section)}))})))
 function toggle(group:string){collapsed.value=collapsed.value.includes(group)?collapsed.value.filter(x=>x!==group):[...collapsed.value,group]}
 function active(item:MenuItem){
   const [path,queryString='']=item.path.split('?')
@@ -23,14 +24,14 @@ function active(item:MenuItem){
   if(item.id==='NAV10'||item.id==='NAV11')return route.path.startsWith(path+'/')
   return route.path===path&&String(route.query.view??'')===(new URLSearchParams(queryString).get('view')??'')
 }
-async function leave(){try{await logout();notice.value='已退出管理员会话。';if(route.meta.requiresAuth)await router.push('/research/papers')}catch{notice.value='退出失败，请检查鉴权服务后重试。'}}
+async function leave(){try{await logout();notice.value='已退出当前账号。';if(route.meta.requiresAuth)await router.push('/research/papers')}catch{notice.value='退出失败，请检查鉴权服务后重试。'}}
 function search(){router.push({path:'/research/papers',query:query.value.trim()?{q:query.value.trim()}:{}})}
 onMounted(()=>void refreshSession())
 watch(()=>route.path,path=>{if(path.startsWith('/admin/'))collapsed.value=collapsed.value.filter(group=>group!=='数据管理')},{immediate:true})
 watch(()=>route.fullPath,()=>{
   if(route.path==='/research/papers')lastResearchQuery.value=researchResultQuery(route.query)
 },{immediate:true})
-watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAuth)void router.replace({path:'/admin/login',query:{redirect:route.fullPath}})})
+watch(()=>auth.session,session=>{if(session?.role!=='admin'&&auth.loaded&&route.meta.requiresAuth)void router.replace({path:'/admin/login',query:{redirect:route.fullPath}})})
 </script>
 <template>
   <div class="app-shell">
@@ -51,15 +52,15 @@ watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAu
           </div>
         </section>
       </nav>
-      <RouterLink class="sidebar-foot" :to="auth.session?'/admin/access-check':'/admin/login'" aria-label="登录状态"><span class="member-avatar"><AppIcon name="user" :size="17"/></span><div role="status"><strong>{{loginStatus}}</strong><small>{{loginHint}}</small></div><span class="online-dot" :class="{'session-inactive':!auth.session||auth.backend!=='online'}"></span></RouterLink>
+      <RouterLink class="sidebar-foot" :to="auth.session?'/account':'/login'" aria-label="登录状态"><span class="member-avatar"><AppIcon :name="auth.session?.role==='admin'?'shield':'user'" :size="17"/></span><div role="status"><strong>{{loginStatus}}</strong><small>{{loginHint}}</small></div><span class="online-dot" :class="{'session-inactive':!auth.session||auth.backend!=='online'}"></span></RouterLink>
     </aside>
     <div class="main-shell">
       <header class="topbar">
         <div class="breadcrumb"><button class="icon-button mobile-menu" aria-label="打开导航" @click="mobileOpen=true"><AppIcon name="menu"/></button><span>工作空间</span><AppIcon name="chevron" :size="13"/><strong>{{route.meta.title}}</strong></div>
         <form class="top-search" role="search" @submit.prevent="search"><AppIcon name="search" :size="16"/><input v-model="query" aria-label="全局搜索论文" placeholder="搜索论文标题关键词…"/><kbd>Enter</kbd></form>
         <div class="top-actions"><span class="mode-label"><i></i>论文数据</span>
-          <template v-if="auth.session"><RouterLink to="/admin/access-check" class="account-button"><AppIcon name="shield" :size="16"/>{{auth.session.username}}</RouterLink><button class="icon-button" aria-label="退出登录" @click="leave"><AppIcon name="logout"/></button></template>
-          <RouterLink v-else to="/admin/login" class="account-button"><AppIcon name="user" :size="16"/>管理员登录</RouterLink>
+          <template v-if="auth.session"><RouterLink to="/account" class="account-button"><AppIcon :name="auth.session.role==='admin'?'shield':'user'" :size="16"/>{{auth.session.display_name}}</RouterLink><button class="icon-button" aria-label="退出登录" @click="leave"><AppIcon name="logout"/></button></template>
+          <template v-else><RouterLink to="/login" class="account-button"><AppIcon name="user" :size="16"/>登录 / 注册</RouterLink><RouterLink to="/admin/login" class="admin-entry">管理员</RouterLink></template>
         </div>
       </header>
       <div v-if="notice" class="global-notice" role="status">{{notice}}<button class="icon-button" aria-label="关闭提示" @click="notice=''"><AppIcon name="close" :size="14"/></button></div>
@@ -68,4 +69,4 @@ watch(()=>auth.session,session=>{if(!session&&auth.loaded&&route.meta.requiresAu
     </div>
   </div>
 </template>
-<style scoped>.online-dot.session-inactive{background:#a0aeb7;border-color:#edf1f4}.sidebar-foot>div{min-width:0}.sidebar-foot strong{overflow-wrap:anywhere}.member-avatar{flex-shrink:0}</style>
+<style scoped>.online-dot.session-inactive{background:#a0aeb7;border-color:#edf1f4}.sidebar-foot>div{min-width:0}.sidebar-foot strong{overflow-wrap:anywhere}.member-avatar{flex-shrink:0}.admin-entry{font-size:10px;color:#7f949d;padding:6px}.admin-entry:hover{color:#2d8e7c}</style>

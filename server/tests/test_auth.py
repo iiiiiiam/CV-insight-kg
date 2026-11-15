@@ -7,9 +7,9 @@ from server.application.a_gateway import AServiceClient
 from server.configuration.settings import Settings
 
 @pytest.fixture
-def client():
+def client(tmp_path):
     settings=Settings(username='admin',password='UnitTest-Password-2026!',secret='test-secret-'*8,
-                      origins=('http://127.0.0.1:5173',))
+                      origins=('http://127.0.0.1:5173',),user_store=str(tmp_path/'users.json'),auto_graph_sync=False)
     with TestClient(create_app(settings)) as c: yield c
 
 def signin(client):
@@ -97,3 +97,27 @@ def test_a_admin_proxy_requires_d_session_and_csrf(client, monkeypatch):
     assert response.status_code==200
     assert calls[0][0:2]==('GET','/api/admin/datasets')
     assert calls[1][0:2]==('POST','/api/admin/imports')
+
+def test_ordinary_user_can_register_login_and_logout(client):
+    registered=client.post('/api/users',json={
+        'username':'researcher01','display_name':'研究用户','password':'Research2026',
+    })
+    assert registered.status_code==201
+    session=registered.json()
+    assert session['role']=='user' and session['display_name']=='研究用户' and session['feedback_token']
+    assert client.get('/api/session').json()['username']=='researcher01'
+    assert client.get('/api/admin/session').status_code==403
+    assert client.get('/api/admin/datasets').status_code==403
+    assert client.delete('/api/session',headers={'X-CSRF-Token':session['csrf_token']}).status_code==204
+    assert client.get('/api/session').status_code==401
+    logged_in=client.post('/api/user/sessions',json={'username':'RESEARCHER01','password':'Research2026'})
+    assert logged_in.status_code==200 and logged_in.json()['user_id']==session['user_id']
+    assert logged_in.json()['feedback_token']==session['feedback_token']
+
+def test_registration_rejects_duplicate_admin_name_and_weak_password(client):
+    body={'username':'reader01','display_name':'读者','password':'Reader2026'}
+    assert client.post('/api/users',json=body).status_code==201
+    assert client.post('/api/users',json={**body,'username':'READER01'}).status_code==409
+    assert client.post('/api/users',json={**body,'username':'admin'}).status_code==409
+    weak=client.post('/api/users',json={**body,'username':'reader02','password':'password'})
+    assert weak.status_code==422

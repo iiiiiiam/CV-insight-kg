@@ -3,6 +3,7 @@ import {nextTick,onBeforeUnmount,ref,watch} from 'vue'
 import {feedbackOwner,readReceipts,saveReceipt} from '../services/feedback-receipts.ts'
 import type {FeedbackReceipt} from '../services/feedback-receipts.ts'
 import {getFeedbackStatus,withdrawFeedback} from '../services/knowledge-feedback.ts'
+import {auth} from '../stores/auth.ts'
 const props=defineProps<{paperId:string;refreshVersion:number}>()
 const records=ref<FeedbackReceipt[]>([]),error=ref(''),notice=ref(''),busy=ref(false),panel=ref<HTMLElement|null>(null)
 const labels={open:'待处理，可撤回',resolved:'已处理',dismissed:'已说明保留',withdrawn:'已撤回'}
@@ -22,7 +23,7 @@ async function withdraw(item:FeedbackReceipt){
   if(busy.value)return
   const paperId=props.paperId,current=generation;busy.value=true;error.value='';notice.value=''
   try{
-    const result=await withdrawFeedback(item.id,feedbackOwner(window.localStorage))
+    const result=await withdrawFeedback(item.id,feedbackOwner(window.localStorage,auth.session?.feedback_token))
     item.status=result.status;saveReceipt(window.localStorage,paperId,item)
     if(current!==generation)return
     notice.value='反馈已撤回，后台不再将它列为待处理；你的个人调整保持原样。'

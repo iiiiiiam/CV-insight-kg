@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed,ref} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
-import {auth,login,refreshSession} from '../stores/auth.ts'
+import {auth,adminLogin,refreshSession} from '../stores/auth.ts'
 import {ApiError} from '../services/http.ts'
 import AppIcon from '../components/AppIcon.vue'
 
@@ -14,7 +14,7 @@ const destination=computed(()=>{
 async function submit(){
   if(!username.value.trim()||!password.value){error.value='请输入账号和密码。';return}
   busy.value=true;error.value=''
-  try{await login(username.value.trim(),password.value);password.value='';await router.replace(destination.value)}
+  try{await adminLogin(username.value.trim(),password.value);password.value='';await router.replace(destination.value)}
   catch(e){error.value=e instanceof ApiError?e.message:'无法连接鉴权服务，请启动本地后台后重试。'}
   finally{busy.value=false}
 }
@@ -25,8 +25,9 @@ async function submit(){
     <div class="login-card">
       <span class="login-shield"><AppIcon name="shield" :size="28"/></span>
       <h2>管理员登录</h2><p class="muted">使用你的本地管理员账号继续。</p>
-      <template v-if="auth.session"><div class="inline-success"><AppIcon name="check"/>你已以 {{auth.session.username}} 身份登录。</div><RouterLink :to="destination" class="button button-primary full-width">进入管理工作区<AppIcon name="arrow"/></RouterLink></template>
+      <template v-if="auth.session?.role==='admin'"><div class="inline-success"><AppIcon name="check"/>你已以 {{auth.session.username}} 身份登录。</div><RouterLink :to="destination" class="button button-primary full-width">进入管理工作区<AppIcon name="arrow"/></RouterLink></template>
       <form v-else @submit.prevent="submit">
+        <p v-if="auth.session?.role==='user'" class="inline-error">当前登录的是普通用户 {{auth.session.display_name}}。验证管理员账号后将切换会话。</p>
         <label class="form-label" for="username">管理员账号</label><input id="username" v-model="username" class="form-input" name="username" autocomplete="username" maxlength="100" required :disabled="busy"/>
         <label class="form-label" for="password">密码</label><div class="password-field"><input id="password" v-model="password" class="form-input" name="password" :type="visible?'text':'password'" autocomplete="current-password" maxlength="256" required :disabled="busy"/><button type="button" :aria-label="visible?'隐藏密码':'显示密码'" @click="visible=!visible">{{visible?'隐藏':'显示'}}</button></div>
         <div v-if="error" class="inline-error" role="alert"><AppIcon name="info" :size="16"/><span>{{error}}</span></div>
@@ -35,6 +36,7 @@ async function submit(){
       <div class="login-bottom"><AppIcon name="shield" :size="14"/><span>登录凭据由本地后台校验</span></div>
       <button v-if="auth.backend==='offline'" class="text-button health-retry" @click="refreshSession(true)"><AppIcon name="refresh" :size="14"/>重新检测后台连接</button>
       <RouterLink to="/research/papers" class="back-to-research">返回只读研究工作台</RouterLink>
+      <RouterLink to="/login" class="back-to-research">普通用户登录或注册</RouterLink>
     </div>
   </section>
 </template>
