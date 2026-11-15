@@ -151,32 +151,22 @@ def create_app(repository=None, admin_token=None):
 
 
     def filters(
-
-        q: str | None = Query(None, max_length=200),
-
-        topic: str | None = Query(None, max_length=500),
-
-        method: str | None = Query(None, max_length=500),
-
-        year: int | None = Query(None, ge=1900, le=2100),
-
-        author: str | None = Query(None, max_length=500),
-
-        author_id: str | None = Query(None, max_length=500),
-
-        institution: str | None = Query(None, max_length=500),
-
-        task: str | None = Query(None, max_length=500),
-
-        dataset: str | None = Query(None, max_length=500),
-
-        venue: str | None = Query(None, max_length=500),
-
+        q: str | None=Query(None,max_length=200),
+        topic: Annotated[list[str] | None,Query(max_length=50)]=None,
+        method: Annotated[list[str] | None,Query(max_length=50)]=None,
+        author: Annotated[list[str] | None,Query(max_length=50)]=None,
+        author_id: Annotated[list[str] | None,Query(max_length=50)]=None,
+        institution: Annotated[list[str] | None,Query(max_length=50)]=None,
+        task: Annotated[list[str] | None,Query(max_length=50)]=None,
+        dataset: Annotated[list[str] | None,Query(max_length=50)]=None,
+        venue: Annotated[list[str] | None,Query(max_length=50)]=None,
+        direction: Annotated[list[str] | None,Query(max_length=50)]=None,
+        year: Annotated[list[int] | None,Query()]=None,
     ):
-
-        return {k: v for k, v in locals().items() if v is not None and v != ""}
-
-
+        values=locals().copy()
+        if year and (len(year)>50 or any(y<1900 or y>2100 for y in year)):raise GraphError(422,'INVALID_YEAR','年份应在1900到2100之间，最多50项')
+        if any(isinstance(v,list) and any(isinstance(x,str) and len(x)>500 for x in v) for v in values.values()):raise GraphError(422,'INVALID_FILTER','筛选值过长')
+        return {k:v for k,v in values.items() if v is not None and v!='' and v!=[]}
 
     @app.get("/api/research/papers")
 

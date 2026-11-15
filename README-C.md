@@ -78,3 +78,5 @@ java -cp "target/classes;target/dependency/*" GraphHarness
 所有改动在 `feature/graph-week1` 开发；通过 PR 请组员评审，保持 main 不变，不强推。
 
 新增 B knowledge-effective/1.0 完整快照接入，运行与真实验证见 [effective 交接说明](docs/graph/effective-handoff.md)。旧 confirmed 路径保留。
+
+Week 3 六维多值查询、方向分类、FR02元数据与A→B→C离线批次验收见 [Week3交接](docs/graph/week3-handoff.md)。

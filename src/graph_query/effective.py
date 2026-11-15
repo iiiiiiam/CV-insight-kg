@@ -185,7 +185,7 @@ def validate_effective(document):
     return document
 
 
-def project(document):
+def project(document, projection_version=1):
     validate_effective(document)
     nodes = {}
     edges = []
@@ -248,6 +248,21 @@ def project(document):
                     **item["provenance"]
                 )
             )
+    if projection_version>=2:
+        from .search import fold
+        for n in nodes.values():
+            tokens={fold(n['name']),fold(n['id'])}
+            for c in n['contexts']:
+                tokens.add(fold(c['content']['name']))
+                for e in c['evidence']:
+                    if e['field'] in ('title','abstract') and n['kind'] in ('topic','method','task','dataset'):tokens.add(fold(e['quote']))
+            n['search_tokens']=sorted(tokens)
+            if n['kind']=='paper':
+                part=json.loads(n['effective_partition_json'])
+                directions=[c for c in part['source_classifications'] if c.get('kind')=='research_direction']
+                n['direction_ids']=[c['source_id'] for c in directions]
+                n['direction_labels']=[c['name'] for c in directions]
+                n['direction_tokens']=sorted({fold(v) for c in directions for v in (c['name'],c['source_id'])})
     for n in nodes.values():
         n["contexts_json"] = canonical(n.pop("contexts"))
     return list(nodes.values()), edges

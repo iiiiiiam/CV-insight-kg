@@ -6,7 +6,7 @@ class EffectiveStore:
     def ingest_effective(self, document):
         from .repository import GraphError
 
-        nodes, edges = project(document)
+        nodes, edges = project(document,2)
         bid = "effective-" + document["revision"]
 
         def operation(tx):
@@ -21,6 +21,7 @@ class EffectiveStore:
                 return dict(result, replay=True)
             props = dict(
                 id=bid,
+                projection_version=2,
                 digest=document["revision"],
                 source_revision=document["revision"],
                 status="ready",
@@ -58,7 +59,7 @@ class EffectiveStore:
 
         if not props.get("effective_json"):
             return
-        nodes, edges = project(json.loads(props["effective_json"]))
+        nodes, edges = project(json.loads(props["effective_json"]),props.get("projection_version",1))
         batch = props["id"]
         an = {
             r["n"]["id"]: dict(r["n"])

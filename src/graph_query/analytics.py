@@ -10,6 +10,8 @@ class GraphAnalytics:
 
     def _statistics(self, tx, batch, filters, limit):
 
+        from .search import normalize
+        filters=normalize(filters)
         params = dict(filters, batch=batch, limit=limit + 1)
 
         scope = "MATCH (p:CVEntity) WHERE " + self.where(filters)
@@ -90,6 +92,8 @@ class GraphAnalytics:
 
             }
 
+        direction_rows=list(tx.run(scope+" UNWIND range(0,size(coalesce(p.direction_ids,[]))-1) AS i RETURN p.direction_ids[i] AS id,p.direction_labels[i] AS name,count(DISTINCT p) AS paper_count ORDER BY paper_count DESC,id LIMIT $limit",params))
+        distributions['research_direction']={'items':[dict(r) for r in direction_rows[:limit]],'truncated':len(direction_rows)>limit,'basis':'source_classification, not mentions_topic/task'}
         meta = tx.run(
 
             "MATCH (b:CVBatch {id:$batch}) RETURN properties(b) AS b", batch=batch
@@ -201,7 +205,7 @@ class GraphAnalytics:
 
                 author=author_id,
 
-                author_id=author_id,
+                author_id=[author_id.casefold()],
 
                 skip=(page - 1) * page_size,
 

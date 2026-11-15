@@ -128,7 +128,7 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
             result["checks"] = {
                 "counts_match": actual["entities"] == result["entity_count"]
                 and actual["relations"] == result["relation_count"],
-                "nonempty": actual["entities"] > 0,
+                "nonempty": actual["entities"] > 0 or result["provenance"]=="effective_export",
                 "formal_knowledge": result["provenance"] in ("reviewed_export","effective_export"),
             }
             result["publishable"] = all(result["checks"].values())
@@ -208,36 +208,15 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
 
     @staticmethod
     def where(filters):
-        clauses = ["p.batch_id=$batch", "p.kind='paper'"]
-        if filters.get("q"):
-            clauses.append("toLower(p.name) CONTAINS toLower($q)")
-        if filters.get("year") is not None:
-            clauses.append("p.year=$year")
-        if filters.get('author_id'):
-            clauses.append("EXISTS { MATCH (p)-[:CV_LINK {kind:'has_author'}]->(:CVEntity {batch_id:$batch,kind:'author',id:$author_id}) }")
-        for kind in (
-            "topic",
-            "method",
-            "author",
-            "institution",
-            "task",
-            "dataset",
-            "venue",
-        ):
-            if filters.get(kind):
-                if kind == "institution":
-                    clauses.append(
-                        "EXISTS { MATCH (p)-[:CV_LINK {kind:'has_author'}]->(:CVEntity)-[aff:CV_LINK {kind:'affiliated_with'}]->(f:CVEntity {batch_id:$batch,kind:'institution'}) WHERE (f.id=$institution OR f.name=$institution) AND p.id IN aff.paper_ids }"
-                    )
-                else:
-                    clauses.append(
-                        f"EXISTS {{ MATCH (p)-[:CV_LINK]->(f:CVEntity {{batch_id:$batch,kind:'{kind}'}}) WHERE f.id=${kind} OR f.name=${kind} }}"
-                    )
-        return " AND ".join(clauses)
+        from .search import where
+        return where(filters)
 
     def papers(self, filters, batch_id=None, page=1, page_size=20, sort="year_desc"):
+        from .search import normalize, metadata
+        filters=normalize(filters)
         def operation(tx):
             batch = self.resolve(tx, batch_id)
+            meta=tx.run("MATCH (b:CVBatch {id:$batch}) RETURN properties(b) AS b",batch=batch).single()["b"]
             params = dict(
                 filters, batch=batch, skip=(page - 1) * page_size, limit=page_size
             )
@@ -256,7 +235,7 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
                 params,
             )
             return {
-                "items": [self.node(r["p"]) for r in rows],
+                "items": [metadata(self.node(r["p"]),meta) for r in rows],
                 "total": total,
                 "page": page,
                 "page_size": page_size,
@@ -305,8 +284,10 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
                 for n in related:
                     local=next((c for c in n.get("contexts",[]) if c["paper_id"]==entity_id),None)
                     if local:n.update(name=local["content"]["name"],label=local["content"]["name"])
+            from .search import metadata
+            meta=tx.run("MATCH (b:CVBatch {id:$batch}) RETURN properties(b) AS b",batch=batch).single()["b"]
             return {
-                "node": self.node(record["n"]),
+                "node": metadata(self.node(record["n"]),meta),
                 "related": related,
                 "relations": [
                     self.edge(r["r"], r["source"], r["target"]) for r in values[:200]
@@ -318,6 +299,8 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
         return self.run(operation)
 
     def graph(self, seed, hops=1, batch_id=None, limit=100, types=None, filters=None):
+        from .search import normalize
+        filters=normalize(filters or {})
         def operation(tx):
             batch = self.resolve(tx, batch_id)
             params = dict(

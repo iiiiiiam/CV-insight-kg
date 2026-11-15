@@ -1,0 +1,3 @@
+-r requirements-graph-dev.txt
+# Optional only for executing the read-only B reference batch/export acceptance
+requests>=2.32,<3
