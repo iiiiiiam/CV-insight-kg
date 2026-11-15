@@ -3,6 +3,9 @@ import {requestJson} from './http.ts'
 import {safeSourceUrl} from './research.ts'
 
 function batchQuery(batch?:string){return batch?`?${new URLSearchParams({batch_id:batch})}`:''}
+function append(query:URLSearchParams,key:string,value:unknown){
+  for(const item of Array.isArray(value)?value:[value])if(typeof item==='string'&&item.trim())query.append(key,item.trim())
+}
 function checked<T extends {batch_id:string;batch_provenance?:string}>(data:T):T{
   if(!data.batch_id||!['reviewed_export','effective_export'].includes(data.batch_provenance??''))throw new Error('研究数据没有通过公共知识发布批次校验。')
   return data
@@ -15,18 +18,20 @@ export function normalizeCNode(value:CNode):CNode{
 export function normalizeCPaper(node:CNode,batch:string,detail?:CDetail):Paper{
   const n=normalizeCNode(node),related=detail?.related??[]
   const names=(kind:string)=>related.filter(x=>x.kind===kind).map(x=>x.name)
+  const citation=typeof n.citation_count==='number'&&Number.isFinite(n.citation_count)?n.citation_count:null
   const openalex=[n.source_id,n.source_url].find(x=>typeof x==='string'&&/^https:\/\/openalex\.org\/W\d+$/.test(x))??''
-  return {id:n.id,title:n.title??n.name,year:n.year??0,abstract:n.abstract??'该批次未提供摘要。',authors:names('author'),
+  return {id:n.id,title:n.title??n.name,year:n.year??0,abstract:n.abstract??'该批次未提供摘要。',authors:n.authors??names('author'),
     topic:names('topic').join('、')||'图谱详情中查看',method:names('method').join('、')||'图谱详情中查看',
     task:names('task').join('、')||'图谱详情中查看',dataset:names('dataset').join('、')||'图谱详情中查看',
-    institution:'按论文上下文查看关联证据',venue:names('venue').join('、')||'会议见图谱详情',
+    institution:'按论文上下文查看关联证据',venue:n.venue??(names('venue').join('、')||'未知'),
     source:'C 已发布公共图谱',source_url:safeSourceUrl(n.source_url),evidence:'当前内容来自 B 的有效公共知识快照及已生效修正，并已发布到 C。提及不等于使用或验证。',
-    batch_id:batch,batch_ids:[batch],batches:[],openalex_id:openalex,doi:'',canonical_key:n.id,sources:[],origin:'c',graph_detail:detail}
+    batch_id:batch,batch_ids:[batch],batches:[],openalex_id:openalex,doi:'',canonical_key:n.id,sources:[],origin:'c',graph_detail:detail,
+    citation_count:citation,updated_at:n.updated_at}
 }
 export class CResearchGateway implements ResearchGateway{
   async getPapers(filters:Filters,signal?:AbortSignal,page=1,pageSize=100){
-    const query=new URLSearchParams({page:String(page),page_size:String(pageSize),sort:'year_desc'})
-    for(const [key,value] of Object.entries(filters))if(value)query.set(key,value)
+    const query=new URLSearchParams({page:String(page),page_size:String(pageSize)})
+    for(const [key,value] of Object.entries(filters))append(query,key,value)
     const result=checked(await requestJson<{items:CNode[];total:number;batch_id:string;batch_provenance:string}>(`/api/research/papers?${query}`,{signal}))
     if(!Array.isArray(result.items))throw new Error('C 论文列表响应格式不正确。')
     return {items:result.items.map(n=>normalizeCPaper(n,result.batch_id)),total:result.total,batch_id:result.batch_id}
@@ -43,7 +48,7 @@ export class CResearchGateway implements ResearchGateway{
   }
   async getGraph(seed:string,hops:number,filters:Filters,signal?:AbortSignal,limit=100):Promise<GraphData>{
     const query=new URLSearchParams({seed,hops:String(hops),limit:String(limit)})
-    for(const key of ['q','topic','method','year','batch_id'] as const)if(filters[key])query.set(key,filters[key])
+    for(const key of ['q','topic','method','year','batch_id'] as const)append(query,key,filters[key])
     const result=checked(await requestJson<GraphData&{batch_provenance:string}>(`/api/research/graph?${query}`,{signal}))
     if(!Array.isArray(result.nodes)||!Array.isArray(result.edges))throw new Error('C 子图响应格式不正确。')
     const ids=new Set(result.nodes.map(n=>n.id))

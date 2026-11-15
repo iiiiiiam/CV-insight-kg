@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed,onMounted,ref,watch} from 'vue'
 import {RouterLink,RouterView,useRoute,useRouter} from 'vue-router'
+import type {LocationQueryRaw} from 'vue-router'
 import {MENU} from './navigation.ts'
 import type {MenuItem} from './navigation.ts'
 import {auth,logout,refreshSession} from './stores/auth.ts'
@@ -9,7 +10,7 @@ import AppIcon from './components/AppIcon.vue'
 
 const route=useRoute(),router=useRouter(),mobileOpen=ref(false),query=ref(''),notice=ref('')
 const collapsed=ref<string[]>(route.path.startsWith('/admin/')?['系统管理']:['数据管理','系统管理'])
-const lastResearchQuery=ref<Record<string,string>>({})
+const lastResearchQuery=ref<LocationQueryRaw>({})
 const researchHome=computed(()=>({path:'/research/papers',query:lastResearchQuery.value}))
 const loginStatus=computed(()=>auth.backend==='checking'?'正在检查登录':auth.backend==='offline'?'登录状态不可用':auth.session?`${auth.session.username} · 已登录`:'未登录')
 const loginHint=computed(()=>auth.backend==='checking'?'正在连接鉴权服务':auth.backend==='offline'?'请检查 D 后端连接':auth.session?'管理员会话有效':'访客模式 · 点击登录')

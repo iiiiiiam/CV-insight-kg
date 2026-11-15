@@ -6,7 +6,7 @@ import type {GraphData,GraphNode} from '../types.ts'
 import GraphPanel from './GraphPanel.vue'
 
 const props = defineProps<{seed:string; batch:string}>()
-const emit = defineEmits<{select:[id:string]}>()
+const emit = defineEmits<{select:[id:string,type:GraphNode['type']]}>()
 const rootId = ref(props.seed)
 const selectedId = ref(props.seed)
 const hops = ref(1)
@@ -100,7 +100,7 @@ function exploreSelected(){
     <GraphPanel :graph="graph" :root-id="rootId" :selected-id="selectedId" @select="selectNode"/>
     <div v-if="selected" class="cross-toolbar selection">
       <span>{{selected.id===rootId?'当前起点':'已选节点'}} · {{TYPE_LABELS[selected.type]}} · <strong>{{selected.label}}</strong></span>
-      <button type="button" class="text-button" @click="emit('select',selected.id)">查看详情与证据</button>
+      <button type="button" class="text-button" @click="emit('select',selected.id,selected.type)">{{selected.type==='Paper'?'打开知识与证据':'查看详情与证据'}}</button>
       <button v-if="selected.id!==rootId" type="button" class="text-button" @click="exploreSelected">从此节点重新展开</button>
     </div>
   </template>

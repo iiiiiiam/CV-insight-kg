@@ -27,7 +27,10 @@ export function mountPaperDetail(root, data, onNavigate) {
   const meta = el("div", undefined, "meta");
   meta.append(
     el("span", n.year ? `${n.year} 年` : "年份未提供"),
-    el("span", `更新于 ${n.updated_at}`),
+    el("span", `会议：${n.venue || "未知"}`),
+    el("span", `作者：${n.authors?.length ? n.authors.join("、") : "未知"}`),
+    el("span", `引用数：${Number.isInteger(n.citation_count) ? n.citation_count : "未知"}`),
+    el("span", n.updated_at ? `更新于 ${n.updated_at}` : "更新时间：未知"),
     safeLink(n.source_url, "查看来源"),
   );
   card.append(meta, el("h2", "摘要"), el("p", n.abstract || "摘要未提供"));

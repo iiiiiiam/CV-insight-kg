@@ -1,13 +1,17 @@
 // ResearchDirection is a B-only display node, not a new C storage contract.
 export type EntityType = 'Paper' | 'Author' | 'Institution' | 'Topic' | 'Method' | 'Task' | 'Dataset' | 'Venue' | 'ResearchDirection'
+export type MultiFilterValue = string | string[]
+export type PaperSort = 'year_desc' | 'year_asc' | 'title'
 export interface Filters {
-  q: string; topic: string; method: string; year: string; batch_id: string
-  author?: string; author_id?: string; institution?: string; task?: string; dataset?: string; venue?: string
+  q: string; topic: MultiFilterValue; method: MultiFilterValue; year: string; batch_id: string
+  author?: MultiFilterValue; author_id?: string; institution?: MultiFilterValue; task?: MultiFilterValue
+  dataset?: MultiFilterValue; venue?: MultiFilterValue; sort?: PaperSort
 }
 export interface Paper {
   id: string; title: string; year: number; topic: string; method: string; task: string;
   dataset: string; venue: string; authors: string[]; institution: string; abstract: string;
   source: string; source_url: string | null; evidence: string; batch_id: string;
+  citation_count: number | null; updated_at?: string;
   batch_ids?: Array<string | number>; batches?: unknown[];
   openalex_id: string; doi: string; canonical_key: string;
   sources: Array<{name: string; source_id: string; url: string | null; retrieved_at: string}>;
@@ -16,7 +20,7 @@ export interface Paper {
 // Effective public snapshots can be automatic or human-corrected.  Evidence
 // always points to source text, but an automatic item has no reviewer field.
 export interface GraphEvidence {paper_id:string;source_url:string;field:string;quote:string;locator:string;reviewer?:string;reviewed_at?:string}
-export interface CNode {id:string;kind:string;type:EntityType;name:string;label:string;title?:string;year?:number;abstract?:string|null;source_id?:string|null;source_url?:string|null;updated_at?:string;missing_fields?:string[];batch_id?:string}
+export interface CNode {id:string;kind:string;type:EntityType;name:string;label:string;title?:string;year?:number;abstract?:string|null;source_id?:string|null;source_url?:string|null;updated_at?:string;missing_fields?:string[];batch_id?:string;aliases?:string[];authors?:string[];venue?:string|null;citation_count?:number|null}
 export interface CDetail {node:CNode;related:CNode[];relations:GraphEdge[];truncated:boolean;batch_id:string;batch_provenance?:string}
 export interface GraphNode { id: string; label: string; type: EntityType; hop?:number; isNew?:boolean }
 export interface GraphEdge { id: string; source: string; target: string; type: string; evidence: string | GraphEvidence[];kind?:string;status?:string;batch_id?:string;isNew?:boolean }
@@ -35,7 +39,7 @@ export interface ResearchGateway {
 export interface AdminSession {
   authenticated: true; username: string; role: 'admin'; csrf_token: string; expires_at: string;
 }
-export const EMPTY_FILTERS: Filters = { q: '', topic: '', method: '', year: '', batch_id: '' }
+export const EMPTY_FILTERS: Filters = { q: '', topic: '', method: '', year: '', batch_id: '', sort: 'year_desc' }
 export const TYPE_LABELS: Record<EntityType, string> = {
   Paper: '论文', Author: '作者', Institution: '机构', Topic: '主题', Method: '方法',
   Task: '任务', Dataset: '数据集', Venue: '会议期刊', ResearchDirection: '研究子方向',

@@ -71,6 +71,11 @@ class EffectiveStore:
             n["id"]: {k: v for k, v in dict(n, batch_id=batch).items() if v is not None}
             for n in nodes
         }
+        # aliases is a derived lookup index.  Ignore it when comparing older
+        # snapshots imported before the index existed.
+        for values in (an, en):
+            for node in values.values():
+                node.pop("aliases", None)
         ae = {
             r["r"]["id"]: dict(r["r"], source=r["source"], target=r["target"])
             for r in tx.run(

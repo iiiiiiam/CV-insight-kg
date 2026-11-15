@@ -249,5 +249,12 @@ def project(document):
                 )
             )
     for n in nodes.values():
+        # Query-only aliases are derived from per-paper corrected display names;
+        # B's immutable effective snapshot contract is unchanged.
+        n["aliases"] = sorted(
+            {context["content"]["name"] for context in n["contexts"]
+             if context["content"]["name"] != n["name"]},
+            key=str.casefold,
+        )
         n["contexts_json"] = canonical(n.pop("contexts"))
     return list(nodes.values()), edges

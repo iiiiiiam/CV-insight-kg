@@ -33,6 +33,8 @@ export function normalizePaper(value: unknown): Paper {
     topic: '待 B 审核', method: '待 B 审核', task: '待 B 审核', dataset: '待 B 审核', institution: '待 B 审核',
     source: sources.map((s: {name: string}) => s.name).join(' / ') || (raw.openalex_id ? 'OpenAlex' : '来源见 A 记录'),
     source_url: safeSourceUrl(raw.source_url), sources,
+    citation_count: Number.isInteger(raw.cited_by_count)&&raw.cited_by_count>=0?raw.cited_by_count:null,
+    updated_at: text(raw.updated_at, ''),
     openalex_id: text(raw.openalex_id, ''), doi: text(raw.doi, ''), canonical_key: text(raw.canonical_key, ''),
     evidence: '当前展示 A 原始元数据；B 审核结果另行展示，C 已发布图谱位于独立研究入口。',
     batch_id: batchIds.length ? String(batchIds[0]) : '—', batch_ids: batchIds,
@@ -65,7 +67,7 @@ export function normalizeMetadataGraph(value: unknown, filters: Filters): GraphD
 
 export class ApiResearchGateway implements ResearchGateway {
   async getPapers(filters: Filters, signal?: AbortSignal) {
-    if (filters.topic || filters.method) throw new Error('A 原始接口不支持主题/方法筛选，请切换到已发布图谱入口。')
+    if ((Array.isArray(filters.topic)?filters.topic.length:filters.topic)||(Array.isArray(filters.method)?filters.method.length:filters.method)) throw new Error('A 原始接口不支持主题/方法筛选，请切换到已发布图谱入口。')
     const query = new URLSearchParams({ page_size: '100' })
     for (const key of ['q', 'year', 'batch_id'] as const) if (filters[key]) query.set(key, filters[key])
     const raw = record(await requestJson<unknown>(`${base}/papers?${query}`, { signal }))

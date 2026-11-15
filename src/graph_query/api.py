@@ -12,7 +12,7 @@ from typing import Annotated, Literal
 
 
 
-from fastapi import Depends, FastAPI, Header, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 
 from fastapi.responses import FileResponse, JSONResponse
 
@@ -154,27 +154,34 @@ def create_app(repository=None, admin_token=None):
 
         q: str | None = Query(None, max_length=200),
 
-        topic: str | None = Query(None, max_length=500),
+        topic: list[str] | None = Query(None),
 
-        method: str | None = Query(None, max_length=500),
+        method: list[str] | None = Query(None),
 
         year: int | None = Query(None, ge=1900, le=2100),
 
-        author: str | None = Query(None, max_length=500),
+        author: list[str] | None = Query(None),
 
         author_id: str | None = Query(None, max_length=500),
 
-        institution: str | None = Query(None, max_length=500),
+        institution: list[str] | None = Query(None),
 
-        task: str | None = Query(None, max_length=500),
+        task: list[str] | None = Query(None),
 
-        dataset: str | None = Query(None, max_length=500),
+        dataset: list[str] | None = Query(None),
 
-        venue: str | None = Query(None, max_length=500),
+        venue: list[str] | None = Query(None),
 
     ):
 
-        return {k: v for k, v in locals().items() if v is not None and v != ""}
+        result = {k: v for k, v in locals().items() if v is not None and v != ""}
+        for key, value in result.items():
+            if isinstance(value, list):
+                cleaned = list(dict.fromkeys(item.strip() for item in value if item.strip()))
+                if len(cleaned) > 20 or any(len(item) > 500 for item in cleaned):
+                    raise HTTPException(422, "每个筛选维度最多20个值，单值不超过500字符")
+                result[key] = cleaned
+        return result
 
 
 

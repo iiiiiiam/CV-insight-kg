@@ -10,7 +10,7 @@ class GraphAnalytics:
 
     def _statistics(self, tx, batch, filters, limit):
 
-        params = dict(filters, batch=batch, limit=limit + 1)
+        params = dict(self.filter_params(filters), batch=batch, limit=limit + 1)
 
         scope = "MATCH (p:CVEntity) WHERE " + self.where(filters)
 

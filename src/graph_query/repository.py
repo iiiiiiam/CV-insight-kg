@@ -227,20 +227,28 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
             if filters.get(kind):
                 if kind == "institution":
                     clauses.append(
-                        "EXISTS { MATCH (p)-[:CV_LINK {kind:'has_author'}]->(:CVEntity)-[aff:CV_LINK {kind:'affiliated_with'}]->(f:CVEntity {batch_id:$batch,kind:'institution'}) WHERE (f.id=$institution OR f.name=$institution) AND p.id IN aff.paper_ids }"
+                        "EXISTS { MATCH (p)-[:CV_LINK {kind:'has_author'}]->(:CVEntity)-[aff:CV_LINK {kind:'affiliated_with'}]->(f:CVEntity {batch_id:$batch,kind:'institution'}) WHERE (f.id IN $institution OR toLower(f.name) IN $institution_normalized OR any(alias IN coalesce(f.aliases,[]) WHERE toLower(alias) IN $institution_normalized)) AND p.id IN aff.paper_ids }"
                     )
                 else:
                     clauses.append(
-                        f"EXISTS {{ MATCH (p)-[:CV_LINK]->(f:CVEntity {{batch_id:$batch,kind:'{kind}'}}) WHERE f.id=${kind} OR f.name=${kind} }}"
+                        f"EXISTS {{ MATCH (p)-[:CV_LINK]->(f:CVEntity {{batch_id:$batch,kind:'{kind}'}}) WHERE f.id IN ${kind} OR toLower(f.name) IN ${kind}_normalized OR any(alias IN coalesce(f.aliases,[]) WHERE toLower(alias) IN ${kind}_normalized) }}"
                     )
         return " AND ".join(clauses)
+
+    @staticmethod
+    def filter_params(filters):
+        params = dict(filters)
+        for kind in ("topic", "method", "author", "institution", "task", "dataset", "venue"):
+            if filters.get(kind):
+                values = filters[kind] if isinstance(filters[kind], list) else [filters[kind]]
+                params[kind] = values
+                params[kind + "_normalized"] = [value.casefold() for value in values]
+        return params
 
     def papers(self, filters, batch_id=None, page=1, page_size=20, sort="year_desc"):
         def operation(tx):
             batch = self.resolve(tx, batch_id)
-            params = dict(
-                filters, batch=batch, skip=(page - 1) * page_size, limit=page_size
-            )
+            params = dict(self.filter_params(filters), batch=batch, skip=(page - 1) * page_size, limit=page_size)
             match = "MATCH (p:CVEntity) WHERE " + self.where(filters)
             total = tx.run(match + " RETURN count(p) AS total", params).single()[
                 "total"
@@ -248,15 +256,37 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
             order = {
                 "year_desc": "p.year DESC,p.id",
                 "year_asc": "p.year ASC,p.id",
-                "title": "p.name,p.id",
+                "title": "toLower(p.name),p.id",
             }[sort]
             rows = tx.run(
                 match
-                + f" RETURN properties(p) AS p ORDER BY {order} SKIP $skip LIMIT $limit",
+                + f" WITH p ORDER BY {order} SKIP $skip LIMIT $limit "
+                  "OPTIONAL MATCH (p)-[:CV_LINK {kind:'has_author'}]->(a:CVEntity {batch_id:$batch,kind:'author'}) "
+                  "WITH p,[author IN collect(DISTINCT properties(a)) WHERE author IS NOT NULL] AS authors "
+                  "OPTIONAL MATCH (p)-[:CV_LINK {kind:'published_in'}]->(v:CVEntity {batch_id:$batch,kind:'venue'}) "
+                  "RETURN properties(p) AS p,authors,head([venue IN collect(DISTINCT properties(v)) WHERE venue IS NOT NULL]) AS venue "
+                  f"ORDER BY {order}",
                 params,
             )
+            items = []
+            for row in rows:
+                item = self.node(row["p"])
+                authors = []
+                for raw in row["authors"]:
+                    author = self.node(raw)
+                    local = next((c for c in author.get("contexts", []) if c["paper_id"] == item["id"]), None)
+                    authors.append(local["content"]["name"] if local else author["name"])
+                item["authors"] = sorted(set(authors), key=str.casefold)
+                venue = self.node(row["venue"]) if row["venue"] else None
+                if venue:
+                    local = next((c for c in venue.get("contexts", []) if c["paper_id"] == item["id"]), None)
+                    item["venue"] = local["content"]["name"] if local else venue["name"]
+                else:
+                    item["venue"] = None
+                item["citation_count"] = item.get("citation_count", item.get("cited_by_count"))
+                items.append(item)
             return {
-                "items": [self.node(r["p"]) for r in rows],
+                "items": items,
                 "total": total,
                 "page": page,
                 "page_size": page_size,
@@ -271,7 +301,8 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
             match = (
                 "MATCH (n:CVEntity {batch_id:$batch}) "
                 "WHERE ($kind IS NULL OR n.kind=$kind) "
-                "AND (toLower(n.name) CONTAINS toLower($q) OR n.id=$q) "
+                "AND (toLower(n.name) CONTAINS toLower($q) OR n.id=$q "
+                "OR any(alias IN coalesce(n.aliases,[]) WHERE toLower(alias) CONTAINS toLower($q))) "
             )
             params = dict(batch=batch, kind=kind, q=q, skip=(page - 1) * limit, limit=limit)
             total = tx.run(match + "RETURN count(n) AS total", params).single()["total"]
@@ -342,8 +373,13 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
                 for n in related:
                     local=next((c for c in n.get("contexts",[]) if c["paper_id"]==entity_id),None)
                     if local:n.update(name=local["content"]["name"],label=local["content"]["name"])
+            node = self.node(record["n"])
+            if node["kind"] == "paper":
+                node["authors"] = sorted({n["name"] for n in related if n["kind"] == "author"}, key=str.casefold)
+                node["venue"] = next((n["name"] for n in related if n["kind"] == "venue"), None)
+                node["citation_count"] = node.get("citation_count", node.get("cited_by_count"))
             return {
-                "node": self.node(record["n"]),
+                "node": node,
                 "related": related,
                 "relations": [
                     self.edge(r["r"], r["source"], r["target"]) for r in values[:200]
@@ -358,7 +394,7 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
         def operation(tx):
             batch = self.resolve(tx, batch_id)
             params = dict(
-                filters or {},
+                self.filter_params(filters or {}),
                 batch=batch,
                 seed=seed,
                 limit=limit + 1,
