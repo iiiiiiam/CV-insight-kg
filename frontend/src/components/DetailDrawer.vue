@@ -19,7 +19,7 @@ const title=computed(()=>cDetail.value?.node.name??paper.value?.title??entity.va
 const knowledgePaperId=computed(()=>{
   const node=cDetail.value?.node
   if(!node)return ''
-  for(const value of [node.source_id,node.source_url,node.id]){
+  for(const value of [node.openalex_id,node.source_id,node.source_url,node.id]){
     if(typeof value!=='string')continue
     const full=value.match(/^https?:\/\/openalex\.org\/(W\d+)\/?$/i)
     if(full)return `https://openalex.org/${full[1]}`

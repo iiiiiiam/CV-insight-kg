@@ -25,12 +25,18 @@ export function mountPaperDetail(root, data, onNavigate) {
   const card = el("article", undefined, "card");
   card.append(el("small", `${n.type} · ${data.batch_id}`), el("h1", n.name));
   const meta = el("div", undefined, "meta");
+  const authors = Array.isArray(n.author_names)
+    ? n.author_names
+    : (Array.isArray(n.authors) ? n.authors.map(a => typeof a === "string" ? a : a?.name).filter(Boolean) : []);
   meta.append(
     el("span", n.year ? `${n.year} 年` : "年份未提供"),
     el("span", `会议：${n.venue || "未知"}`),
-    el("span", `作者：${n.authors?.length ? n.authors.join("、") : "未知"}`),
+    el("span", `作者：${authors.length ? authors.join("、") : "未知"}`),
     el("span", `引用数：${Number.isInteger(n.citation_count) ? n.citation_count : "未知"}`),
-    el("span", n.updated_at ? `更新于 ${n.updated_at}` : "更新时间：未知"),
+    el("span", n.source_updated_at ? `来源更新：${n.source_updated_at}` : "来源更新时间：未知"),
+    el("span", n.knowledge_exported_at ? `知识导出：${n.knowledge_exported_at}` : "知识导出时间：未知"),
+    el("span", n.graph_published_at ? `图谱发布：${n.graph_published_at}` : "图谱发布时间：未知"),
+    el("span", n.data_revision ? `知识版本：${n.data_revision.slice(0, 12)}…` : "知识版本：未知"),
     safeLink(n.source_url, "查看来源"),
   );
   card.append(meta, el("h2", "摘要"), el("p", n.abstract || "摘要未提供"));

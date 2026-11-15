@@ -2,9 +2,9 @@ import type {LocationQuery,LocationQueryRaw} from 'vue-router'
 
 const searchKeys = [
   'tab','q','kind','page','batch_id','year','topic','method',
-  'author','author_id','institution','task','dataset','venue','sort','page_size',
+  'author','author_id','institution','task','dataset','venue','direction','sort','page_size',
 ] as const
-const multiKeys=new Set(['author','institution','topic','method','task','dataset','venue'])
+const multiKeys=new Set(['author','author_id','institution','topic','method','task','dataset','venue','direction','year'])
 
 export function researchResultQuery(query:LocationQuery):LocationQueryRaw{
   const result:LocationQueryRaw = {}

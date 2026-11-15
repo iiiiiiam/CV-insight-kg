@@ -151,39 +151,22 @@ def create_app(repository=None, admin_token=None):
 
 
     def filters(
-
-        q: str | None = Query(None, max_length=200),
-
-        topic: list[str] | None = Query(None),
-
-        method: list[str] | None = Query(None),
-
-        year: int | None = Query(None, ge=1900, le=2100),
-
-        author: list[str] | None = Query(None),
-
-        author_id: str | None = Query(None, max_length=500),
-
-        institution: list[str] | None = Query(None),
-
-        task: list[str] | None = Query(None),
-
-        dataset: list[str] | None = Query(None),
-
-        venue: list[str] | None = Query(None),
-
+        q: str | None=Query(None,max_length=200),
+        topic: Annotated[list[str] | None,Query(max_length=50)]=None,
+        method: Annotated[list[str] | None,Query(max_length=50)]=None,
+        author: Annotated[list[str] | None,Query(max_length=50)]=None,
+        author_id: Annotated[list[str] | None,Query(max_length=50)]=None,
+        institution: Annotated[list[str] | None,Query(max_length=50)]=None,
+        task: Annotated[list[str] | None,Query(max_length=50)]=None,
+        dataset: Annotated[list[str] | None,Query(max_length=50)]=None,
+        venue: Annotated[list[str] | None,Query(max_length=50)]=None,
+        direction: Annotated[list[str] | None,Query(max_length=50)]=None,
+        year: Annotated[list[int] | None,Query()]=None,
     ):
-
-        result = {k: v for k, v in locals().items() if v is not None and v != ""}
-        for key, value in result.items():
-            if isinstance(value, list):
-                cleaned = list(dict.fromkeys(item.strip() for item in value if item.strip()))
-                if len(cleaned) > 20 or any(len(item) > 500 for item in cleaned):
-                    raise HTTPException(422, "每个筛选维度最多20个值，单值不超过500字符")
-                result[key] = cleaned
-        return result
-
-
+        values=locals().copy()
+        if year and (len(year)>50 or any(y<1900 or y>2100 for y in year)):raise GraphError(422,'INVALID_YEAR','年份应在1900到2100之间，最多50项')
+        if any(isinstance(v,list) and any(isinstance(x,str) and len(x)>500 for x in v) for v in values.values()):raise GraphError(422,'INVALID_FILTER','筛选值过长')
+        return {k:v for k,v in values.items() if v is not None and v!='' and v!=[]}
 
     @app.get("/api/research/papers")
 

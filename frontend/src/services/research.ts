@@ -69,7 +69,9 @@ export class ApiResearchGateway implements ResearchGateway {
   async getPapers(filters: Filters, signal?: AbortSignal) {
     if ((Array.isArray(filters.topic)?filters.topic.length:filters.topic)||(Array.isArray(filters.method)?filters.method.length:filters.method)) throw new Error('A 原始接口不支持主题/方法筛选，请切换到已发布图谱入口。')
     const query = new URLSearchParams({ page_size: '100' })
-    for (const key of ['q', 'year', 'batch_id'] as const) if (filters[key]) query.set(key, filters[key])
+    for (const key of ['q', 'batch_id'] as const) if (filters[key]) query.set(key, filters[key])
+    const years = Array.isArray(filters.year) ? filters.year : (filters.year ? [filters.year] : [])
+    if (years[0]) query.set('year', years[0])
     const raw = record(await requestJson<unknown>(`${base}/papers?${query}`, { signal }))
     if (!Array.isArray(raw.items) || typeof raw.total !== 'number') throw new Error('A 论文列表响应格式不正确。')
     return { items: raw.items.map(normalizePaper), total: raw.total, batch_id: range(filters) }

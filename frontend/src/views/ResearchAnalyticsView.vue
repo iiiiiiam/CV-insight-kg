@@ -12,7 +12,8 @@ const requestedBatch = computed(()=>typeof route.query.batch_id==='string'?route
 const loading = ref(true)
 const error = ref('')
 const retry = ref(0)
-const groups = [{kind:'topic',label:'主题分布'},{kind:'method',label:'方法分布'}] as const
+const relationGroups = [{kind:'topic',label:'主题分布'},{kind:'method',label:'方法分布'}] as const
+const chartGroups = [...relationGroups,{kind:'research_direction',field:'direction',label:'研究子方向分布'}] as const
 
 watch([requestedBatch,retry],async ([batch,attempt],previous,onCleanup)=>{
   if(batch&&statistics.value?.batch_id===batch&&previous?.[1]===attempt)return
@@ -39,7 +40,7 @@ function latest(){
   if(requestedBatch.value)void router.replace({query:{...route.query,batch_id:undefined}})
   else retry.value++
 }
-function papersBy(field?:'year'|'topic'|'method',value?:string){
+function papersBy(field?:'year'|'topic'|'method'|'direction',value?:string){
   const query:Record<string,string> = {tab:'papers',batch_id:statistics.value!.batch_id}
   if(field&&value)query[field] = value
   return {path:'/research/papers',query}
@@ -67,11 +68,12 @@ function ratio(count:number){
         <RouterLink class="panel metric" :to="papersBy()">
           <span>论文总数</span><strong>{{statistics.paper_count}}</strong><small>查看本批全部论文 ↗</small>
         </RouterLink>
-        <div v-for="group in groups" :key="group.kind" class="panel metric">
+        <div v-for="group in relationGroups" :key="group.kind" class="panel metric">
           <span>{{group.kind==='topic'?'有主题关联的论文':'有方法关联的论文'}}</span>
           <strong>{{statistics.distributions[group.kind].papers_with_effective_relation}}</strong>
           <small>占本批次 {{ratio(statistics.distributions[group.kind].papers_with_effective_relation).toFixed(1)}}%</small>
         </div>
+        <div class="panel metric"><span>本批次研究子方向</span><strong>{{statistics.distributions.research_direction.items.length}}</strong><small>来自B的来源分类，不转换为主题或任务节点</small></div>
       </div>
       <p class="scope">
         发布批次 <code>{{statistics.batch_id}}</code><br>
@@ -88,12 +90,12 @@ function ratio(count:number){
         </RouterLink>
       </section>
       <div class="charts">
-        <section v-for="group in groups" :key="group.kind" class="panel chart" :class="group.kind">
+        <section v-for="group in chartGroups" :key="group.kind" class="panel chart" :class="group.kind">
           <h2>{{group.label}}</h2>
           <p class="chart-note" v-if="!statistics.distributions[group.kind].items.length">当前批次没有可统计的关联。</p>
           <p class="chart-note" v-else-if="statistics.distributions[group.kind].truncated">按关联论文数展示前 12 项。</p>
           <RouterLink v-for="item in statistics.distributions[group.kind].items" :key="item.id"
-            :to="papersBy(group.kind,item.id)" class="bar-row">
+            :to="papersBy('field' in group?group.field:group.kind,item.id)" class="bar-row">
             <span class="bar-label" :title="item.name">{{item.name}}</span>
             <span class="track" aria-hidden="true"><span class="bar" :style="{width:ratio(item.paper_count)+'%'}"></span></span>
             <span class="bar-count">{{item.paper_count}} 篇 ↗</span>
@@ -126,4 +128,5 @@ a.metric:hover{border-color:#75a99b;background:#f4faf7}
 .bar{height:100%;display:block;background:#3b9483;border-radius:6px}
 .method .bar{background:#5779ae}
 .topic .bar{background:#b37b3b}
+.research_direction .bar{background:#a66f9b}
 </style>

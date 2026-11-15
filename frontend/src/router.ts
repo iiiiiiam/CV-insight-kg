@@ -25,7 +25,7 @@ export const router=createRouter({
         path:'/research/papers',query:{...to.query,tab:'entities',kind:kind==='authors'?'author':'institution'},
       })},
       {path:`/research/${kind}/:id(.*)`,
-        component:kind==='authors'?()=>import('./views/AuthorProfileView.vue'):()=>import('./views/GraphProfileView.vue'),
+        component:kind==='authors'?()=>import('./views/AuthorProfileView.vue'):()=>import('./views/InstitutionProfileView.vue'),
         meta:{title:kind==='authors'?'作者证据画像':'机构证据画像'}},
     ]),
     {path:'/research/papers/:id',component:()=>import('./views/PaperView.vue'),meta:{title:'论文详情'}},

@@ -13,6 +13,7 @@ def main():
     parser.add_argument('--java',required=True)
     parser.add_argument('--file',required=True)
     parser.add_argument('--port',type=int,default=17691)
+    parser.add_argument('--tests',nargs='+',default=['tests/graph'])
     parser.add_argument('--report',default='docs/graph/effective-results.json')
     args=parser.parse_args()
     root=Path(__file__).resolve().parents[1]
@@ -30,7 +31,7 @@ def main():
             if 'READY' in line:print(line.strip(),flush=True);break
         env=dict(os.environ,GRAPH_TEST_URI=f'bolt://127.0.0.1:{args.port}',GRAPH_TEST_PASSWORD='test-password',EFFECTIVE_TEST_FILE=str(Path(args.file).resolve()),EFFECTIVE_REPORT=str((root/args.report).resolve()))
         # Harness has no authentication; password is only the driver's test placeholder.
-        return subprocess.run([sys.executable,'-m','pytest','tests/graph','-q','-p','no:cacheprovider','--tb=short'],cwd=root,env=env).returncode
+        return subprocess.run([sys.executable,'-m','pytest',*args.tests,'-q','-p','no:cacheprovider','--tb=short'],cwd=root,env=env).returncode
     finally:
         process.terminate()
         process.wait(timeout=20)

@@ -1,17 +1,18 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {getAuthorProfile,getResearchStatistics} from '../src/services/graph.ts'
+import {getAuthorProfile,getInstitutionProfile,getResearchStatistics} from '../src/services/graph.ts'
 
 test('statistics reads latest only when no batch is specified and rejects a mixed batch',async()=>{
   const previousFetch = globalThis.fetch
   const calls:string[] = []
   const empty = {items:[],truncated:false,papers_with_effective_relation:0,papers_without_effective_relation:0}
+  const directions = {items:[],truncated:false,basis:'source_classification, not mentions_topic/task'}
   globalThis.fetch = async input=>{
     const query = new URL(String(input),'http://test').searchParams
     calls.push(query.get('batch_id')??'')
     return Response.json({
       batch_id:'effective-current',batch_provenance:'effective_export',paper_count:0,years:[],
-      distributions:{topic:empty,method:empty},basis:{unit:'distinct_papers',relations:'public_effective'},
+      distributions:{topic:empty,method:empty,research_direction:directions},basis:{unit:'distinct_papers',relations:'public_effective'},
     })
   }
   try{
@@ -51,4 +52,38 @@ test('author profile keeps its full batch count across pages and checks author i
   }finally{
     globalThis.fetch = previousFetch
   }
+})
+
+test('institution profile pins one batch and applies the institution to statistics and papers',async()=>{
+  const previousFetch=globalThis.fetch
+  const id='institution:lab-1',batch='effective-institution'
+  const scoped:string[]=[]
+  const empty={items:[],truncated:false,papers_with_effective_relation:0,papers_without_effective_relation:2}
+  globalThis.fetch=async input=>{
+    const url=new URL(String(input),'http://test')
+    if(url.pathname.startsWith('/api/research/institutions/'))return Response.json({
+      batch_id:batch,batch_provenance:'effective_export',
+      node:{id,kind:'institution',name:'Vision Lab'},
+      related:[{id:'author:1',kind:'author',name:'Alice'},{id:'author:1',kind:'author',name:'Alice'}],
+      relations:[],truncated:false,
+    })
+    assert.equal(url.searchParams.get('batch_id'),batch)
+    assert.equal(url.searchParams.get('institution'),id)
+    scoped.push(url.pathname)
+    if(url.pathname==='/api/research/statistics')return Response.json({
+      batch_id:batch,batch_provenance:'effective_export',paper_count:2,years:[{year:2024,paper_count:2}],
+      distributions:{topic:empty,method:empty,research_direction:{items:[],truncated:false,basis:'source_classification'}},
+      basis:{unit:'distinct_papers',relations:'public_effective'},
+    })
+    return Response.json({batch_id:batch,batch_provenance:'effective_export',total:2,items:[
+      {id:'paper:1',kind:'paper',name:'Paper 1',title:'Paper 1',year:2024,authors:[],author_names:[],venue:'CVPR',citation_count:null},
+    ]})
+  }
+  try{
+    const result=await getInstitutionProfile(id,batch,1)
+    assert.equal(result.institution.name,'Vision Lab')
+    assert.equal(result.papers.total,2)
+    assert.equal(result.authors.length,1)
+    assert.deepEqual(scoped.sort(),['/api/research/papers','/api/research/statistics'])
+  }finally{globalThis.fetch=previousFetch}
 })

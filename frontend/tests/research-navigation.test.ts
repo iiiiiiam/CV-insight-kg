@@ -4,9 +4,9 @@ import {knowledgePaperIdFromGraphId,researchResultQuery,safeResearchReturn} from
 
 test('returning from detail or graph preserves all committed research filters and pagination',()=>{
   const filters = {
-    tab:'papers',q:'diffusion',page:'3',batch_id:'effective-123',year:'2024',
-    topic:'Vision',method:'Diffusion',author:'Lee',author_id:'author:1',
-    institution:'Lab',task:'Generation',dataset:'COCO',venue:'CVPR',
+    tab:'papers',q:'diffusion',page:'3',batch_id:'effective-123',year:['2023','2024'],
+    topic:'Vision',method:'Diffusion',author:'Lee',author_id:['author:1','author:2'],
+    institution:'Lab',task:'Generation',dataset:'COCO',venue:'CVPR',direction:['目标检测','图像分割'],
   }
   assert.deepEqual(researchResultQuery({
     ...filters,detail:'paper:1',seed:'author:1',seed_label:'Lee',source:'c',
@@ -21,10 +21,12 @@ test('an entity search keeps its type and keyword when closing a result view',()
 
 test('FR01 keeps repeated values only for supported multi-value dimensions',()=>{
   assert.deepEqual(researchResultQuery({
-    tab:'papers',topic:['Vision','Generation'],author:['author:1','author:2'],
+    tab:'papers',topic:['Vision','Generation'],author:['author:1','author:2'],year:['2023','2024'],
+    author_id:['author:1','author:2'],direction:['目标检测','图像分割'],
     method:'Diffusion',q:['invalid','query'],page_size:'100',sort:'title',
   }),{
-    tab:'papers',topic:['Vision','Generation'],author:['author:1','author:2'],
+    tab:'papers',topic:['Vision','Generation'],author:['author:1','author:2'],year:['2023','2024'],
+    author_id:['author:1','author:2'],direction:['目标检测','图像分割'],
     method:'Diffusion',page_size:'100',sort:'title',
   })
 })

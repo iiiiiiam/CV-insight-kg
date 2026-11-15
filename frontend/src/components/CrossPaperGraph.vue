@@ -2,10 +2,10 @@
 import {computed,ref,watch} from 'vue'
 import {graphResearch} from '../services/graph.ts'
 import {EMPTY_FILTERS,TYPE_LABELS} from '../types.ts'
-import type {GraphData,GraphNode} from '../types.ts'
+import type {Filters,GraphData,GraphNode} from '../types.ts'
 import GraphPanel from './GraphPanel.vue'
 
-const props = defineProps<{seed:string; batch:string}>()
+const props = defineProps<{seed:string; batch:string;filters?:Filters}>()
 const emit = defineEmits<{select:[id:string,type:GraphNode['type']]}>()
 const rootId = ref(props.seed)
 const selectedId = ref(props.seed)
@@ -35,7 +35,7 @@ watch([()=>props.seed,()=>props.batch],([seed])=>{
   hops.value = 1
   retry.value++
 })
-watch([rootId,()=>props.batch,hops,retry],async ([seed,batch,depth],_,onCleanup)=>{
+watch([rootId,()=>props.batch,hops,retry,()=>JSON.stringify(props.filters??{})],async ([seed,batch,depth],_,onCleanup)=>{
   const controller = new AbortController()
   onCleanup(()=>controller.abort())
   error.value = ''
@@ -46,7 +46,7 @@ watch([rootId,()=>props.batch,hops,retry],async ([seed,batch,depth],_,onCleanup)
     if(controller.signal.aborted)return
     const signal = AbortSignal.any([controller.signal,AbortSignal.timeout(45000)])
     const expanded = await loadExpansion(params=>graphResearch.getGraph(params.seed,params.hops,
-      {...EMPTY_FILTERS,batch_id:params.batch_id},signal,params.limit),
+      {...EMPTY_FILTERS,...props.filters,batch_id:params.batch_id},signal,params.limit),
     {seed,batch_id:batch,hops:depth,limit:60})
     if(controller.signal.aborted)return
     const visible = selectVisible(expanded,seed)

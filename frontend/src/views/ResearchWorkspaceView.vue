@@ -18,15 +18,20 @@ const tabs = [
   {id:'entities',label:'作者与其他实体'},
   {id:'overview',label:'跨论文图谱总览'},
 ] as const
-const relationFields = [
+const coreFields = [
   {key:'author',label:'作者',kind:'Author'},
   {key:'institution',label:'机构',kind:'Institution'},
   {key:'topic',label:'主题',kind:'Topic'},
   {key:'method',label:'方法',kind:'Method'},
   {key:'task',label:'任务',kind:'Task'},
   {key:'dataset',label:'数据集',kind:'Dataset'},
-  {key:'venue',label:'会议 / 期刊',kind:'Venue'},
 ] as const
+const extraFields = [
+  {key:'venue',label:'会议 / 期刊',kind:'Venue'},
+  {key:'direction',label:'研究子方向',kind:null},
+] as const
+const entityFields=[...coreFields,extraFields[0]]
+const filterFields=[...coreFields,...extraFields]
 const param = (key:string) => typeof route.query[key]==='string' ? route.query[key] : ''
 const params = (key:string) => {
   const value=route.query[key]
@@ -64,9 +69,12 @@ function setValues(key:keyof Filters,value:string[]){filters.value[key]=value as
 
 function readFilters():Filters {
   const selectedSort=param('sort')
-  const result:Filters = {...EMPTY_FILTERS,q:param('q'),year:param('year'),author_id:param('author_id'),
+  const selectedYears=params('year'),selectedAuthors=params('author_id')
+  const result:Filters = {...EMPTY_FILTERS,q:param('q'),
+    year:selectedYears.length>1?selectedYears:(selectedYears[0]??''),
+    author_id:selectedAuthors.length>1?selectedAuthors:(selectedAuthors[0]??''),
     sort:(['year_desc','year_asc','title'].includes(selectedSort)?selectedSort:'year_desc') as PaperSort}
-  for(const {key} of relationFields){
+  for(const {key} of filterFields){
     const selected=params(key)
     result[key] = selected.length>1?selected:(selected[0]??'')
   }
@@ -104,7 +112,7 @@ function changePageSize(event:Event){
   void router.replace({query:{...resultQuery.value,page:undefined,page_size:(event.target as HTMLSelectElement).value,batch_id:batch.value}})
 }
 function relatedPapers(node:GraphNode){
-  const field = node.type==='Author'?'author_id':relationFields.find(item=>item.kind===node.type)?.key
+  const field = node.type==='Author'?'author_id':entityFields.find(item=>item.kind===node.type)?.key
   if(field)void router.push({path:'/research/papers',query:{tab:'papers',batch_id:batch.value,[field]:node.id}})
 }
 function openPaper(id:string){
@@ -176,7 +184,12 @@ watch([resultKey,refreshKey],async (_, __, onCleanup)=>{
       const result = await searchGraphEntities(entityQuery.value,kind.value,targetBatch,signal,page.value,pageSize.value)
       if(controller.signal.aborted)return
       if(typeof result.total!=='number')throw new Error('请重启 C 服务以启用实体分页。')
-      rows.value = result.items
+      rows.value = result.items.map(item=>({
+        id:item.id,label:item.label,type:item.type,
+        note:item.year?String(item.year):undefined,
+        authors:item.author_names??item.authors?.map(author=>author.name).filter((name):name is string=>!!name),
+        venue:item.venue,citation_count:item.citation_count,
+      }))
       total.value = result.total
       batch.value = result.batch_id
     }else{
@@ -216,24 +229,31 @@ watch([resultKey,refreshKey],async (_, __, onCleanup)=>{
     <form v-if="tab!=='overview'" class="panel search-card" role="search" @submit.prevent="search">
       <div v-if="tab==='papers'" class="search-fields">
         <label>论文标题<input v-model="filters.q" type="search" class="form-input" maxlength="200" placeholder="输入标题关键词"/></label>
-        <label>年份<input v-model="filters.year" type="text" inputmode="numeric" pattern="[0-9]{4}" class="form-input" placeholder="例如 2024"/></label>
+        <MultiValueFilter label="年份" :model-value="values(filters.year)" placeholder="例如 2023；回车后继续添加2024" @update:model-value="setValues('year',$event)"/>
         <label>排序<select v-model="filters.sort" class="form-input"><option value="year_desc">年份从新到旧</option><option value="year_asc">年份从旧到新</option><option value="title">标题 A–Z</option></select></label>
       </div>
-      <details v-if="tab==='papers'" :open="relationFields.some(({key})=>values(filters[key]).length>0)||!!filters.author_id">
-        <summary>按关联实体筛选</summary>
-        <p class="small-note">支持规范名称、已发布别名或稳定 ID；若名称存在歧义，请先在“作者与其他实体”中核对 ID。</p>
+      <details v-if="tab==='papers'" :open="filterFields.some(({key})=>values(filters[key]).length>0)||values(filters.author_id).length>0">
+        <summary>六维知识筛选与附加条件</summary>
+        <p class="small-note">六维为作者、机构、主题、方法、任务和数据集；同一维度多个值取并集，不同维度取交集。会议和研究子方向为附加条件。</p>
+        <h3 class="filter-heading">核心六维</h3>
         <div class="search-fields">
-          <MultiValueFilter v-for="field in relationFields" :key="field.key" :label="field.label"
+          <MultiValueFilter v-for="field in coreFields" :key="field.key" :label="field.label"
             :model-value="values(filters[field.key])" placeholder="输入名称、别名或图谱 ID"
             @update:model-value="setValues(field.key,$event)"/>
         </div>
-        <p v-if="filters.author_id" class="small-note">当前按作者 ID 筛选：{{filters.author_id}}
-          <button type="button" class="text-button" @click="filters.author_id=''">移除作者限制</button>
+        <h3 class="filter-heading">附加条件</h3>
+        <div class="search-fields">
+          <MultiValueFilter v-for="field in extraFields" :key="field.key" :label="field.label"
+            :model-value="values(filters[field.key])" :placeholder="field.key==='direction'?'输入方向名称或 cv-direction ID':'输入名称、别名或图谱 ID'"
+            @update:model-value="setValues(field.key,$event)"/>
+        </div>
+        <p v-if="values(filters.author_id).length" class="small-note">当前精确作者 ID：{{values(filters.author_id).join('、')}}
+          <button type="button" class="text-button" @click="filters.author_id=''">移除作者ID限制</button>
         </p>
       </details>
       <div v-if="tab==='entities'" class="search-fields">
         <label>实体类型<select v-model="kind" class="form-input">
-          <option v-for="item in relationFields" :key="item.kind" :value="item.kind.toLowerCase()">{{item.label}}</option>
+          <option v-for="item in entityFields" :key="item.kind" :value="item.kind.toLowerCase()">{{item.label}}</option>
         </select></label>
         <label>名称或完整图谱 ID<input v-model="entityQuery" type="search" class="form-input" maxlength="200"/></label>
       </div>
@@ -268,6 +288,8 @@ watch([resultKey,refreshKey],async (_, __, onCleanup)=>{
         <div class="actions">
           <RouterLink v-if="item.type==='Author'" class="text-button"
             :to="{path:'/research/authors/'+encodeURIComponent(item.id),query:{...resultQuery,batch_id:batch}}">查看作者画像</RouterLink>
+          <RouterLink v-if="item.type==='Institution'" class="text-button"
+            :to="{path:'/research/institutions/'+encodeURIComponent(item.id),query:{...resultQuery,batch_id:batch}}">查看机构画像</RouterLink>
           <button type="button" class="text-button" @click="showDetail(item.id,item.type)">{{item.type==='Paper'?'知识与证据':'查看详情'}}</button>
           <button v-if="tab==='entities'" type="button" class="text-button" @click="relatedPapers(item)">关联论文</button>
           <button type="button" class="button button-secondary" @click="showGraph(item.id,item.label)">查看关联图谱</button>
@@ -284,7 +306,7 @@ watch([resultKey,refreshKey],async (_, __, onCleanup)=>{
         <button type="button" class="button button-secondary" @click="backToResults">{{tab==='overview'?'返回图谱总览':'返回检索结果'}}</button>
       </div>
       <p class="small-note">从「{{selection.label}}」打开，展示同一发布批次的关联。两跳可经共享实体发现其他论文。</p>
-      <CrossPaperGraph :seed="selection.id" :batch="batch" @select="showDetail"/>
+      <CrossPaperGraph :seed="selection.id" :batch="batch" :filters="tab==='papers'?filters:undefined" @select="showDetail"/>
     </section>
     <DetailDrawer :id="drawer" source="c" :batch-id="batch" @close="closeDetail"
       @paper="id=>showDetail(id,'Paper')" @navigate="showDetail" @explore="showGraph"/>
@@ -303,6 +325,7 @@ watch([resultKey,refreshKey],async (_, __, onCleanup)=>{
 .search-fields .form-input{margin-top:5px}
 .search-card details{margin:14px 0}
 .search-card summary{cursor:pointer;font-size:13px}
+.filter-heading{margin:15px 0 2px;font-size:12px;color:#557177}
 .results-card header,.overview-card header{padding:18px 20px;border-bottom:1px solid #e6edef}.results-card header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .results-card header p,.overview-card header p,.local-graph p{margin:7px 0;font-size:13px;line-height:1.7}
 .result-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid #e6edef}

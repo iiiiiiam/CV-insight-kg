@@ -34,6 +34,7 @@ const charts = computed(()=>{
     }))},
     {title:'主题分布',field:'topic',...stats.distributions.topic},
     {title:'方法分布',field:'method',...stats.distributions.method},
+    {title:'研究子方向',field:'direction',...stats.distributions.research_direction},
   ] as const
 })
 
@@ -67,7 +68,7 @@ watch([authorId,requestedBatch,page,retry],async ([id,batch,currentPage],previou
   }
 },{immediate:true})
 
-function paperList(field?:'year'|'topic'|'method',value?:string){
+function paperList(field?:'year'|'topic'|'method'|'direction',value?:string){
   const query:Record<string,string> = {tab:'papers',author_id:authorId.value,batch_id:profile.value?.batch_id??''}
   if(field&&value)query[field] = value
   return {path:'/research/papers',query}
@@ -104,7 +105,7 @@ function explore(seed:string){
       </div>
       <div class="profile-grid metrics">
         <RouterLink class="panel card" :to="paperList()">
-          <span>本批次累计论文</span><strong>{{profile.papers.total}}</strong><small>查看全部关联论文 ↗</small>
+          <span>本批次关联论文</span><strong>{{profile.papers.total}}</strong><small>查看全部关联论文 ↗</small>
         </RouterLink>
         <div class="panel card"><span>覆盖年份</span><strong>{{profile.statistics.years.length}}</strong><small>根据本批次已收录论文</small></div>
         <div class="panel card"><span>有论文证据的机构</span><strong>{{profile.institutions.length}}</strong><small>按机构 ID 统计</small></div>

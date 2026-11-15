@@ -1,4 +1,5 @@
 from src.graph_query.repository import GraphRepository
+from src.graph_query.search import normalize
 
 
 def test_fr01_same_dimension_is_or_and_different_dimensions_are_and():
@@ -8,20 +9,19 @@ def test_fr01_same_dimension_is_or_and_different_dimensions_are_and():
         "method": ["Diffusion"],
         "year": 2024,
     }
-    where = GraphRepository.where(filters)
-    params = GraphRepository.filter_params(filters)
+    params = normalize(filters)
+    where = GraphRepository.where(params)
 
-    assert "f.id IN $author" in where
-    assert "toLower(f.name) IN $topic_normalized" in where
-    assert "any(alias IN coalesce(f.aliases,[])" in where
-    assert "p.year=$year" in where
+    assert "toLower(f.id) IN $author" in where
+    assert "toLower(f.name) IN $topic" in where
+    assert "any(v IN coalesce(f.search_tokens,[])" in where
+    assert "p.year IN $year" in where
     assert " AND " in where
-    assert params["author"] == ["author:1", "Alice"]
-    assert params["author_normalized"] == ["author:1", "alice"]
-    assert params["topic_normalized"] == ["vision", "generation"]
+    assert params["author"] == ["alice", "author:1"]
+    assert params["topic"] == ["generation", "vision"]
+    assert params["year"] == [2024]
 
 
 def test_fr01_old_single_value_contract_remains_supported():
-    params = GraphRepository.filter_params({"venue": "CVPR"})
-    assert params["venue"] == ["CVPR"]
-    assert params["venue_normalized"] == ["cvpr"]
+    params = normalize({"venue": "CVPR"})
+    assert params["venue"] == ["cvpr"]

@@ -3,15 +3,19 @@ export type EntityType = 'Paper' | 'Author' | 'Institution' | 'Topic' | 'Method'
 export type MultiFilterValue = string | string[]
 export type PaperSort = 'year_desc' | 'year_asc' | 'title'
 export interface Filters {
-  q: string; topic: MultiFilterValue; method: MultiFilterValue; year: string; batch_id: string
-  author?: MultiFilterValue; author_id?: string; institution?: MultiFilterValue; task?: MultiFilterValue
-  dataset?: MultiFilterValue; venue?: MultiFilterValue; sort?: PaperSort
+  q: string; topic: MultiFilterValue; method: MultiFilterValue; year: MultiFilterValue; batch_id: string
+  author?: MultiFilterValue; author_id?: MultiFilterValue; institution?: MultiFilterValue; task?: MultiFilterValue
+  dataset?: MultiFilterValue; venue?: MultiFilterValue; direction?: MultiFilterValue; sort?: PaperSort
 }
+export interface CAuthor {id:string|null;source_id:string|null;name:string|null}
+export interface CSource {url?:string|null;source_id?:string|null;name?:string;retrieved_at?:string}
 export interface Paper {
   id: string; title: string; year: number; topic: string; method: string; task: string;
   dataset: string; venue: string; authors: string[]; institution: string; abstract: string;
   source: string; source_url: string | null; evidence: string; batch_id: string;
   citation_count: number | null; updated_at?: string;
+  author_records?:CAuthor[]; source_updated_at?:string|null; knowledge_exported_at?:string|null
+  graph_published_at?:string|null; data_revision?:string|null; field_notes?:Record<string,string>
   batch_ids?: Array<string | number>; batches?: unknown[];
   openalex_id: string; doi: string; canonical_key: string;
   sources: Array<{name: string; source_id: string; url: string | null; retrieved_at: string}>;
@@ -20,7 +24,7 @@ export interface Paper {
 // Effective public snapshots can be automatic or human-corrected.  Evidence
 // always points to source text, but an automatic item has no reviewer field.
 export interface GraphEvidence {paper_id:string;source_url:string;field:string;quote:string;locator:string;reviewer?:string;reviewed_at?:string}
-export interface CNode {id:string;kind:string;type:EntityType;name:string;label:string;title?:string;year?:number;abstract?:string|null;source_id?:string|null;source_url?:string|null;updated_at?:string;missing_fields?:string[];batch_id?:string;aliases?:string[];authors?:string[];venue?:string|null;citation_count?:number|null}
+export interface CNode {id:string;kind:string;type:EntityType;name:string;label:string;title?:string;year?:number;abstract?:string|null;source_id?:string|null;source_url?:string|null;updated_at?:string;missing_fields?:string[];batch_id?:string;aliases?:string[];authors?:CAuthor[];author_names?:string[];venue?:string|null;citation_count?:number|null;openalex_id?:string|null;sources?:CSource[];metadata?:Record<string,unknown>;source_updated_at?:string|null;knowledge_exported_at?:string|null;graph_published_at?:string|null;data_revision?:string|null;field_notes?:Record<string,string>}
 export interface CDetail {node:CNode;related:CNode[];relations:GraphEdge[];truncated:boolean;batch_id:string;batch_provenance?:string}
 export interface GraphNode { id: string; label: string; type: EntityType; hop?:number; isNew?:boolean }
 export interface GraphEdge { id: string; source: string; target: string; type: string; evidence: string | GraphEvidence[];kind?:string;status?:string;batch_id?:string;isNew?:boolean }
