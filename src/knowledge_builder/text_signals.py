@@ -2,7 +2,7 @@
 
 import re
 
-VERSION = "explicit-names/0.1"
+VERSION = "explicit-names/0.2"
 TOKEN = r"[A-Z0-9][A-Za-z0-9]*(?:[-./][A-Za-z0-9]+)*"
 NAME = TOKEN + r"(?:\s+" + TOKEN + r"){0,2}"
 INTRO = re.compile(r"\b(?:we|this paper)\s+(?:here\s+)?(?:introduce|propose|present|develop)\s+", re.I)
@@ -11,6 +11,22 @@ GENERIC = {"a", "an", "the", "new", "novel", "first", "our", "model", "models", 
            "dataset", "datasets", "data", "public", "standard", "benchmark", "benchmarks", "existing",
            "three", "two", "four", "five", "several", "multiple", "challenging", "large", "large-scale"}
 GENERIC |= {"this", "these", "those", "it", "its", "each", "some", "both"}
+
+
+def _introduced_kind(description):
+    """Use explicit type words before purpose clauses; a named dataset is not a model."""
+    description = re.split(r"\b(?:for|using|which|that|with)\b", description, maxsplit=1, flags=re.I)[0]
+    typed = re.search(r"\b(data\s*sets?|corpus|tasks?|problems?|models?|methods?|frameworks?|"
+                      r"architectures?|networks?|approaches|systems?|benchmarks?|metrics?|scores?)\b", description, re.I)
+    if typed:
+        kind = typed[1].casefold().replace(" ", "")
+        if kind in {"dataset", "datasets", "corpus"}:
+            return "dataset"
+        if kind in {"task", "tasks", "problem", "problems"}:
+            return "task"
+        if kind.startswith(("benchmark", "metric", "score")):
+            return None  # These may be a task, suite or measure, not a method.
+    return "method"
 
 
 def _name(value):
@@ -43,11 +59,15 @@ def explicit_signals(paper):
                 clause = re.split(r"[.;\n]", text[intro.end():intro.end() + 220], maxsplit=1)[0]
                 direct = re.match(TOKEN + r"(?=\s*[,:(]|\s+(?:is|as|to|for|which)\b)", clause)
                 if direct:
-                    add("method", _name(direct.group()), field, intro.group() + clause, "introduced_name")
+                    kind = _introduced_kind(clause[direct.end():])
+                    if kind is not None:
+                        add(kind, _name(direct.group()), field, intro.group() + clause, "introduced_name")
                 naming = NAMING.search(clause)
                 if naming:
                     tail = re.split(r",|\b(?:to|for|which|that)\b", clause[naming.end():], maxsplit=1)[0].strip()
-                    kind = "task" if re.search(r"\b(?:task|problem)\s*$", clause[:naming.start()].strip(), re.I) else "method"
+                    kind = _introduced_kind(clause[:naming.start()])
+                    if kind is None:
+                        continue
                     acronym = re.search(r"\((" + TOKEN + r")\)", tail)
                     value = acronym[1] if acronym and kind == "method" else tail.split("(", 1)[0].strip()
                     add(kind, _name(value), field, intro.group() + clause, "introduced_named_" + kind)

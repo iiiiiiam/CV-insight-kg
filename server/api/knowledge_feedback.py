@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from server.application.knowledge import KnowledgeSnapshot, KnowledgeSnapshotInvalid
 from server.domain.auth import Session, require_admin, require_admin_write
-from server.application.knowledge_reading import reading_workspace
+from server.application.knowledge_reading import reading_workspace, reading_report, reading_effective
 from src.knowledge_builder.feedback import FeedbackConflict, FeedbackStoreInvalid
 
 
@@ -52,9 +52,9 @@ def feedback_router(settings):
     def workspace():
         return reading_workspace(settings, snapshot_factory=KnowledgeSnapshot)
 
-    def call(method, *args, **kwargs):
+    def execute(operation):
         try:
-            return getattr(workspace(), method)(*args, **kwargs)
+            return operation()
         except FeedbackConflict as exc:
             raise HTTPException(409, str(exc)) from exc
         except (FeedbackStoreInvalid, KnowledgeSnapshotInvalid) as exc:
@@ -65,6 +65,13 @@ def feedback_router(settings):
             raise HTTPException(422, str(exc)) from exc
         except OSError as exc:
             raise HTTPException(503, "知识或反馈记录暂不可用，请稍后重试") from exc
+
+    def call(method, *args, **kwargs):
+        return execute(lambda: getattr(workspace(), method)(*args, **kwargs))
+
+    def report(expected_revision):
+        return execute(lambda: reading_report(settings, expected_revision=expected_revision,
+                                              snapshot_factory=KnowledgeSnapshot))
 
     @router.get("/api/knowledge/papers")
     def papers():
@@ -97,10 +104,38 @@ def feedback_router(settings):
     @router.get("/api/admin/knowledge/effective-export")
     def export_effective(expected_revision: str | None = Query(default=None, pattern="^[0-9a-f]{64}$"),
                          _session: Session = Depends(require_admin)):
-        document = call("export_effective", expected_revision=expected_revision)
+        document = execute(lambda: reading_effective(settings, expected_revision=expected_revision,
+                                                     snapshot_factory=KnowledgeSnapshot))
         return Response(json.dumps(document, ensure_ascii=False, indent=2), media_type="application/json",
             headers={"Content-Disposition": f'attachment; filename="effective-{document["revision"][:12]}.json"',
                      "Cache-Control": "no-store", "X-Knowledge-Revision": document["revision"]})
+
+    @router.get("/api/admin/knowledge/report-export")
+    def export_report(expected_revision: str | None = Query(default=None, pattern="^[0-9a-f]{64}$"),
+                      _session: Session = Depends(require_admin)):
+        document = report(expected_revision)
+        return Response(json.dumps(document, ensure_ascii=False, indent=2), media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="knowledge-report-{document["revision"][:12]}.json"',
+                     "Cache-Control": "no-store", "X-Knowledge-Revision": document["scope"]["knowledge_revision"],
+                     "X-Report-Revision": document["revision"]})
+
+    @router.get("/api/knowledge/author-tags")
+    def author_tags(expected_revision: str | None = Query(default=None, pattern="^[0-9a-f]{64}$"),
+                    source_id: str | None = Query(default=None, min_length=1, max_length=500),
+                    author_ref: str | None = Query(default=None, pattern="^author-ref:[0-9a-f]{64}$")):
+        document = report(expected_revision)["author_tags"]
+        if source_id is not None or author_ref is not None:
+            # Filter exact identities only. Unknown IDs yield an explicit empty
+            # selection, never a same-name match or the complete author list.
+            selected = [author for author in document["authors"]
+                        if (source_id is None or author["source_id"] == source_id)
+                        and (author_ref is None or author["author_ref"] == author_ref)]
+            document = {**document, "authors": selected,
+                        "selection": dict(source_id=source_id, author_ref=author_ref)}
+            from src.knowledge_builder.extraction import fingerprint
+            document["revision"] = fingerprint({key: value for key, value in document.items() if key != "revision"})
+        return Response(json.dumps(document, ensure_ascii=False), media_type="application/json",
+            headers={"Cache-Control": "no-store", "X-Knowledge-Revision": document["knowledge_revision"]})
 
     @router.post("/api/admin/knowledge/feedback/{identifier}")
     def resolve(identifier: str, body: FeedbackResolution,

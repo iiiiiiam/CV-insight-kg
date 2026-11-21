@@ -45,3 +45,29 @@ def reading_workspace(settings, *, snapshot_factory=KnowledgeSnapshot):
             raise KnowledgeSnapshotInvalid("来源增强数据无法读取或校验，请检查 B_SOURCE_CORPUS") from exc
     return KnowledgeFeedback(papers, results, snapshot.sessions, vocabulary,
         FeedbackStore(snapshot.review_directory / "_feedback" / "state.json"), source_records=sources)
+
+
+def reading_effective(settings, *, expected_revision=None, snapshot_factory=KnowledgeSnapshot):
+    """Read effective knowledge and detect concurrent batch/source/feedback changes."""
+    document = reading_workspace(settings, snapshot_factory=snapshot_factory).export_effective(
+        expected_revision=expected_revision)
+    reading_workspace(settings, snapshot_factory=snapshot_factory).export_effective(
+        expected_revision=document["revision"])
+    return document
+
+
+def reading_report(settings, *, expected_revision=None, snapshot_factory=KnowledgeSnapshot):
+    """Freeze a report and reject knowledge changes observed during its construction.
+
+    A second fresh workspace detects batch switching/withdrawal and source changes,
+    which cannot be detected by the feedback store's revision alone. Once returned,
+    the report is an immutable attachment, not a claim about C's active publication.
+    """
+    from src.knowledge_builder.report_knowledge import build_report_knowledge
+
+    workspace = reading_workspace(settings, snapshot_factory=snapshot_factory)
+    document = workspace.export_effective(expected_revision=expected_revision)
+    report = build_report_knowledge(document)
+    reading_workspace(settings, snapshot_factory=snapshot_factory).export_effective(
+        expected_revision=document["revision"])
+    return report

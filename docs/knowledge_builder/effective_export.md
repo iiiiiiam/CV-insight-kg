@@ -1,5 +1,9 @@
 # B → C 当前有效知识导出 v1
 
+第四周接入以 [本周交接](team_handoff.md) 为入口；新增作者标签、报告知识和 readiness 的字段见 [第四周接口说明](report_knowledge.md)。本协议仍为 `knowledge-effective/1.0`，C 的对应适配和 D 自动同步代码已在当前整合基线中。下方带日期的 150 篇附件数量、旧分支和待接入措辞属于历史阶段，不代表当前运行范围或最新完成情况。
+
+本周原 effective 下载已加上读取前后的版本复核；CLI `python -m scripts.knowledge_builder.export_effective` 也按 `server/.env`／进程环境读取 `B_BATCH_REGISTRY`、`B_SOURCE_CORPUS`、词表及来源缓存配置，使用同一范围并检查版本。批次模式撤回全部论文时输出合法空集合。CLI 导出本身不调用 C；运行中的 D 自动同步仍可能消费来源补充产生的新知识版本，隔离测试应关闭自动同步。
+
 ### B 页面展示补充
 
 后续试用已在 B 的单篇关联图中投影子方向：前端专用 ResearchDirection 显示类型、棕橙色六边形、连线“属于研究方向”，点击只读查看分类依据；其他不入图。显示节点不进入后端 entities/relations，不改变本协议实体类别、关系种类和计数，C 不需要因为本次前端投影新增图节点。下段描述的“未在单篇图展示”属于前一阶段，正式图谱契约未升级这一边界仍保持。
@@ -24,7 +28,9 @@
 
 阅读结果、完整有效导出共用本次选择；C 的离线读取与存档仍兼容，实体及关系数量不因此增加。已有整合服务启用自动同步时，新内容版本可能触发正常同步发布；本次离线验证没有启动服务、覆盖旧导出或写 Neo4j。B 前端现已独立显示子方向，历史 tasks-only 段落里的混合展示描述不再代表当前页面。
 
-## 一级研究子方向：基于 tasks 的最小接入（2026-11-13）
+## 历史记录：早期仅基于 tasks 的最小接入（2026-11-13）
+
+本节保留早期字段示例及当时的能力边界，不代表当前分类规则或页面状态。当前已经使用上节的组合分类，B 已有独立方向显示和筛选，C 也已接入方向筛选／统计。接入新代码请以上节和第四周交接入口为准。
 
 产品约定：以“计算机视觉”为统一主方向，只整理一层子方向，如目标检测、图像分割、图像分类、三维视觉等；不照搬 OpenAlex 的多级学科体系。`subfield` 仍是来源所属学科，不等于产品的子方向。
 
@@ -98,7 +104,7 @@ C 当前读取器的离线校验、投影兼容测试已覆盖新增字段：可
 
 它复用 `KnowledgeFeedback._material`，不是另做一套“导出专用识别”。每篇的 `origin.public_revision` 与同一数据快照下的阅读接口一致。个人浏览器里的隐藏、改名、补充、阅读位置不会进入文件。
 
-**旧 `confirmed.json` 的含义与接口保留**，仍仅服务于旧人工确认流程，不能代表新阅读页。C 原来的 `adapt_confirmed` 不接收新格式；请新增对应适配，不伪造 confirm/reviewer 来让旧适配器通过。
+**旧 `confirmed.json` 的含义与接口保留**，仍仅服务于旧人工确认流程，不能代表新阅读页。C 的 `adapt_confirmed` 不接收新格式；当前整合版已在 `src/graph_query/effective.py` 中提供 effective 校验与投影，应使用该链路，不重复开发适配，也不伪造 confirm/reviewer 让旧适配器通过。
 
 ## 2. 获取方式
 
@@ -134,7 +140,7 @@ python -m scripts.knowledge_builder.export_effective
 python -m scripts.knowledge_builder.export_effective --corpus data/knowledge_builder/source_corpus/corpus.json --output data/knowledge_builder/exports/effective.json
 ```
 
-其他参数：`--reviews-dir`、`--vocabulary`、`--expected-revision`。不指定 corpus 且 B_SOURCE_CORPUS 未配置时，读取默认旧 20 篇自动结果；不隐式下载论文或补采来源。
+其他参数：`--reviews-dir`、`--vocabulary`、`--expected-revision`。优先读取 `B_BATCH_REGISTRY` 指定账本或默认账本中的有效批次；首次成功接收前才按固定样本／B_SOURCE_CORPUS 配置读取演示输入。账本一旦启用，全部撤回后为 0，不因未配置 corpus 就退回旧 20 篇。不隐式下载论文或补采来源。
 
 ## 3. 根字段
 

@@ -89,13 +89,23 @@ def validate_vocabulary(vocabulary):
 
 
 def validate_evidence(paper: PaperInput, evidence: Evidence):
+    _evidence_checker(paper)(evidence)
+
+
+def _evidence_checker(paper: PaperInput):
+    """Freeze source data once for a batch of proofs, avoiding quadratic metadata copies."""
     data = asdict(paper)
+    identity = (paper.openalex_id, paper.dataset_id, paper.source_url, fingerprint(data))
+    return lambda evidence: _validate_evidence(data, identity, evidence)
+
+
+def _validate_evidence(data, identity, evidence):
     if (
         evidence.paper_id,
         evidence.dataset_id,
         evidence.source_url,
         evidence.input_fingerprint,
-    ) != (paper.openalex_id, paper.dataset_id, paper.source_url, fingerprint(data)):
+    ) != identity:
         raise ValueError("Evidence belongs to a different input")
     if evidence.field in ("title", "abstract"):
         value = data[evidence.field]
@@ -295,6 +305,7 @@ def validate_result(paper: PaperInput, result: ExtractionResult):
     if len(entities) != len(result.entities):
         raise ValueError("Duplicate entity key")
     ids = set()
+    check_evidence = _evidence_checker(paper)
     for candidate in [*result.entities, *result.relations]:
         if (
             candidate.status != "pending"
@@ -304,7 +315,7 @@ def validate_result(paper: PaperInput, result: ExtractionResult):
             raise ValueError("Invalid candidate status, evidence or duplicate ID")
         ids.add(candidate.candidate_id)
         for proof in candidate.evidence:
-            validate_evidence(paper, proof)
+            check_evidence(proof)
     kinds = {kind for pair in RELATIONS.values() for kind in pair}
     for candidate in result.entities:
         entity = candidate.entity

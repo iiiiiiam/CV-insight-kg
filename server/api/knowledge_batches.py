@@ -3,13 +3,14 @@ from typing import Any
 import logging
 import threading
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from server.application.knowledge_batches import batch_registry, batch_sources
 from server.domain.auth import Session, require_admin, require_admin_write
 from src.knowledge_builder.batches import BatchConflict, BatchStoreInvalid, _snapshot
 from src.knowledge_builder.batch_sources import BatchSourcesInvalid
+from src.knowledge_builder.feedback import FeedbackConflict, FeedbackStoreInvalid
 from src.knowledge_builder.models import PaperInput
 
 
@@ -56,9 +57,9 @@ def batch_router(settings):
     def call(operation):
         try:
             return operation(batch_registry(settings))
-        except BatchConflict as exc:
+        except (BatchConflict, FeedbackConflict) as exc:
             raise HTTPException(409, str(exc)) from exc
-        except (BatchStoreInvalid, BatchSourcesInvalid, OSError) as exc:
+        except (BatchStoreInvalid, BatchSourcesInvalid, FeedbackStoreInvalid, OSError) as exc:
             raise HTTPException(503, "批次存档暂不可用，原记录保留，请检查后重试") from exc
         except LookupError as exc:
             raise HTTPException(404, "未找到该批次") from exc
@@ -85,6 +86,57 @@ def batch_router(settings):
         if result["status"] in {"accepted", "unchanged"}:
             schedule(tasks)
         return result
+
+    @router.get("/readiness")
+    def readiness(expected_revision: str | None = Query(default=None, pattern="^[0-9a-f]{64}$"),
+                  _session: Session = Depends(require_admin)):
+        """B's processing state, independently of A tasks and C publication.
+
+        A successful response means a validated effective result can be read.
+        Missing external sources do not suppress available local-rule results.
+        """
+        from server.application.knowledge_reading import reading_workspace, reading_effective
+        from server.application.knowledge import KnowledgeSnapshotInvalid
+
+        def read(registry):
+            state = registry.read()
+            snapshot = _snapshot(state)
+            try:
+                workspace = reading_workspace(settings)
+                document = workspace.export_effective(expected_revision=expected_revision)
+                sources = batch_sources(settings).summary(list(workspace.papers.values()), workspace.vocabulary)
+                with job_lock:
+                    process = dict(job)
+                reading_effective(settings, expected_revision=document["revision"])
+            except KnowledgeSnapshotInvalid as exc:
+                raise HTTPException(503, "知识存档暂不可用，不能确认结果可读取") from exc
+            # Source completion and provider-membership are independent of the
+            # effective content revision. Detect those changing during this read.
+            if (registry.snapshot()["revision"] != snapshot["revision"]
+                    or batch_sources(settings).summary(list(workspace.papers.values()), workspace.vocabulary) != sources):
+                raise FeedbackConflict("批次或来源状态已变化，请重新查询")
+            if not document["counts"]["papers"]:
+                source_state = "empty"
+            elif process["running"]:
+                source_state = "running"
+            elif process["error"]:
+                source_state = "interrupted"
+            elif sources["pending"]:
+                source_state = "pending"
+            elif sources["partial"]:
+                source_state = "partial"
+            else:
+                source_state = "complete"
+            return dict(
+                input_mode="batches" if state["batches"] else "demonstration",
+                ledger_revision=state["revision"], input_snapshot_revision=snapshot["revision"] if state["batches"] else None,
+                knowledge_revision=document["revision"], paper_count=document["counts"]["papers"],
+                source_enrichment=dict(state=source_state, **sources, **process),
+                results=dict(available=True, empty=not document["counts"]["papers"],
+                             policy="automatic_results_and_effective_public_corrections"),
+                publication=dict(state="not_checked", owner="C/D"),
+            )
+        return call(read)
 
     @router.post("/enrich")
     def enrich(tasks: BackgroundTasks, _session: Session = Depends(require_admin_write)):

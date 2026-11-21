@@ -8,7 +8,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .extraction import RELATIONS, fingerprint, validate_evidence
+from .extraction import RELATIONS, fingerprint, _evidence_checker
 from .feedback import FeedbackConflict
 from .models import Evidence, PaperInput
 
@@ -74,6 +74,7 @@ def validate_effective_export(document):
             raise ValueError("Duplicate paper or changed effective input")
         seen.add(paper.openalex_id)
         entities, identifiers = {}, set()
+        check_evidence = _evidence_checker(paper)
         for group in ("entities", "relations"):
             for item in part[group]:
                 if item["candidate_id"] in identifiers:
@@ -86,7 +87,7 @@ def validate_effective_export(document):
                 if not item["evidence"]:
                     raise ValueError("Effective items require source evidence")
                 for raw in item["evidence"]:
-                    validate_evidence(paper, Evidence(**{**raw, "path": tuple(raw["path"])}))
+                    check_evidence(Evidence(**{**raw, "path": tuple(raw["path"])}))
                 c = item["content"]
                 if group == "entities":
                     if c["key"] in entities or c["kind"] not in {"paper", "author", "institution", "venue", "topic", "method", "task", "dataset"}:

@@ -62,3 +62,24 @@ class TextSignalTests(unittest.TestCase):
         self.assertNotIn("CloudNet", {e.entity.name for e in result.entities})
         report = analyze_sources(paper, load_vocabulary(), [], fallback=True)
         self.assertTrue({"CloudNet", "FreshSet"} <= {c["entity"]["name"] for c in report["enriched"]["entities"]})
+
+    def test_explicitly_introduced_dataset_is_not_a_method(self):
+        for wording in (
+            "We introduce FreshSet, a large-scale, open-access dataset comprising over 5.1 million images.",
+            "We present a new dataset called FreshSet for image classification.",
+        ):
+            with self.subTest(wording=wording):
+                signals = explicit_signals(self.paper(wording))
+                self.assertIn(("dataset", "FreshSet"), {(s["kind"], s["name"]) for s in signals})
+                self.assertNotIn(("method", "FreshSet"), {(s["kind"], s["name"]) for s in signals})
+                report = analyze_sources(self.paper(wording), load_vocabulary(), [], fallback=True)
+                self.assertIn(("dataset", "FreshSet"), {(c["entity"]["kind"], c["entity"]["name"]) for c in report["enriched"]["entities"]})
+
+    def test_typed_task_and_metric_introductions_do_not_default_to_method(self):
+        signals = explicit_signals(self.paper("We introduce FreshTask, a task for understanding images."))
+        self.assertEqual([(s["kind"], s["name"]) for s in signals], [("task", "FreshTask")])
+        for wording in ("We introduce FreshScore, a new metric for evaluation.",
+                        "We present FreshBench, a benchmark for image models."):
+            self.assertEqual(explicit_signals(self.paper(wording)), [])
+        signals = explicit_signals(self.paper("We introduce FreshNet, a model for learning on a new dataset."))
+        self.assertEqual([(s["kind"], s["name"]) for s in signals], [("method", "FreshNet")])
