@@ -4,6 +4,7 @@ import unittest
 from copy import deepcopy
 from dataclasses import asdict, replace
 from pathlib import Path
+from unittest.mock import patch
 
 from src.knowledge_builder.extraction import (
     candidate_id,
@@ -19,6 +20,23 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ExtractionTests(unittest.TestCase):
+    def test_many_authors_do_not_copy_full_metadata_for_each_evidence(self):
+        paper = replace(self.paper, authorships=[
+            dict(author=dict(id=f"source:author:{i}", display_name=f"Author {i}"),
+                 institutions=[dict(id=f"source:institution:{i}", display_name=f"Institution {i}")])
+            for i in range(60)
+        ])
+        result = extract_candidates(paper)
+        self.assertGreater(sum(len(c.evidence) for c in result.entities + result.relations), 300)
+        with patch("src.knowledge_builder.extraction.asdict", wraps=asdict) as snapshot:
+            validate_result(paper, result)
+        self.assertLess(snapshot.call_count, 10)
+        damaged = deepcopy(result)
+        candidate = next(c for c in damaged.entities if c.entity.kind == "author")
+        candidate.evidence[0] = replace(candidate.evidence[0], quote='"invented"')
+        with self.assertRaises(ValueError):
+            validate_result(paper, damaged)
+
     def setUp(self):
         self.paper = PaperInput(
             "test:paper",

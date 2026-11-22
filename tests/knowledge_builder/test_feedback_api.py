@@ -35,7 +35,9 @@ class FeedbackAPITests(unittest.TestCase):
             sessions={self.paper.openalex_id: ReviewSession(self.paper, result)}, review_directory=directory)
         self.enterContext(patch("server.api.knowledge_feedback.KnowledgeSnapshot", return_value=snapshot))
         self.settings = Settings(username="feedback-test", password="isolated-test-password", secret="s" * 48,
-                                 origins=("http://testserver",))
+                                 origins=("http://testserver",), auto_graph_sync=False,
+                                 b_batch_registry=str(directory / "ledger.json"),
+                                 user_store=str(directory / "users.json"))
         self.client = self.enterContext(TestClient(create_app(self.settings)))
 
     def reading(self):

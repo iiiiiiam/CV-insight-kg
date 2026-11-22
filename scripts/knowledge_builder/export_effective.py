@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 from dotenv import load_dotenv
 
-from server.application.knowledge_reading import reading_workspace
+from server.application.knowledge_reading import reading_effective
 from src.knowledge_builder.effective_export import write_effective_export
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -25,8 +25,11 @@ def main():
     workbench = os.getenv("KNOWLEDGE_WORKBENCH_DATA")
     settings = SimpleNamespace(b_source_corpus=args.corpus or os.getenv("B_SOURCE_CORPUS") or None,
         b_reviews_directory=args.reviews_dir or os.getenv("B_REVIEWS_DIR") or (str(Path(workbench) / "reviews") if workbench else None),
-        b_vocabulary_path=args.vocabulary or os.getenv("B_VOCABULARY_PATH") or None)
-    document = reading_workspace(settings).export_effective(args.expected_revision)
+        b_vocabulary_path=args.vocabulary or os.getenv("B_VOCABULARY_PATH") or None,
+        b_batch_registry=os.getenv("B_BATCH_REGISTRY") or None,
+        b_source_cache=os.getenv("B_SOURCE_CACHE") or None,
+        b_source_offline=os.getenv("B_SOURCE_OFFLINE", "false").lower() == "true")
+    document = reading_effective(settings, expected_revision=args.expected_revision)
     write_effective_export(document, args.output)
     print(f"Exported {document['counts']['papers']} papers to {args.output}; revision={document['revision']}", flush=True)
 
