@@ -5,7 +5,7 @@ import FormalBatchControls from './FormalBatchControls.vue'
 import {getJob,type JobInfo} from '../services/admin.ts'
 import {batchCode} from '../services/import-progress.ts'
 
-const props=defineProps<{jobs:JobInfo[];currentJobId?:number;fromImports?:boolean}>()
+const props=defineProps<{jobs:JobInfo[];currentJobId?:number;fromImports?:boolean;fromSources?:boolean}>()
 const emit=defineEmits<{changed:[id:number]}>()
 const choices=computed(()=>props.jobs.filter(j=>['reserve','formal'].includes(j.kind)).sort((a,b)=>b.id-a.id))
 const available=computed(()=>choices.value.filter(j=>j.batch_state!=='withdrawn'&&!['queued','running'].includes(j.status)))
@@ -34,7 +34,7 @@ onUnmounted(()=>generation++)
 <template>
  <section class="panel withdrawal-panel" aria-labelledby="withdrawal-heading">
   <header><div><h2 id="withdrawal-heading">批次撤回</h2><p>选择需要撤回的导入批次，核对后再确认。</p></div></header>
-  <p v-if="!choices.length" class="withdrawal-empty">还没有手动导入批次，导入论文后可在这里选择撤回。</p>
+  <p v-if="!choices.length" class="withdrawal-empty">还没有可查看的导入批次，论文入库后可在这里选择撤回。</p>
   <template v-else>
    <p v-if="!available.length" class="withdrawal-empty">当前没有可撤回的批次。已撤回和正在导入的批次会标注在列表中。</p>
    <label class="withdrawal-label" for="withdrawal-batch">选择撤回批次</label>
@@ -45,7 +45,7 @@ onUnmounted(()=>generation++)
    <p v-if="busy" role="status" class="withdrawal-empty">正在读取所选批次…</p>
    <p v-else-if="error" role="alert" class="withdrawal-error">{{error}} <button class="text-button" @click="load">重试读取</button></p>
    <template v-else-if="detail">
-    <div class="withdrawal-summary"><strong>{{batchCode(detail)}}</strong><span>{{detail.venue}} {{detail.year}}</span><span>导入时间 {{date(detail.created_at)}}</span><span>本批论文 {{detail.paper_count??detail.quality?.total??0}} 篇</span><RouterLink v-if="!withdrawing" class="text-button" :to="{path:'/admin/jobs',query:{job_id:String(detail.id),from:fromImports?'imports':undefined}}">查看本批论文 →</RouterLink></div>
+    <div class="withdrawal-summary"><strong>{{batchCode(detail)}}</strong><span>{{detail.venue}} {{detail.year}}</span><span>导入时间 {{date(detail.created_at)}}</span><span>本批论文 {{detail.paper_count??detail.quality?.total??0}} 篇</span><RouterLink v-if="!withdrawing" class="text-button" :to="{path:'/admin/jobs',query:{job_id:String(detail.id),from:fromImports?'imports':fromSources?'sources':undefined}}">查看本批论文 →</RouterLink></div>
     <FormalBatchControls :id="detail.id" :status="detail.status" @pending="withdrawing=$event" @changed="emit('changed',detail.id)"/>
    </template>
   </template>

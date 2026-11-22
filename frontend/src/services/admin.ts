@@ -119,10 +119,13 @@ export interface ReserveLibrary {items:ReserveGroup[];available:number}
 export function getReserve(){return requestJson<ReserveLibrary>('/api/admin/reserve')}
 export function importReserve(group:ReserveGroup,count:number){return requestJson<JobInfo & {selected_papers:number}>('/api/admin/reserve/imports',writeInit('POST',{venue:group.venue,year:group.year,source:group.source,count}))}
 
-export interface FormalBatch {batch_id:number;batch_key:string;state:'active'|'withdrawn';status:string;withdrawal_reason:string|null;withdrawn_at:string|null;counts:Record<string,number>}
+export interface FormalBatchSummary {batch_id:number;batch_code:string;batch_key:string;dataset_id:string;status:string;state:'active'|'withdrawn';input_revision:string;created_at:string;withdrawn_at:string|null}
+export interface FormalBatchList {format_version:string;page:number;page_size:number;total:number;items:FormalBatchSummary[]}
+export interface FormalBatch {format_version:string;batch_id:number;batch_code:string;batch_key:string;dataset_id:string;input_revision:string;status:string;state:'active'|'withdrawn';batch_revision:string;total_papers:number;exported_papers:number;excluded_papers:number;withdrawal_reason:string|null;withdrawn_at:string|null;counts:Record<string,number>;changes:Record<string,unknown[]>}
+export function listFormalBatches(page=1,pageSize=100){return requestJson<FormalBatchList>(`/api/admin/formal/batches?page=${page}&page_size=${pageSize}`)}
 export function getFormalBatch(id:number){return requestJson<FormalBatch>(`/api/admin/formal/batches/${id}`)}
 export function withdrawFormalBatch(id:number,reason:string){return requestJson<FormalBatch>(`/api/admin/formal/batches/${id}/withdraw`,writeInit('POST',{reason}))}
-export interface BatchWithdrawal {display_code?:string;import_mode?:'manual'|'automatic';is_simulated?:boolean;batch_id:number;batch_code:string;state:'active'|'withdrawn';withdrawal_reason:string|null;withdrawn_at:string|null;can_withdraw:boolean;blocked_reason:string}
+export interface BatchWithdrawal {display_code?:string;import_mode?:'manual'|'automatic';is_simulated?:boolean;batch_id:number;batch_code:string;state:'active'|'withdrawn';withdrawal_reason:string|null;withdrawn_at:string|null;can_withdraw:boolean;blocked_reason:string;b_notification?:import('./workflows.ts').WorkflowTask|{status:'not_required';reason:string}|null}
 export function getBatchWithdrawal(id:number){return requestJson<BatchWithdrawal>(`/api/admin/jobs/${id}/withdrawal`)}
 export function withdrawImportBatch(id:number,reason:string){return requestJson<BatchWithdrawal>(`/api/admin/jobs/${id}/withdraw`,writeInit('POST',{reason}))}
 

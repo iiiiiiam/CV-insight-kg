@@ -13,6 +13,8 @@ export const MENU:MenuItem[]=[
  {id:'NAV13',group:'数据管理',section:'导入任务',label:'论文导入',path:'/admin/imports',implemented:true,owner:'A / D'},
  {id:'NAV14',group:'数据管理',section:'导入任务',label:'导入记录',path:'/admin/jobs',implemented:true,owner:'A / D'},
  {id:'NAV15',group:'数据管理',section:'导入任务',label:'失败任务',path:'/admin/jobs?view=errors',implemented:true,owner:'A / D'},
+ {id:'A-HANDOFF',group:'数据管理',section:'交接与报告',label:'一键交接与版本状态',path:'/admin/handoffs',implemented:true,owner:'A / B / C / D'},
+ {id:'A-REPORTS',group:'数据管理',section:'交接与报告',label:'报告生成与下载',path:'/admin/reports',implemented:true,owner:'A / B / C / D'},
  {id:'NAV16',group:'文献调研',section:'论文知识',label:'知识证据与个人调整',path:'/research/knowledge',implemented:true,owner:'B / D'},
  {id:'NAV17',group:'数据管理',section:'反馈处理',label:'用户反馈处理',path:'/admin/knowledge-feedback',implemented:true,owner:'B / D'},
  {id:'NAV20',group:'系统管理',section:'管理员会话',label:'会话与权限验证',path:'/admin/access-check',implemented:true,owner:'D'},

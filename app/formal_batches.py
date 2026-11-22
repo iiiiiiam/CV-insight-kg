@@ -210,7 +210,12 @@ def withdraw_batch(db,job_id,reason):
     if ledger is None:raise LookupError('Formal batch not found')
     lock_scope(db,job.venue,job.year);db.refresh(ledger)
     if not reason or not reason.strip():raise ValueError('Withdrawal reason is required')
-    if ledger.withdrawn:return batch_manifest(db,job_id)
+    if ledger.withdrawn:
+        result=batch_manifest(db,job_id)
+        from .delivery import queue_withdrawal_notification
+        result['b_notification']=queue_withdrawal_notification(db,result)
+        db.commit()
+        return result
     if job.status in ('queued','running'):raise ValueError('Wait for the active task to finish before withdrawal')
     active=db.scalar(select(Job.id).where(Job.venue==job.venue,Job.year==job.year,Job.status.in_(('queued','running'))).limit(1))
     if active:raise ValueError('Another task for this conference/year is still active')
@@ -238,8 +243,13 @@ def withdraw_batch(db,job_id,reason):
     from .models import BatchWithdrawalAudit
     db.add(BatchWithdrawalAudit(job_id=job_id,occurred_at=ledger.withdrawn_at,
         removed_json=canonical(removed),retained_json=canonical(retained)))
-    db.add(JobEvent(job_id=job_id,stage='withdrawn',level='warning',message=reason.strip()));db.commit()
-    return batch_manifest(db,job_id)
+    db.add(JobEvent(job_id=job_id,stage='withdrawn',level='warning',message=reason.strip()))
+    db.flush()
+    result=batch_manifest(db,job_id)
+    from .delivery import queue_withdrawal_notification
+    result['b_notification']=queue_withdrawal_notification(db,result)
+    db.commit()
+    return result
 
 
 def export_json(value,path):

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {candidateLabel,candidateRows,getKnowledgeDetail,submitKnowledgeReview,fetchKnowledgeDownload,getConfirmedKnowledge} from '../src/services/knowledge.ts'
+import {candidateLabel,candidateRows,getAuthorKnowledgeTags,getKnowledgeDetail,submitKnowledgeReview,fetchKnowledgeDownload,getConfirmedKnowledge} from '../src/services/knowledge.ts'
 import type {Candidate,EntityContent,Evidence,KnowledgeDetail,ReviewItem} from '../src/services/knowledge.ts'
 
 // Test-only model of separate extraction/review payloads. Never imported by the UI.
@@ -47,6 +47,21 @@ test('relation labels resolve current names separately from original names',()=>
   const input=detail()
   assert.match(candidateLabel(input,candidateRows(input,'relations','reviewed')[0]!,'reviewed'),/程序测试纠正名/)
   assert.match(candidateLabel(input,candidateRows(input,'relations','original')[0]!,'original'),/Detection/)
+})
+
+test('author knowledge tags bind the exact source identity and effective revision',async()=>{
+  const original=globalThis.fetch,called:string[]=[]
+  globalThis.fetch=async input=>{
+    called.push(String(input))
+    return Response.json({format_version:'knowledge-author-tags/1',revision:'tag-revision',knowledge_revision:'a'.repeat(64),paper_ids:[],rule:{},authors:[]})
+  }
+  try{
+    const result=await getAuthorKnowledgeTags('https://openalex.org/A1','a'.repeat(64))
+    const query=new URL(called[0]!,'http://localhost').searchParams
+    assert.equal(query.get('source_id'),'https://openalex.org/A1')
+    assert.equal(query.get('expected_revision'),'a'.repeat(64))
+    assert.equal(result.knowledge_revision,'a'.repeat(64))
+  }finally{globalThis.fetch=original}
 })
 test('detail requests bind the overview revision, and a stale snapshot error is surfaced',async()=>{
   const original=globalThis.fetch,calls:string[]=[]

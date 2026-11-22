@@ -5,3 +5,6 @@
 *.yml text eol=lf
 *.json text eol=lf
 *.jsonl -text
+
+# Preserve the frozen official HTML bytes for baseline checksum verification.
+examples/collection_coverage/**/baseline.html -text -diff -whitespace

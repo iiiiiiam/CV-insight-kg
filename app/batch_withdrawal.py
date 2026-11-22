@@ -5,7 +5,7 @@ import json
 from sqlalchemy import select
 
 from .formal_batches import canonical,digest,freeze_content,lock_scope,paper_content,withdraw_batch
-from .models import BatchLedger,BatchPaperVersion,Job,JobRecord,Paper,PaperBatch,StablePaper
+from .models import BatchLedger,BatchPaperVersion,Job,JobRecord,Paper,PaperBatch,StablePaper,WorkflowTask
 from .batch_labels import batch_labels
 
 
@@ -18,7 +18,17 @@ def withdrawal_state(db,job_id):
     running=job.status in ('queued','running')
     other=db.scalar(select(Job.id).where(Job.id!=job.id,Job.venue==job.venue,Job.year==job.year,Job.status.in_(('queued','running'))).limit(1))
     blocked='请等待本批导入完成' if running else '同一会议年度还有任务正在处理，请稍后再撤回' if other else ''
+    notification=None
+    if withdrawn:
+        from .formal_batches import batch_manifest
+        from .workflow_tasks import view
+        revision=batch_manifest(db,job_id)['batch_revision']
+        task=db.scalar(select(WorkflowTask).where(WorkflowTask.kind=='handoff',
+            WorkflowTask.batch_id==job_id,WorkflowTask.batch_revision==revision)
+            .order_by(WorkflowTask.created_at.desc()).limit(1))
+        notification=view(task) if task else {'status':'not_required','reason':'本批次尚未向 B 交接'}
     return {'batch_id':job_id,'batch_code':f'BATCH-{job_id:06d}',
+            'b_notification':notification,
             **batch_labels(job),
             'state':'withdrawn' if withdrawn else 'active',
             'withdrawal_reason':ledger.withdrawal_reason if ledger else None,
@@ -77,9 +87,11 @@ def withdraw_import(db,job_id,reason):
     if job.kind not in ('reserve','formal'):raise ValueError('初始演示批次不支持撤回，请选择手动导入批次')
     lock_scope(db,job.venue,job.year)
     state=withdrawal_state(db,job_id)
-    if state['state']=='withdrawn':return state
+    if state['state']=='withdrawn':
+        result=withdraw_batch(db,job_id,reason)
+        return {**state,'b_notification':result['b_notification']}
     if not state['can_withdraw']:raise ValueError(state['blocked_reason'])
     if not reason or not reason.strip():raise ValueError('请填写撤回原因')
     if job.kind=='reserve':retain_legacy_manual_batch(db,job)
-    withdraw_batch(db,job_id,reason)
-    return withdrawal_state(db,job_id)
+    result=withdraw_batch(db,job_id,reason)
+    return {**withdrawal_state(db,job_id),'b_notification':result['b_notification']}

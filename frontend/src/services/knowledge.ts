@@ -83,6 +83,25 @@ export function getConfirmedKnowledge(paperId:string,signal?:AbortSignal){
   return requestJson<ConfirmedKnowledge>(`/api/knowledge/confirmed?${new URLSearchParams({paper_id:paperId})}`,{signal})
 }
 
+export interface AuthorTagSupport {
+  paper_id:string;input_fingerprint:string
+  witnesses:Record<string,Array<{candidate_id:string;content:Record<string,unknown>;evidence:Evidence[]}>>
+}
+export interface AuthorKnowledgeTag {
+  tag_id:string;kind:'topic'|'method'|'task'|'dataset';entity_key:string;names:string[]
+  supporting_paper_count:number;supports:AuthorTagSupport[]
+}
+export interface AuthorKnowledgeTags {
+  format_version:'knowledge-author-tags/1';revision:string;knowledge_revision:string;paper_ids:string[]
+  rule:Record<string,unknown>;selection?:{source_id:string|null;author_ref:string|null}
+  authors:Array<{author_ref:string;source_id:string|null;identity_state:string;names:string[];paper_ids:string[];tags:AuthorKnowledgeTag[]}>
+}
+export function getAuthorKnowledgeTags(sourceId:string,expectedRevision:string,signal?:AbortSignal){
+  const query=new URLSearchParams({source_id:sourceId})
+  if(expectedRevision)query.set('expected_revision',expectedRevision)
+  return requestJson<AuthorKnowledgeTags>(`/api/knowledge/author-tags?${query}`,{signal})
+}
+
 // The raw result keeps B's pending candidates. ReviewItem content is adapted separately.
 export function candidateRows(detail: KnowledgeDetail, kind: CandidateKind, mode: ViewMode, status: ReviewStatus | 'all' = 'all'): DisplayCandidate[] {
   const originals = detail.result[kind]

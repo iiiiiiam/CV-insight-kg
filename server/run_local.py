@@ -57,6 +57,9 @@ def main():
         database_url=os.getenv('D_A_DATABASE_URL') or os.getenv('DATABASE_URL') or 'sqlite:///'+str(local/'a.db')
     settings=replace(settings,a_base_url=f'http://127.0.0.1:{args.api_port}',origins=(f'http://localhost:{args.port}',f'http://127.0.0.1:{args.port}'))
     env={**os.environ,'DATABASE_URL':database_url,'LOCAL_DEMO':'0','ADMIN_TOKEN':settings.a_admin_token}
+    env.setdefault('B_API_BASE_URL', f'http://127.0.0.1:{args.port}')
+    env.setdefault('B_ADMIN_USERNAME', settings.username)
+    env.setdefault('B_ADMIN_PASSWORD', settings.password)
     children=[]
     try:
         api=subprocess.Popen([sys.executable,'-m','uvicorn','app.api:app','--host','127.0.0.1','--port',str(args.api_port)],cwd=ROOT,env=env)

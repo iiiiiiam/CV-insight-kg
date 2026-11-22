@@ -1,5 +1,6 @@
 """A-owned quality reports and version-bound downstream receipts."""
 import json
+from collections import Counter
 from pathlib import Path
 from fastapi import APIRouter,Depends,HTTPException,Query
 from pydantic import BaseModel,Field
@@ -11,7 +12,7 @@ from sqlalchemy import Integer,String,Text,DateTime,ForeignKey,UniqueConstraint,
 from .paper_quality import research_paper_scope
 from .formal_batches import batch_manifest
 from .formal_collection import load_baseline
-from .paths import configured_path
+from .paths import configured_path, project_path
 
 class HandoffReceipt(Base):
     __tablename__='a_handoff_receipts'
@@ -41,18 +42,28 @@ def quality(db):
         missing=[name for name,valid in [('abstract',bool((p.abstract or '').strip())),('doi',bool(p.doi)),('authors',bool(json.loads(p.authors_json))),('source',p.id in sourced)] if not valid]
         if missing:issues.append({'id':p.id,'title':p.title,'venue':p.venue,'year':p.year,'missing':missing})
     coverage=[]
-    roots={configured_path('A_COLLECTION_ROOT','data/week3/collection')}
-    for root in sorted(roots):
+    current_counts=Counter((p.venue,p.year) for p in papers)
+    roots=[configured_path('A_COLLECTION_ROOT','data/week3/collection'),project_path('examples/collection_coverage')]
+    seen=set()
+    for root in roots:
         for path in sorted(root.glob('*/baseline.json')):
+            if path.parent.name in seen:continue
+            seen.add(path.parent.name)
             try:
                 baseline=load_baseline(path)
                 report_path=path.with_name('coverage-reviewed.json')
                 if not report_path.exists():report_path=path.with_name('coverage.json')
+                if not report_path.exists():
+                    coverage.append({'scope':path.parent.name,'venue':baseline['venue'],'year':baseline['year'],
+                        'status':'pending','message':'官方目录已准备，尚未生成覆盖核对结果。'})
+                    continue
                 report=json.loads(report_path.read_text())
                 if report.get('baseline_revision')!=baseline['revision']:raise ValueError('Coverage baseline revision mismatch')
+                report['current_database_papers']=current_counts[(baseline['venue'],baseline['year'])]
                 coverage.append(report)
             except (ValueError,OSError,KeyError) as exc:
-                coverage.append({'scope':path.parent.name,'error':str(exc)})
+                coverage.append({'scope':path.parent.name,'status':'unavailable',
+                    'error':'覆盖核对资料暂不可用，请重新生成核对报告。'})
     return {'total_papers':len(papers),'issue_count':len(issues),'issues':issues,'coverage':coverage}
 
 def create_operations_router(db_session,admin):

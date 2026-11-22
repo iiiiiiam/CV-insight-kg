@@ -6,6 +6,9 @@ import DetailDrawer from '../components/DetailDrawer.vue'
 import StatePanel from '../components/StatePanel.vue'
 import {getAuthorProfile,graphResearch} from '../services/graph.ts'
 import type {AuthorProfile} from '../services/graph.ts'
+import {getAuthorKnowledgeTags} from '../services/knowledge.ts'
+import type {AuthorKnowledgeTags} from '../services/knowledge.ts'
+import {classifyAuthorProfile} from '../services/author-classification.ts'
 import {researchResultQuery} from '../services/research-navigation.ts'
 
 const route = useRoute()
@@ -17,6 +20,9 @@ const retry = ref(0)
 const loading = ref(true)
 const error = ref('')
 const profile = ref<AuthorProfile|null>(null)
+const knowledgeTags = ref<AuthorKnowledgeTags|null>(null)
+const tagsLoading = ref(false)
+const tagsError = ref('')
 const drawer = ref<string|null>(null)
 const showGraph = ref(false)
 const pageCount = computed(()=>profile.value?Math.max(1,Math.ceil(profile.value.papers.total/profile.value.papers.page_size)):1)
@@ -37,10 +43,29 @@ const charts = computed(()=>{
     {title:'研究子方向',field:'direction',...stats.distributions.research_direction},
   ] as const
 })
+const tagAuthor=computed(()=>knowledgeTags.value?.authors[0]??null)
+const tagGroups=computed(()=>{
+  const labels={topic:'主题',method:'方法',task:'任务',dataset:'数据集'} as const
+  return (Object.keys(labels) as Array<keyof typeof labels>).map(kind=>({kind,label:labels[kind],
+    items:tagAuthor.value?.tags.filter(tag=>tag.kind===kind)??[]}))
+})
+const authorClassification=computed(()=>{
+  const current=profile.value
+  if(!current)return null
+  return classifyAuthorProfile({
+    paperCount:current.papers.total,
+    years:current.statistics.years,
+    topics:current.statistics.distributions.topic.items,
+    institutionCount:current.institutions.length,
+    knowledgeTags:tagsLoading.value||tagsError.value?undefined:(tagAuthor.value?.tags??null),
+  })
+})
 
 watch([authorId,requestedBatch],()=>{
   drawer.value = null
   showGraph.value = false
+  knowledgeTags.value = null
+  tagsError.value = ''
 })
 watch([authorId,requestedBatch,page,retry],async ([id,batch,currentPage],previous,onCleanup)=>{
   const current = profile.value
@@ -51,6 +76,9 @@ watch([authorId,requestedBatch,page,retry],async ([id,batch,currentPage],previou
   const signal = AbortSignal.any([controller.signal,AbortSignal.timeout(45000)])
   loading.value = true
   error.value = ''
+  tagsLoading.value = false
+  knowledgeTags.value = null
+  tagsError.value = ''
   try{
     const fixedBatch = batch||(await graphResearch.getDetail(id,signal,undefined,'authors')).batch_id
     const result = await getAuthorProfile(id,fixedBatch,currentPage,signal)
@@ -58,6 +86,19 @@ watch([authorId,requestedBatch,page,retry],async ([id,batch,currentPage],previou
     profile.value = result
     loading.value = false
     if(!batch)await router.replace({query:{...route.query,batch_id:fixedBatch}})
+    const sourceId=result.author.source_id
+    const revision=fixedBatch.startsWith('effective-')?fixedBatch.slice('effective-'.length):''
+    if(sourceId&&revision){
+      tagsLoading.value=true
+      try{
+        const tags=await getAuthorKnowledgeTags(sourceId,revision,signal)
+        if(!controller.signal.aborted){
+          if(tags.knowledge_revision!==revision)throw new Error('B 作者标签与当前 C 发布批次版本不一致。')
+          knowledgeTags.value=tags
+        }
+      }catch(cause){if(!controller.signal.aborted)tagsError.value=cause instanceof Error?cause.message:'B 作者标签读取失败。'}
+      finally{if(!controller.signal.aborted)tagsLoading.value=false}
+    }else if(!sourceId)tagsError.value='当前作者没有稳定来源 ID，不能按姓名猜测或合并 B 作者标签。'
   }catch(cause){
     if(!controller.signal.aborted){
       profile.value = null
@@ -111,6 +152,23 @@ function explore(seed:string){
         <div class="panel card"><span>有论文证据的机构</span><strong>{{profile.institutions.length}}</strong><small>按机构 ID 统计</small></div>
       </div>
 
+      <section v-if="authorClassification" class="panel card classification-card">
+        <div class="classification-main">
+          <div><span class="eyebrow">RESEARCH PROFILE CODE</span><h2>作者研究画像</h2>
+            <p>{{authorClassification.summary}} 不表示作者能力、贡献或学术水平。</p></div>
+          <div v-if="authorClassification.code" class="profile-code"><strong>{{authorClassification.code}}</strong><span>{{authorClassification.title}}</span></div>
+          <div v-else class="profile-code fallback"><strong>描述型</strong><span>{{authorClassification.title}}</span></div>
+        </div>
+        <div class="descriptor-list"><span v-for="item in authorClassification.descriptors" :key="item">{{item}}</span></div>
+        <div class="dimension-grid">
+          <article v-for="item in authorClassification.dimensions" :key="item.code+item.label">
+            <b>{{item.code}}</b><div><strong>{{item.label}}</strong><p>{{item.evidence}}</p></div>
+          </article>
+        </div>
+        <p v-if="tagsLoading" class="small-note">B 标签仍在读取，画像码将在同版本标签核对完成后自动更新。</p>
+        <p v-else-if="tagsError" class="small-note tag-warning">B 标签不可用，当前只展示 C 统计能够支持的描述维度。</p>
+      </section>
+
       <div class="profile-grid charts">
         <section v-for="chart in charts" :key="chart.field" class="panel card">
           <h2>{{chart.title}}</h2>
@@ -123,6 +181,22 @@ function explore(seed:string){
         </section>
       </div>
       <p class="small-note chart-note">图表按论文去重，同篇论文可进入多个标签。主题和方法图表基于图谱中的提及关系。</p>
+
+      <section class="panel card knowledge-tags">
+        <h2>B 作者论文知识标签</h2>
+        <p class="small-note">标签表示该作者参与的当前有效论文涉及这些主题、方法、任务或数据集，不代表作者专长、贡献或影响力。每项均保留支持论文，可继续查看原文证据。</p>
+        <p v-if="tagsLoading" class="small-note" role="status">正在核对同版本 B 作者标签…</p>
+        <p v-else-if="tagsError" class="small-note tag-warning">{{tagsError}}</p>
+        <p v-else-if="tagAuthor&&!tagAuthor.tags.length" class="small-note">当前有效知识中没有该作者的论文知识标签。</p>
+        <div v-else-if="tagAuthor" class="tag-groups">
+          <section v-for="group in tagGroups" :key="group.kind"><h3>{{group.label}} <span>{{group.items.length}}</span></h3>
+            <p v-if="!group.items.length" class="small-note">暂无</p>
+            <details v-for="tag in group.items" :key="tag.tag_id" class="tag-row"><summary><strong>{{tag.names.join(' / ')}}</strong><span>{{tag.supporting_paper_count}} 篇支持论文</span></summary>
+              <div class="support-links"><RouterLink v-for="support in tag.supports" :key="support.paper_id" :to="{path:'/research/knowledge',query:{paper_id:support.paper_id,from:'author-profile',return_to:route.fullPath}}">{{support.paper_id.split('/').at(-1)}} · 查看知识与证据 ↗</RouterLink></div>
+            </details>
+          </section>
+        </div>
+      </section>
 
       <section class="panel card">
         <h2>机构关联证据</h2>
@@ -183,4 +257,7 @@ function explore(seed:string){
 .paper-row{display:flex;justify-content:space-between;gap:12px;min-height:0}
 .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .proof-links,.pagination{padding-top:10px}
+.classification-card{background:linear-gradient(135deg,#f8fbfa,#edf7f4);border-color:#cfe4de}.classification-main{display:flex;align-items:center;justify-content:space-between;gap:20px}.classification-main h2{margin:3px 0 5px}.classification-main p{font-size:11px;color:#607980;line-height:1.7}.profile-code{min-width:190px;padding:15px 18px;background:#246f63;color:white;border-radius:10px;display:grid;gap:4px;text-align:center;box-shadow:0 7px 18px rgba(35,105,94,.14)}.profile-code strong{font-size:25px;letter-spacing:4px}.profile-code span{font-size:11px;line-height:1.5}.profile-code.fallback{background:#718a8e}.descriptor-list{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}.descriptor-list span{padding:6px 10px;border-radius:999px;background:white;border:1px solid #d6e6e1;color:#356d64;font-size:11px}.dimension-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:9px}.dimension-grid article{display:grid;grid-template-columns:31px 1fr;gap:9px;background:rgba(255,255,255,.72);padding:10px;border-radius:8px}.dimension-grid b{width:31px;height:31px;display:grid;place-items:center;border-radius:7px;background:#dcefe9;color:#267467}.dimension-grid strong{font-size:12px}.dimension-grid p{font-size:10px;line-height:1.6;color:#6c8389;margin-top:3px}
+.tag-warning{color:#a66d4b}.tag-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}.tag-groups>section{background:#f7faf9;border:1px solid #e4edeb;border-radius:8px;padding:13px}.tag-groups h3{font-size:13px;margin-bottom:7px}.tag-groups h3 span{font-size:10px;color:#71898f;margin-left:5px}.tag-row{border-top:1px solid #e3ece9;padding:9px 0;font-size:11px}.tag-row summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px}.tag-row summary span{color:#71898f;white-space:nowrap}.support-links{display:grid;gap:6px;padding:9px 0 2px}.support-links a{color:#2c8173;overflow-wrap:anywhere}
+@media(max-width:650px){.classification-main{align-items:stretch;flex-direction:column}.profile-code{min-width:0}.dimension-grid{grid-template-columns:1fr}}
 </style>

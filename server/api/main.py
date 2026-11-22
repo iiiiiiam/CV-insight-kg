@@ -557,6 +557,8 @@ def create_app(settings: Settings | None = None):
         return await call_a('POST',f'/api/admin/jobs/{job_id}/withdraw',body=body.model_dump())
 
     app.include_router(feedback_router(settings))
+    from server.api.workflows import register_workflows
+    register_workflows(app, call_a, read_effective_knowledge)
 
     dist = Path(__file__).resolve().parents[2] / 'frontend' / 'dist'
     if (dist / 'index.html').is_file():

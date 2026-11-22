@@ -51,3 +51,35 @@ class OperationsTests(unittest.TestCase):
    db.add(CvfRecord(job_id=identifier,source_id='legacy-paper',payload='{}',status='failed'));db.commit()
   data=self.client.get(f'/api/admin/jobs/{identifier}/records?status=failed',headers=self.auth).json()
   self.assertEqual(data['total'],1);self.assertEqual(data['items'][0]['source'],'cvf');self.assertIsNone(data['items'][0]['attempts'])
+
+ def test_coverage_without_report_is_pending_and_never_exposes_local_paths(self):
+  with tempfile.TemporaryDirectory() as directory:
+   root=Path(directory);scope=root/'cvpr_2023';scope.mkdir();(scope/'baseline.json').write_text('{}')
+   baseline={'venue':'CVPR','year':2023,'revision':'revision'}
+   with patch('app.operations.configured_path',return_value=root),patch('app.operations.load_baseline',return_value=baseline):
+    response=self.client.get('/api/admin/quality',headers=self.auth)
+    entry=response.json()['coverage'][0]
+    self.assertEqual((entry['venue'],entry['year'],entry['status']),('CVPR',2023,'pending'))
+    self.assertNotIn(directory,response.text);self.assertNotIn('coverage_ratio',entry)
+    (scope/'coverage.json').write_text('broken JSON')
+    response=self.client.get('/api/admin/quality',headers=self.auth)
+    self.assertEqual(response.json()['coverage'][0]['status'],'unavailable')
+    self.assertNotIn(directory,response.text)
+    (scope/'coverage.json').write_text(json.dumps({'baseline_revision':'revision','coverage_ratio':0.8}))
+    response=self.client.get('/api/admin/quality',headers=self.auth)
+    self.assertEqual(response.json()['coverage'][0]['coverage_ratio'],0.8)
+
+ def test_packaged_cvpr2024_coverage_is_valid_and_separate_from_current_db(self):
+  from app.ingest import upsert_paper
+  from app.paths import project_path
+  from app.formal_collection import load_baseline
+  with self.factory() as db:
+   upsert_paper(db,record(1)['row'],'openalex');db.commit()
+  with tempfile.TemporaryDirectory() as directory,patch('app.operations.configured_path',return_value=Path(directory)):
+   report=self.client.get('/api/admin/quality',headers=self.auth).json()
+  entry=next(c for c in report['coverage'] if c.get('venue')=='CVPR' and c.get('year')==2024)
+  baseline=load_baseline(project_path('examples/collection_coverage/cvpr_2024/baseline.json'))
+  self.assertEqual(entry['baseline_revision'],baseline['revision'])
+  self.assertEqual((entry['baseline_expected_papers'],entry['matched_papers'],len(entry['missing'])),(2716,2678,38))
+  self.assertEqual(entry['current_database_papers'],1)
+  self.assertEqual(entry['matched_papers']+len(entry['missing']),entry['baseline_expected_papers'])
