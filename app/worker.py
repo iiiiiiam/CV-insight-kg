@@ -21,6 +21,8 @@ def claim_job() -> int | None:
 
 
 def recover_jobs():
+    from .workflow_tasks import recover
+    recover(SessionLocal)
     with SessionLocal() as db:
         for job in db.scalars(select(Job).where(Job.status == "running", Job.active_key.is_not(None))):
             job.status = "queued"
@@ -56,9 +58,12 @@ def work(check_owner=None):
     while True:
         if check_owner:
             check_owner()
+        from .workflow_tasks import run_one
+        handled = run_one(SessionLocal)
         job_id = claim_job()
         if job_id is None:
-            time.sleep(2)
+            if not handled:
+                time.sleep(2)
             continue
         with SessionLocal() as db:
             job = db.get(Job, job_id)

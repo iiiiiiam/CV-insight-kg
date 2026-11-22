@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, create_engine, inspect, text, event
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, create_engine, inspect, text, event, select
 from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
@@ -201,6 +201,29 @@ class BatchPaperVersion(Base):
     content_json: Mapped[str] = mapped_column(Text().with_variant(LONGTEXT(), 'mysql'))
 
 
+class WorkflowTask(Base):
+    """Persistent report/delivery queue, serviced by the existing A worker."""
+    __tablename__ = 'a_workflow_tasks'
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20), index=True)
+    title: Mapped[str | None] = mapped_column(String(200))
+    batch_id: Mapped[int | None] = mapped_column(Integer)
+    batch_revision: Mapped[str | None] = mapped_column(String(64))
+    request_key: Mapped[str] = mapped_column(String(64), unique=True)
+    request_sha256: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(20), default='queued', index=True)
+    stage: Mapped[str] = mapped_column(String(40), default='queued')
+    progress: Mapped[int] = mapped_column(Integer, default=0)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    payload_json: Mapped[str] = mapped_column(Text().with_variant(LONGTEXT(), 'mysql'))
+    result_json: Mapped[str | None] = mapped_column(Text().with_variant(LONGTEXT(), 'mysql'))
+    error: Mapped[str | None] = mapped_column(Text)
+    events_json: Mapped[str] = mapped_column(Text().with_variant(LONGTEXT(), 'mysql'), default='[]')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
 def database(url: str):
     engine = create_engine(url, pool_pre_ping=True)
     if engine.dialect.name == 'sqlite':
@@ -229,6 +252,22 @@ def _prepare_database(engine):
         with engine.connect() as connection:connection.exec_driver_sql('PRAGMA journal_mode=WAL')
     from . import operations  # Register A receipt tables for API and worker alike.
     Base.metadata.create_all(engine)
+    workflow_columns = {c['name'] for c in inspect(engine).get_columns('a_workflow_tasks')}
+    changed = False
+    for name, definition in (('title', 'VARCHAR(200) NULL'), ('batch_id', 'INTEGER NULL'),
+                             ('batch_revision', 'VARCHAR(64) NULL')):
+        if name not in workflow_columns:
+            with engine.begin() as connection:
+                connection.execute(text(f'ALTER TABLE a_workflow_tasks ADD COLUMN {name} {definition}'))
+            changed = True
+    if changed:
+        import json
+        with sessionmaker(bind=engine)() as session:
+            for task in session.scalars(select(WorkflowTask)):
+                payload = json.loads(task.payload_json)
+                task.title, task.batch_id, task.batch_revision = (
+                    payload.get('title'), payload.get('batch_id'), payload.get('batch_revision'))
+            session.commit()
     if "is_new" not in {column["name"] for column in inspect(engine).get_columns("paper_batches")}:
         try:
             with engine.begin() as connection:

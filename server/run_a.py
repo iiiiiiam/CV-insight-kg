@@ -27,6 +27,9 @@ def main():
         raise SystemExit('请先配置 server/.env 的 A_ADMIN_TOKEN；本入口不启用A免鉴权模式。')
     os.environ['LOCAL_DEMO'] = '0'
     os.environ['ADMIN_TOKEN'] = settings.a_admin_token
+    os.environ.setdefault('B_API_BASE_URL', 'http://127.0.0.1:8001')
+    os.environ.setdefault('B_ADMIN_USERNAME', settings.username)
+    os.environ.setdefault('B_ADMIN_PASSWORD', settings.password)
     os.environ['DATABASE_URL'] = prepare_database_url(os.getenv('D_A_DATABASE_URL'))
     from app.db import seed_sources
     import uvicorn

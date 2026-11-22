@@ -572,6 +572,8 @@ def retry_job(job_id: int, db: Session = Depends(db_session)):
 # A-owned extensions keep the existing import and handoff endpoints compatible.
 from .formal_api import create_formal_router
 app.include_router(create_formal_router(db_session,admin))
+from .workflow_api import create_workflow_router
+app.include_router(create_workflow_router(db_session, admin))
 
 from .operations import create_operations_router
 app.include_router(create_operations_router(db_session,admin))
