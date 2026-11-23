@@ -66,4 +66,4 @@ def test_actual_a_b_c_week3(repo):
   response=c.get('/api/research/papers',params=[('batch_id',bid),('author',author),('year',str(years[0])),('year',str(years[-1]))]);assert response.status_code==200
   assert c.get('/api/research/papers?year=1800').status_code==422
  report=dict(counts=[20,30,20,0],batch_ids=ids,dimension_checks=checks,direction_ids=sorted(dirs),shared_inputs_restored=True,source='actual A handoff files → unmodified B reference BatchRegistry/effective exporter (offline) → C → isolated Neo4j; not live team HTTP/UI integration')
- Path('docs/graph/week3-results.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+ Path(os.getenv('WEEK3_REPORT','docs/graph/week3-results.json')).write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')

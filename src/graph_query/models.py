@@ -134,3 +134,4 @@ class BatchInput(StrictModel):
 class PublishInput(StrictModel):
     expected_active_batch_id: str | None
     allow_developer_fixture: bool = False
+    expected_publish_generation: int | None = Field(default=None, ge=0)

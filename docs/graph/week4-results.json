@@ -1,0 +1,118 @@
+{
+  "mode": "actual A files → read-only Week4 B code offline → C → isolated Neo4j; not live team integration",
+  "snapshots": [
+    {
+      "batch_id": "effective-0971bae8ef0be3ab5ba51e193a095bce095030ecd5b65610cbb95ab023bfba03",
+      "revision": "0971bae8ef0be3ab5ba51e193a095bce095030ecd5b65610cbb95ab023bfba03",
+      "papers": 20,
+      "authors": 126,
+      "institutions": 46,
+      "authors_without_source_id": 5,
+      "anchor": "author:unresolved:db58e11a7a1793ad89d96fb936fb09c0fca1440ba896a5eda8b71e8c4a96cdbd",
+      "coauthors": 13
+    },
+    {
+      "batch_id": "effective-d261d69a1e7a42bfaad48c0b69345d6e0d3c3b9200f60d09e3a4174b0aa660f9",
+      "revision": "d261d69a1e7a42bfaad48c0b69345d6e0d3c3b9200f60d09e3a4174b0aa660f9",
+      "papers": 30,
+      "authors": 180,
+      "institutions": 59,
+      "authors_without_source_id": 7,
+      "anchor": "author:https://openalex.org/A5025000908",
+      "coauthors": 13
+    },
+    {
+      "batch_id": "effective-0971bae8ef0be3ab5ba51e193a095bce095030ecd5b65610cbb95ab023bfba03",
+      "revision": "0971bae8ef0be3ab5ba51e193a095bce095030ecd5b65610cbb95ab023bfba03",
+      "papers": 20,
+      "authors": 126,
+      "institutions": 46,
+      "authors_without_source_id": 5,
+      "anchor": "author:unresolved:db58e11a7a1793ad89d96fb936fb09c0fca1440ba896a5eda8b71e8c4a96cdbd",
+      "coauthors": 13
+    },
+    {
+      "batch_id": "effective-fa3f1c2efd0d96646dff9bc2ee06f3b810210269dbdeed2884fe46c1b7011bc2",
+      "revision": "fa3f1c2efd0d96646dff9bc2ee06f3b810210269dbdeed2884fe46c1b7011bc2",
+      "papers": 0,
+      "authors": 0,
+      "institutions": 0,
+      "authors_without_source_id": 0,
+      "anchor": null,
+      "coauthors": 0
+    }
+  ],
+  "checks": [
+    "20-30-20-0",
+    "history",
+    "distinct authors and shared papers",
+    "four knowledge distributions",
+    "report revision and paper scope",
+    "single read transaction",
+    "invalid snapshots retain active",
+    "out-of-order CAS rejected"
+  ],
+  "test_summary": {
+    "total": 66,
+    "without_database": 48,
+    "isolated_real_neo4j": 18,
+    "failures": 0,
+    "skipped": 0,
+    "duration_seconds": 119.41,
+    "engine": "official Neo4j Harness 5.26.0 / Java21",
+    "a_report_section_guard": "passed against unchanged validate_sections; not A task/HTTP integration",
+    "dual_series": "pending confirmed requirements; not accepted"
+  },
+  "a_inputs_sha256": {
+    "01-first-batch.json": "274b5bfea8eb6fb5308642a1fc3d63f51514bd36205735925c07d98c2e841e6f",
+    "02-second-batch.json": "e88b5db7ee1ace871bb8eade4e5f647532029d3964444d227f0db00a3a455034",
+    "04-second-batch-withdrawal.json": "3106f8e18606c6028025ba24678d03fe1e58778f0130b9d47543ef14688e6099",
+    "07-b-receiver-results.json": "aa59a92a599466ae890f0cacb06a906491bbd35137f64bfc9719dcf524857e62"
+  },
+  "legacy_150_regression": {
+    "batch_id": "effective-6c97a76de785646616f2e13845a3c93fdc2ba26d280d56ea14b00e20013b9629",
+    "counts": {
+      "papers": 150,
+      "entities": 1848,
+      "relations": 2185,
+      "review_states": {
+        "automatic": 4033,
+        "human_confirmed": 0,
+        "human_corrected": 0
+      }
+    },
+    "unique_graph_entities": 1314,
+    "checks": [
+      "import",
+      "counts",
+      "automatic_state",
+      "evidence",
+      "search",
+      "profile",
+      "statistics",
+      "idempotence",
+      "remove",
+      "restore",
+      "history",
+      "local_names"
+    ]
+  },
+  "failure_coverage": [
+    "invalid format/revision/counts",
+    "wrong expected-active",
+    "ABA generation conflict",
+    "duplicate receipt and current publish replay",
+    "effective import transaction rollback and retry",
+    "publish pointer write rollback and retry",
+    "quality check retains pointer",
+    "injected database unavailability safe error",
+    "unexpected failure safe error"
+  ],
+  "not_run": [
+    "production Docker writes",
+    "A/B/D online services integration",
+    "multi-instance upstream event ordering",
+    "D browser regression",
+    "dual business series acceptance"
+  ]
+}

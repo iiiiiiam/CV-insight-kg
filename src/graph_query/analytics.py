@@ -5,8 +5,9 @@
 
 
 import json
+from .reporting import ResearchReports
 
-class GraphAnalytics:
+class GraphAnalytics(ResearchReports):
 
     def _statistics(self, tx, batch, filters, limit):
 
@@ -38,7 +39,7 @@ class GraphAnalytics:
 
         distributions = {}
 
-        for kind in ("topic", "method"):
+        for kind in ("topic", "method", "task", "dataset"):
 
             match = (
 
@@ -93,10 +94,15 @@ class GraphAnalytics:
             }
 
         direction_rows=list(tx.run(scope+" UNWIND range(0,size(coalesce(p.direction_ids,[]))-1) AS i RETURN p.direction_ids[i] AS id,p.direction_labels[i] AS name,count(DISTINCT p) AS paper_count ORDER BY paper_count DESC,id LIMIT $limit",params))
-        distributions['research_direction']={'items':[dict(r) for r in direction_rows[:limit]],'truncated':len(direction_rows)>limit,'basis':'source_classification, not mentions_topic/task'}
+        direction_covered=tx.run(scope+" AND size(coalesce(p.direction_ids,[]))>0 RETURN count(DISTINCT p) AS n",params).single()['n']
+        distributions['research_direction']={'items':[dict(r) for r in direction_rows[:limit]],'truncated':len(direction_rows)>limit,'papers_with_classification':direction_covered,'papers_without_classification':total-direction_covered,'basis':'source_classification, not mentions_topic/task'}
+        venue_match=scope+" MATCH (p)-[:CV_LINK {kind:'published_in'}]->(v:CVEntity {batch_id:$batch,kind:'venue'})"
+        venues=list(tx.run(venue_match+" RETURN v.id AS id,v.name AS name,count(DISTINCT p) AS paper_count ORDER BY paper_count DESC,id LIMIT $limit",params))
+        venue_covered=tx.run(venue_match+" RETURN count(DISTINCT p) AS n",params).single()['n']
+        distributions['venue']={'items':[dict(v) for v in venues[:limit]],'truncated':len(venues)>limit,'papers_with_relation':venue_covered,'papers_without_relation':total-venue_covered}
         meta = tx.run(
 
-            "MATCH (b:CVBatch {id:$batch}) RETURN properties(b) AS b", batch=batch
+            "MATCH (b:CVBatch {id:$batch}) RETURN b {.provenance,.schema_version,.vocabulary_version,.source_batch_id,.source_revision,.published_at,.review_state_counts_json} AS b", batch=batch
 
         ).single()["b"]
 
@@ -107,7 +113,9 @@ class GraphAnalytics:
         return {
 
             "batch_id": batch,
-            "review_state_counts": json.loads(meta.get("review_state_counts_json","null")),
+            "revision": meta.get("source_revision"),
+            "graph_first_published_at": meta.get("published_at"),
+            "review_state_counts": json.loads(meta.get("review_state_counts_json") or "null"),
 
             "provenance": meta["provenance"],
 
@@ -254,6 +262,8 @@ class GraphAnalytics:
                 "batch_id": batch,
 
                 "author": author,
+                "paper_count": stats["paper_count"],
+                "coauthors_query": {"endpoint":"/api/research/coauthors","anchor_id":author_id,"batch_id":batch},
 
                 "statistics": stats,
 

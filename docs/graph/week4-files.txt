@@ -1,0 +1,26 @@
+新增源码：
+src/graph_query/reporting.py
+src/graph_query/annual.py
+
+修改源码：
+src/graph_query/analytics.py
+src/graph_query/api.py
+src/graph_query/models.py
+src/graph_query/repository.py
+src/graph_query/effective_store.py
+
+测试与隔离运行：
+tests/graph/test_week4.py（新增）
+tests/graph/test_week3.py（只增加可配置结果路径，避免覆盖旧验收记录）
+scripts/verify_effective_isolated.py（复用隔离引擎，增加真实导出目录、A只读校验、JUnit结果参数；随机无认证占位值）
+
+新增接口与验收文档：
+docs/graph/week4-handoff.md
+docs/graph/week4-verification.md
+docs/graph/week4-results.json
+docs/graph/openapi.week4.json
+docs/graph/week4-files.txt
+
+基于已有 Week3 代码使用上述文件；没有执行提交或其他 Git 操作。
+不交付：work/week4-b-exports 下完整effective、账本、临时数据库、缓存、.env、凭据、参考源码、依赖/虚拟环境。
+现有 CI 已覆盖 src/graph_query 和 tests/graph 变更，继续运行原图谱测试；完整 A/B 文件离线链路需显式传 --exports，不假称由云端 CI 跑过。
