@@ -4,8 +4,8 @@ import {useRoute,useRouter} from 'vue-router'
 import CrossPaperGraph from '../components/CrossPaperGraph.vue'
 import DetailDrawer from '../components/DetailDrawer.vue'
 import StatePanel from '../components/StatePanel.vue'
-import {getAuthorProfile,graphResearch} from '../services/graph.ts'
-import type {AuthorProfile} from '../services/graph.ts'
+import {getAuthorProfile,getCoauthors,graphResearch} from '../services/graph.ts'
+import type {AuthorProfile,PartnerPage} from '../services/graph.ts'
 import {getAuthorKnowledgeTags} from '../services/knowledge.ts'
 import type {AuthorKnowledgeTags} from '../services/knowledge.ts'
 import {classifyAuthorProfile} from '../services/author-classification.ts'
@@ -16,6 +16,7 @@ const router = useRouter()
 const authorId = computed(()=>String(route.params.id??''))
 const requestedBatch = computed(()=>typeof route.query.batch_id==='string'?route.query.batch_id:'')
 const page = computed(()=>Math.max(1,Math.min(100000,parseInt(String(route.query.profile_page??'1'),10)||1)))
+const coauthorPage = computed(()=>Math.max(1,Math.min(100000,parseInt(String(route.query.coauthor_page??'1'),10)||1)))
 const retry = ref(0)
 const loading = ref(true)
 const error = ref('')
@@ -23,9 +24,13 @@ const profile = ref<AuthorProfile|null>(null)
 const knowledgeTags = ref<AuthorKnowledgeTags|null>(null)
 const tagsLoading = ref(false)
 const tagsError = ref('')
+const coauthors = ref<PartnerPage|null>(null)
+const coauthorsLoading = ref(false)
+const coauthorsError = ref('')
 const drawer = ref<string|null>(null)
 const showGraph = ref(false)
 const pageCount = computed(()=>profile.value?Math.max(1,Math.ceil(profile.value.papers.total/profile.value.papers.page_size)):1)
+const coauthorPageCount = computed(()=>coauthors.value?Math.max(1,Math.ceil(coauthors.value.total/coauthors.value.page_size)):1)
 const backLocation = computed(()=>({
   path:'/research/papers',
   query:{...researchResultQuery(route.query),tab:'entities',kind:'author',
@@ -66,6 +71,8 @@ watch([authorId,requestedBatch],()=>{
   showGraph.value = false
   knowledgeTags.value = null
   tagsError.value = ''
+  coauthors.value = null
+  coauthorsError.value = ''
 })
 watch([authorId,requestedBatch,page,retry],async ([id,batch,currentPage],previous,onCleanup)=>{
   const current = profile.value
@@ -109,6 +116,17 @@ watch([authorId,requestedBatch,page,retry],async ([id,batch,currentPage],previou
   }
 },{immediate:true})
 
+watch([authorId,()=>profile.value?.batch_id??'',coauthorPage,retry],async ([id,batch,currentPage],_,onCleanup)=>{
+  if(!batch||profile.value?.author.id!==id)return
+  const controller=new AbortController();onCleanup(()=>controller.abort())
+  coauthorsLoading.value=true;coauthorsError.value=''
+  try{
+    const result=await getCoauthors(id,batch,currentPage,AbortSignal.any([controller.signal,AbortSignal.timeout(45000)]))
+    if(!controller.signal.aborted)coauthors.value=result
+  }catch(cause){if(!controller.signal.aborted){coauthors.value=null;coauthorsError.value=cause instanceof Error?cause.message:'共同作者统计读取失败。'}}
+  finally{if(!controller.signal.aborted)coauthorsLoading.value=false}
+},{immediate:true})
+
 function paperList(field?:'year'|'topic'|'method'|'direction',value?:string){
   const query:Record<string,string> = {tab:'papers',author_id:authorId.value,batch_id:profile.value?.batch_id??''}
   if(field&&value)query[field] = value
@@ -117,12 +135,19 @@ function paperList(field?:'year'|'topic'|'method'|'direction',value?:string){
 function goToPage(value:number){
   void router.replace({query:{...route.query,profile_page:String(value)}})
 }
+function goToCoauthorPage(value:number){
+  void router.replace({query:{...route.query,coauthor_page:String(value)}})
+}
 function barWidth(count:number){
   return 100*count/(profile.value?.papers.total||1)+'%'
 }
 function paperLabel(id:string){
   const paper = profile.value?.papers.items.find(item=>item.id===id)
   return paper?.title??paper?.name??id.split('/').at(-1)??id
+}
+function partnerWidth(count:number){
+  const max=Math.max(1,...(coauthors.value?.items.map(item=>item.paper_count)??[]))
+  return `${Math.max(8,100*count/max)}%`
 }
 function explore(seed:string){
   void router.push({path:'/research/papers',query:{...backLocation.value.query,seed}})
@@ -150,6 +175,7 @@ function explore(seed:string){
         </RouterLink>
         <div class="panel card"><span>覆盖年份</span><strong>{{profile.statistics.years.length}}</strong><small>根据本批次已收录论文</small></div>
         <div class="panel card"><span>有论文证据的机构</span><strong>{{profile.institutions.length}}</strong><small>按机构 ID 统计</small></div>
+        <div class="panel card"><span>共同署名作者</span><strong>{{coauthors?.total??'—'}}</strong><small>按同篇论文和稳定作者 ID 统计</small></div>
       </div>
 
       <section v-if="authorClassification" class="panel card classification-card">
@@ -195,6 +221,22 @@ function explore(seed:string){
               <div class="support-links"><RouterLink v-for="support in tag.supports" :key="support.paper_id" :to="{path:'/research/knowledge',query:{paper_id:support.paper_id,from:'author-profile',return_to:route.fullPath}}">{{support.paper_id.split('/').at(-1)}} · 查看知识与证据 ↗</RouterLink></div>
             </details>
           </section>
+        </div>
+      </section>
+
+      <section class="panel card partner-card">
+        <div class="partner-heading"><div><h2>共同署名作者</h2><p class="small-note">只统计当前发布批次中与该作者共同署名同一篇论文的稳定作者实体，不表示导师关系、贡献程度或自然人身份已经完全消歧。</p></div><span v-if="coauthors">{{coauthors.total}} 位</span></div>
+        <p v-if="coauthorsLoading" class="small-note" role="status">正在读取共同作者及共享论文证据…</p>
+        <p v-else-if="coauthorsError" class="small-note tag-warning">{{coauthorsError}}</p>
+        <p v-else-if="coauthors&&!coauthors.items.length" class="small-note">当前范围没有共同署名作者。</p>
+        <article v-for="partner in coauthors?.items??[]" :key="partner.id" class="partner-row">
+          <div class="partner-summary"><RouterLink :to="{path:'/research/authors/'+encodeURIComponent(partner.id),query:{batch_id:profile.batch_id}}"><strong>{{partner.name}}</strong></RouterLink><span>{{partner.paper_count}} 篇共同论文</span></div>
+          <div class="partner-track"><i :style="{width:partnerWidth(partner.paper_count)}"></i></div>
+          <details><summary>查看共享论文{{partner.shared_papers_truncated?'（仅列前'+partner.shared_papers.length+'篇）':''}}</summary><div class="support-links"><button v-for="paper in partner.shared_papers" :key="paper.id" type="button" class="text-button" @click="drawer=paper.id">{{paper.year??'年份未知'}} · {{paper.title}}</button></div></details>
+        </article>
+        <div v-if="coauthorPageCount>1" class="actions pagination">
+          <button type="button" class="button button-secondary" :disabled="coauthorPage<=1" @click="goToCoauthorPage(coauthorPage-1)">上一页</button><span>{{coauthorPage}} / {{coauthorPageCount}}</span>
+          <button type="button" class="button button-secondary" :disabled="coauthorPage>=coauthorPageCount" @click="goToCoauthorPage(coauthorPage+1)">下一页</button>
         </div>
       </section>
 
@@ -257,7 +299,8 @@ function explore(seed:string){
 .paper-row{display:flex;justify-content:space-between;gap:12px;min-height:0}
 .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .proof-links,.pagination{padding-top:10px}
+.partner-heading,.partner-summary{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.partner-heading>span{font-size:12px;color:#2f756b}.partner-row{padding:12px 0;border-top:1px solid #e3ece9}.partner-summary{font-size:12px}.partner-summary a{color:#286f65}.partner-summary span{color:#71888e}.partner-track{height:7px;margin:8px 0;background:#e9f1ef;border-radius:6px;overflow:hidden}.partner-track i{display:block;height:100%;background:linear-gradient(90deg,#4aa18e,#84c3b5);border-radius:6px}.partner-row details{font-size:11px;color:#617b82}.partner-row summary{cursor:pointer}.partner-row .support-links button{text-align:left}
 .classification-card{background:linear-gradient(135deg,#f8fbfa,#edf7f4);border-color:#cfe4de}.classification-main{display:flex;align-items:center;justify-content:space-between;gap:20px}.classification-main h2{margin:3px 0 5px}.classification-main p{font-size:11px;color:#607980;line-height:1.7}.profile-code{min-width:190px;padding:15px 18px;background:#246f63;color:white;border-radius:10px;display:grid;gap:4px;text-align:center;box-shadow:0 7px 18px rgba(35,105,94,.14)}.profile-code strong{font-size:25px;letter-spacing:4px}.profile-code span{font-size:11px;line-height:1.5}.profile-code.fallback{background:#718a8e}.descriptor-list{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0}.descriptor-list span{padding:6px 10px;border-radius:999px;background:white;border:1px solid #d6e6e1;color:#356d64;font-size:11px}.dimension-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:9px}.dimension-grid article{display:grid;grid-template-columns:31px 1fr;gap:9px;background:rgba(255,255,255,.72);padding:10px;border-radius:8px}.dimension-grid b{width:31px;height:31px;display:grid;place-items:center;border-radius:7px;background:#dcefe9;color:#267467}.dimension-grid strong{font-size:12px}.dimension-grid p{font-size:10px;line-height:1.6;color:#6c8389;margin-top:3px}
 .tag-warning{color:#a66d4b}.tag-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}.tag-groups>section{background:#f7faf9;border:1px solid #e4edeb;border-radius:8px;padding:13px}.tag-groups h3{font-size:13px;margin-bottom:7px}.tag-groups h3 span{font-size:10px;color:#71898f;margin-left:5px}.tag-row{border-top:1px solid #e3ece9;padding:9px 0;font-size:11px}.tag-row summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px}.tag-row summary span{color:#71898f;white-space:nowrap}.support-links{display:grid;gap:6px;padding:9px 0 2px}.support-links a{color:#2c8173;overflow-wrap:anywhere}
-@media(max-width:650px){.classification-main{align-items:stretch;flex-direction:column}.profile-code{min-width:0}.dimension-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.classification-main,.partner-heading,.partner-summary{align-items:stretch;flex-direction:column}.profile-code{min-width:0}.dimension-grid{grid-template-columns:1fr}}
 </style>

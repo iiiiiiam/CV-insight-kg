@@ -3,18 +3,21 @@ import {computed,onMounted,onUnmounted,ref,watch} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
 import StatePanel from '../components/StatePanel.vue'
 import {getFormalBatch,listFormalBatches,type FormalBatch,type FormalBatchSummary} from '../services/admin.ts'
-import {createHandoff,createReport,getBReportInput,getCReportInput,getPipeline,getTask,listTasks,reportDownloadUrl,reportFileUrl,retryTask,
-  type PipelineState,type ReportSection,type WorkflowTask} from '../services/workflows.ts'
+import {createHandoff,createReport,getBReportInput,getCReportInput,getPipeline,getPublicationStatus,getTask,listTasks,reportDownloadUrl,reportFileUrl,retryTask,
+  type PipelineState,type PublicationStatus,type ReportSection,type WorkflowTask} from '../services/workflows.ts'
 
 const route=useRoute(),router=useRouter()
 const mode=computed<'reports'|'handoffs'>(()=>route.path.endsWith('/reports')?'reports':'handoffs')
 const tasks=ref<WorkflowTask[]>([]),total=ref(0),detail=ref<WorkflowTask|null>(null),pipeline=ref<PipelineState|null>(null)
 const batches=ref<FormalBatchSummary[]>([]),batchDetail=ref<FormalBatch|null>(null),selectedBatch=ref(0)
+const publication=ref<PublicationStatus|null>(null),publicationError=ref('')
 const loading=ref(true),working=ref(false),error=ref(''),notice=ref('')
 const title=ref('本周论文数据报告'),reportMode=ref<'abc'|'ab'|'a'>('abc')
 let timer:ReturnType<typeof setInterval>|undefined,generation=0,batchGeneration=0,pendingRequestKey=''
 
 const selectedTaskId=computed(()=>typeof route.query.task_id==='string'?route.query.task_id:'')
+const publicationPage=computed(()=>Math.max(1,Math.min(100000,parseInt(String(route.query.history_page??'1'),10)||1)))
+const publicationPageCount=computed(()=>publication.value?Math.max(1,Math.ceil(publication.value.total/publication.value.page_size)):1)
 const active=computed(()=>tasks.value.some(task=>['queued','running'].includes(task.status))||['queued','running'].includes(detail.value?.status??''))
 const availableBatches=computed(()=>batches.value.filter(item=>item.state==='active'&&item.status==='succeeded'))
 const taskStatus=(value:string)=>({queued:'等待处理',running:'处理中',succeeded:'已完成',failed:'失败'} as Record<string,string>)[value]??value
@@ -39,9 +42,14 @@ async function load(showLoading=true){
     if(current!==generation)return
     tasks.value=taskList.items;total.value=taskList.total
     if(mode.value==='handoffs'){
-      const list=await listFormalBatches()
+      const [list,graphStatus]=await Promise.all([
+        listFormalBatches(),
+        getPublicationStatus(publicationPage.value).then(value=>({value,error:''})).catch(cause=>({value:null,error:cause instanceof Error?cause.message:'C 发布历史读取失败'})),
+      ])
       if(current!==generation)return
       batches.value=list.items
+      publication.value=graphStatus.value
+      publicationError.value=graphStatus.error
       const requested=Number(route.query.batch_id)||0
       if(!selectedBatch.value)selectedBatch.value=requested||availableBatches.value[0]?.batch_id||0
     }
@@ -91,7 +99,12 @@ async function submitReport(){
     pendingRequestKey=''
     if(!notice.value)notice.value=`报告任务已创建，已固定 ${sections.map(item=>item.provider).join('+')||'A'} 数据范围。`
     await router.replace({query:{task_id:task.id}});await load(false)
-  }catch(cause){error.value=cause instanceof Error?cause.message:'报告创建失败'}finally{working.value=false}
+  }catch(cause){
+    const message=cause instanceof Error?cause.message:'报告创建失败'
+    error.value=reportMode.value!=='a'&&message.includes('不在当前范围或已撤回')
+      ?'A 当前有效论文与 B/C 知识论文范围不一致，不能拼接成同一份报告。请先把 A 当前有效批次重新交给 B 并等待 C 同步，或暂时选择“仅 A”报告。'
+      :message
+  }finally{working.value=false}
 }
 async function retry(){
   if(!detail.value||working.value)return
@@ -102,6 +115,7 @@ async function retry(){
 
 watch(mode,()=>{selectedBatch.value=0;batchDetail.value=null;pipeline.value=null;void load()})
 watch(selectedTaskId,()=>void load(false))
+watch(publicationPage,()=>{if(mode.value==='handoffs')void load(false)})
 watch(selectedBatch,()=>void loadBatch())
 onMounted(()=>{void load();timer=setInterval(()=>{if(active.value)void load(false)},2000)})
 onUnmounted(()=>{generation++;batchGeneration++;if(timer)clearInterval(timer)})
@@ -123,6 +137,32 @@ onUnmounted(()=>{generation++;batchGeneration++;if(timer)clearInterval(timer)})
         <div v-if="batchDetail" class="version-box"><span>论文 {{batchDetail.exported_papers}} / {{batchDetail.total_papers}} 篇可交接</span><span>批次版本 <code>{{short(batchDetail.batch_revision)}}</code></span><span>状态 {{batchDetail.state==='active'?'有效':'已撤回'}}</span></div>
         <button class="button button-primary" :disabled="working||!batchDetail||batchDetail.state!=='active'||batchDetail.status!=='succeeded'" @click="submitHandoff">{{working?'正在创建…':'一键交接给 B'}}</button>
       </section>
+      <section v-if="mode==='handoffs'" class="panel publication-card">
+        <header><div><h2>C 发布状态与历史</h2><p>只读展示 C 当前活动快照和最近发布记录；版本切换由自动同步完成，本页不提供人工回退。</p></div><span v-if="publication" class="generation">发布代次 {{publication.publish_generation}}</span></header>
+        <p v-if="publicationError" class="inline-error">{{publicationError}}</p>
+        <template v-else-if="publication">
+          <div class="publication-summary">
+            <span>当前活动批次 <code>{{publication.active_batch_id??'暂无'}}</code></span>
+            <span>论文 {{publication.active?.paper_count??'—'}}</span><span>实体 {{publication.active?.entity_count??'—'}}</span><span>关系 {{publication.active?.relation_count??'—'}}</span>
+            <span>最近激活 {{date(publication.active?.last_activated_at??publication.active?.published_at??null)}}</span>
+          </div>
+          <div v-if="publication.items.length" class="publication-table" role="table" aria-label="C 发布历史">
+            <div class="publication-row publication-head" role="row"><span>批次 / 来源版本</span><span>规模</span><span>状态</span><span>最近激活</span></div>
+            <div v-for="item in publication.items" :key="item.id" class="publication-row" role="row">
+              <span><strong>{{item.id}}</strong><small>{{item.source_revision?short(item.source_revision):'无来源版本'}}</small></span>
+              <span>论文 {{item.paper_count??'—'}} · 实体 {{item.entity_count??'—'}} · 关系 {{item.relation_count??'—'}}</span>
+              <span><i :class="{active:item.id===publication.active_batch_id}">{{item.id===publication.active_batch_id?'当前活动':item.status}}</i></span>
+              <span>{{date(item.last_activated_at??item.published_at??null)}}</span>
+            </div>
+          </div>
+          <div v-if="publicationPageCount>1" class="publication-pagination">
+            <button type="button" class="button button-secondary" :disabled="publicationPage<=1" @click="router.replace({query:{...route.query,history_page:String(publicationPage-1)}})">上一页</button>
+            <span>第 {{publicationPage}} / {{publicationPageCount}} 页，共 {{publication.total}} 个批次</span>
+            <button type="button" class="button button-secondary" :disabled="publicationPage>=publicationPageCount" @click="router.replace({query:{...route.query,history_page:String(publicationPage+1)}})">下一页</button>
+          </div>
+          <p v-else class="empty-note">C 尚无发布历史。</p>
+        </template>
+      </section>
       <section v-else class="panel create-card report-create">
         <div><h2>创建冻结报告</h2><p>任务创建时固定论文和知识版本；之后导入、反馈或撤回不会改写已经生成的报告。</p></div>
         <label>报告标题<input v-model="title" class="form-input" maxlength="200"/></label>
@@ -131,7 +171,7 @@ onUnmounted(()=>{generation++;batchGeneration++;if(timer)clearInterval(timer)})
           <label><input v-model="reportMode" type="radio" value="ab"/> A+B：论文、知识、证据、作者标签和质量摘要</label>
           <label><input v-model="reportMode" type="radio" value="a"/> 仅 A：当前有效论文、来源和数据质量</label>
         </fieldset>
-        <p class="scope-note">选择 B 时，报告论文范围自动固定为 B 当前 effective 中的论文，避免把 A 全库与 B 局部知识混为同一范围。C 尚未发布对应版本时会明确降级为 A+B。</p>
+        <p class="scope-note">选择 B 时，报告论文范围自动固定为 B 当前 effective 中的论文，避免把 A 全库与 B 局部知识混为同一范围。A 当前有效论文必须与该范围一致；C 尚未发布对应版本时会明确降级为 A+B。</p>
         <button class="button button-primary" :disabled="working||!title.trim()" @click="submitReport">{{working?'正在固定版本…':'创建报告任务'}}</button>
       </section>
 
@@ -161,5 +201,6 @@ onUnmounted(()=>{generation++;batchGeneration++;if(timer)clearInterval(timer)})
 
 <style scoped>
 .workflow-page{padding-bottom:32px}.top-actions{display:flex;gap:10px;flex-wrap:wrap}.create-card{padding:22px;margin-bottom:18px;display:grid;grid-template-columns:minmax(230px,1.3fr) minmax(230px,1fr) auto;align-items:end;gap:18px}.create-card h2{font-size:18px;margin-bottom:7px}.create-card p,.empty-note{font-size:12px;color:#6e878f;line-height:1.75}.create-card label{font-size:12px;color:#5c7680}.create-card .form-input{margin-top:7px}.version-box{grid-column:1/-1;display:flex;gap:18px;flex-wrap:wrap;padding:12px 14px;background:#f0f7f5;color:#52746f;font-size:12px;border-radius:7px}.report-create{grid-template-columns:minmax(230px,1.2fr) minmax(270px,1fr) auto}.report-create fieldset{border:0;padding:0;display:grid;gap:7px}.report-create legend{font-size:12px;margin-bottom:7px}.report-create fieldset label{display:flex;gap:7px;align-items:flex-start}.scope-note{grid-column:1/-1}.workflow-grid{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(420px,1.28fr);gap:18px}.task-list>header{display:flex;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #e6efed}.task-list h2,.task-detail h2{font-size:16px}.task-list header span{font-size:11px;color:#789097}.task-list>button{width:100%;border:0;border-bottom:1px solid #edf2f1;background:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left}.task-list>button:hover,.task-list>button.selected{background:#eff8f5}.task-list button span{display:grid;gap:5px}.task-list button strong{font-size:12px}.task-list button small{font-size:10px;color:#84979e}.task-list button i,.task-badge{font-style:normal;font-size:10px;padding:5px 8px;border-radius:999px;background:#eef3f5;color:#66818a;white-space:nowrap}.task-list .succeeded,.task-badge.succeeded{background:#e6f5ef;color:#26816c}.task-list .failed,.task-badge.failed{background:#fff0e9;color:#ad684c}.task-detail{padding:22px}.task-detail>header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.progress-caption{display:flex;justify-content:space-between;margin:22px 0 8px;font-size:12px}.progress-track{height:9px;background:#e9f0ef;border-radius:8px;overflow:hidden}.progress-track i{display:block;height:100%;background:#398f7f}.progress-track i.failed{background:#bc7658}.task-detail dl{display:grid;grid-template-columns:90px minmax(0,1fr);gap:9px 14px;font-size:11px;margin:20px 0}.task-detail dt{color:#84969c}.task-detail dd{margin:0;overflow-wrap:anywhere}.pipeline,.downloads,.events{border-top:1px solid #e5edeb;margin-top:20px;padding-top:18px}.pipeline h3,.downloads h3{font-size:14px;margin-bottom:12px}.pipeline article{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid #eef3f2}.pipeline article>b{width:30px;height:30px;display:grid;place-items:center;background:#e8f3f0;color:#2f7e70;border-radius:50%}.pipeline article strong{font-size:12px}.pipeline article p,.pipeline article small{font-size:11px;color:#738a91;line-height:1.6}.result-metrics,.download-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.result-metrics{font-size:11px;color:#667f87;margin-bottom:14px}.downloads details,.events{font-size:11px}.downloads details{margin-top:15px}.downloads details a{display:block;padding:7px 0;color:#2e8476}.events summary,.downloads summary{cursor:pointer}.events article{padding:10px 0;border-bottom:1px solid #edf2f1}.events span{font-size:10px;color:#8b9ca2}.events p{font-size:11px;margin-top:5px}.empty-note{padding:18px 20px}
+.publication-card{padding:20px 22px;margin-bottom:18px}.publication-card>header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.publication-card h2{font-size:16px;margin-bottom:5px}.publication-card header p{font-size:12px;color:#6e878f;line-height:1.65}.generation{font-size:11px;color:#2d7569;background:#e8f4f0;border-radius:999px;padding:6px 9px;white-space:nowrap}.publication-summary{display:flex;gap:15px;flex-wrap:wrap;margin:16px 0;padding:12px 14px;border-radius:7px;background:#f0f7f5;font-size:11px;color:#54756f}.publication-table{overflow-x:auto}.publication-row{min-width:760px;display:grid;grid-template-columns:minmax(240px,1.2fr) minmax(220px,1fr) 100px 140px;gap:14px;align-items:center;padding:11px 6px;border-top:1px solid #e8efed;font-size:11px;color:#607980}.publication-row>span:first-child{display:grid;gap:4px}.publication-row strong{color:#304f56;overflow-wrap:anywhere}.publication-row small{color:#87999e}.publication-row i{font-style:normal;padding:4px 7px;border-radius:999px;background:#edf2f3}.publication-row i.active{background:#dff2eb;color:#247764}.publication-head{font-weight:700;color:#435f66;border-top:0;background:#f8faf9}.publication-card>.empty-note{padding-left:0}.publication-pagination{display:flex;align-items:center;justify-content:center;gap:12px;padding-top:14px;font-size:11px;color:#657e85}
 @media(max-width:950px){.create-card,.report-create{grid-template-columns:1fr}.scope-note,.version-box{grid-column:1}.workflow-grid{grid-template-columns:1fr}}@media(max-width:600px){.workflow-page>.page-heading{flex-direction:column}.task-detail{padding:17px}.create-card{padding:17px}.task-list>button{align-items:flex-start;flex-direction:column}}
 </style>

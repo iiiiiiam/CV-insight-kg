@@ -2,8 +2,11 @@
 
 
 class GraphBoundaryError(Exception):
-    def __init__(self, status, code, message):
+    def __init__(self, status, code, message, *, stage=None, retryable=None,
+                 publication_outcome_unknown=False):
         self.status, self.code, self.message = status, code, message
+        self.stage, self.retryable = stage, retryable
+        self.publication_outcome_unknown = publication_outcome_unknown
 
 
 PUBLIC_PROVENANCE = {"reviewed_export", "effective_export"}

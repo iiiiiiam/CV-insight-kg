@@ -78,6 +78,38 @@ export async function getGraphOverview(batch:string,signal?:AbortSignal){
   return checked(await requestJson<GraphOverview & {batch_provenance:string}>(`/api/research/graph-overview${batchQuery(batch)}`,{signal}))
 }
 
+export interface SharedPaper {
+  id:string;title:string;year:number|null;source_id:string|null;source_url:string|null
+  sources:Array<{source_id:string|null;url:string|null}>
+}
+export interface EvidencePartner {
+  id:string;source_id:string|null;name:string;identity_state:string;paper_count:number
+  shared_papers:SharedPaper[];shared_papers_truncated:boolean
+}
+export interface PartnerPage {
+  batch_id:string;batch_provenance:string;revision:string
+  anchor:{id:string;source_id:string|null;name:string;identity_state:string;paper_count:number}
+  items:EvidencePartner[];total:number;page:number;page_size:number;truncated:boolean
+  shared_paper_limit:number;basis:string
+}
+async function getPartners(kind:'coauthors'|'institution-collaborations',id:string,batch:string,page:number,signal?:AbortSignal){
+  const query=new URLSearchParams({batch_id:batch,page:String(page),page_size:'8',shared_paper_limit:'8'})
+  query.set(kind==='coauthors'?'anchor_id':'institution_id',id)
+  const result=checked(await requestJson<PartnerPage>(`/api/research/${kind}?${query}`,{signal}))
+  const expected=batch.startsWith('effective-')?batch.slice('effective-'.length):''
+  if(result.batch_id!==batch||(expected&&result.revision!==expected)||result.anchor?.id!==id
+    ||!Array.isArray(result.items)||result.items.some(item=>!Array.isArray(item.shared_papers))){
+    throw new Error(kind==='coauthors'?'共同作者统计与当前作者或发布版本不一致。':'机构共现统计与当前机构或发布版本不一致。')
+  }
+  return result
+}
+export function getCoauthors(id:string,batch:string,page=1,signal?:AbortSignal){
+  return getPartners('coauthors',id,batch,page,signal)
+}
+export function getInstitutionCollaborations(id:string,batch:string,page=1,signal?:AbortSignal){
+  return getPartners('institution-collaborations',id,batch,page,signal)
+}
+
 interface ResearchDistribution {
   items:Array<{id:string;name:string;paper_count:number;share:number}>
   truncated:boolean

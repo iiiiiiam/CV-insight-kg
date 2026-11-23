@@ -21,6 +21,15 @@ export interface ReportRequest {
 export interface TaskList {total:number;page:number;page_size:number;items:WorkflowTask[]}
 export interface PipelineStage {status:string;message:string;revision?:string;batch_id?:string;source_enrichment?:Record<string,unknown>;results?:Record<string,unknown>}
 export interface PipelineState {task_id:string;stages:Record<'A'|'B'|'C',PipelineStage>;error?:string}
+export interface PublicationBatch {
+  id:string;status:string;source_revision:string|null;source_batch_id?:string|null;provenance?:string|null
+  schema_version?:string|null;paper_count?:number|null;entity_count?:number|null;relation_count?:number|null
+  created_at?:string|null;published_at?:string|null;last_activated_at?:string|null
+}
+export interface PublicationStatus {
+  active_batch_id:string|null;active:PublicationBatch|null;publish_generation:number
+  items:PublicationBatch[];total:number;page:number;page_size:number
+}
 function post<T>(url:string,body?:unknown){
   return requestJson<T>(url,{method:'POST',headers:{'X-CSRF-Token':auth.session?.csrf_token??''},
     body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(120000)})
@@ -43,6 +52,9 @@ export function createHandoff(batchId:number,revision:string,requestKey:string){
 }
 export function getPipeline(id:string){
   return requestJson<PipelineState>(`/api/admin/handoffs/${encodeURIComponent(id)}/pipeline`)
+}
+export function getPublicationStatus(page=1){
+  return requestJson<PublicationStatus>(`/api/admin/graph/publication-status?${new URLSearchParams({page:String(page),page_size:'20'})}`)
 }
 export function getBReportInput(expectedRevision?:string){
   return requestJson<ReportSection>('/api/admin/report-inputs/B'+(expectedRevision?`?expected_revision=${encodeURIComponent(expectedRevision)}`:''),{signal:AbortSignal.timeout(120000)})

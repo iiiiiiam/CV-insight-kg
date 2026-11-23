@@ -181,8 +181,27 @@ def create_app(settings: Settings | None = None):
             code = error.get('code') or fallback_code
             message = error.get('message') or fallback_message
         except (ValueError, TypeError, AttributeError):
-            code, message = fallback_code, fallback_message
-        raise GraphBoundaryError(response.status_code, code, message)
+            error, code, message = {}, fallback_code, fallback_message
+        raise GraphBoundaryError(response.status_code, code, message,
+            stage=error.get('stage'), retryable=error.get('retryable'),
+            publication_outcome_unknown=bool(error.get('publication_outcome_unknown')))
+
+    async def read_c_publication_status(*, page=1, page_size=20):
+        response = await app.state.c_service.request('GET', '/api/admin/graph/publication-status',
+                                                     params={'page': page, 'page_size': page_size})
+        if not response.is_success:
+            graph_upstream_error(response, 'C_PUBLICATION_STATUS_FAILED', 'C 发布状态暂不可读。')
+        try:
+            value = response.json()
+            generation = value['publish_generation']
+            active = value.get('active_batch_id')
+            if (type(generation) is not int or generation < 0
+                    or (active is not None and not isinstance(active, str))
+                    or not isinstance(value.get('items'), list)):
+                raise ValueError('publication status')
+            return value
+        except (ValueError, KeyError, TypeError) as exc:
+            raise GraphBoundaryError(502, 'C_CONTRACT_INVALID', 'C 发布状态格式不正确。') from exc
 
     async def synchronize_effective_graph(app, expected_revision: str | None = None, *, trigger: str):
         """Publish B's current effective projection without a human approval gate."""
@@ -191,10 +210,18 @@ def create_app(settings: Settings | None = None):
             status.update(state='running', last_attempt_at=datetime.now(timezone.utc).isoformat(),
                           error=None, trigger=trigger)
             try:
+                # Freeze both CAS dimensions before reading B.  A concurrent
+                # publisher, including an A→B→A ABA switch, must invalidate
+                # this attempt rather than letting an older document win.
+                before = await read_c_publication_status(page=1, page_size=1)
+                expected_active = before.get('active_batch_id')
+                expected_generation = before['publish_generation']
                 document = await asyncio.to_thread(read_effective_knowledge, expected_revision)
                 revision = document['revision']
                 batch_id = 'effective-' + revision
-                status.update(revision=revision, batch_id=batch_id, counts=document['counts'])
+                status.update(revision=revision, batch_id=batch_id, counts=document['counts'],
+                              expected_active_batch_id=expected_active,
+                              expected_publish_generation=expected_generation)
 
                 metadata_response = await app.state.c_service.batch(batch_id)
                 import_replay = True
@@ -222,29 +249,70 @@ def create_app(settings: Settings | None = None):
                 if not metadata.get('publishable'):
                     raise GraphBoundaryError(409, 'GRAPH_NOT_PUBLISHABLE', 'C 图谱完整性校验未通过，保留当前发布版本。')
 
-                if metadata.get('status') == 'published' and metadata.get('active_batch_id') == batch_id:
-                    publication = {'batch_id': batch_id, 'previous_batch_id': batch_id,
-                                   'status': 'published', 'unchanged': True}
-                else:
+                publish_body = {'expected_active_batch_id': expected_active,
+                                'expected_publish_generation': expected_generation,
+                                'allow_developer_fixture': False}
+                try:
                     published = await app.state.c_service.request(
                         'POST', '/api/admin/batches/' + quote(batch_id, safe='') + '/publish',
-                        body={'expected_active_batch_id': metadata.get('active_batch_id'),
-                              'allow_developer_fixture': False},
+                        body=publish_body,
                         timeout_seconds=settings.c_sync_timeout_seconds,
                     )
+                except GraphBoundaryError as exc:
+                    # A timeout may happen after C committed.  Query the source
+                    # of truth before deciding whether this attempt failed.
+                    if exc.code not in ('C_SYNC_TIMEOUT', 'C_SERVICE_UNAVAILABLE'):
+                        raise
+                    after = await read_c_publication_status(page=1, page_size=1)
+                    active = after.get('active') or {}
+                    if (after.get('active_batch_id') != batch_id
+                            or active.get('source_revision') != revision):
+                        raise
+                    publication = {'batch_id': batch_id, 'previous_batch_id': expected_active,
+                                   'status': 'published', 'unchanged': expected_active == batch_id,
+                                   'publish_generation': after['publish_generation'],
+                                   'recovered_after_unknown_outcome': True}
+                else:
                     if not published.is_success:
-                        graph_upstream_error(published, 'C_EFFECTIVE_PUBLISH_FAILED', 'C 无法发布有效知识批次。')
-                    publication = published.json()
+                        try:
+                            unknown = bool(published.json().get('error', {}).get('publication_outcome_unknown'))
+                        except (ValueError, TypeError, AttributeError):
+                            unknown = False
+                        if unknown:
+                            after = await read_c_publication_status(page=1, page_size=1)
+                            active = after.get('active') or {}
+                            if (after.get('active_batch_id') == batch_id
+                                    and active.get('source_revision') == revision):
+                                publication = {'batch_id': batch_id, 'previous_batch_id': expected_active,
+                                               'status': 'published',
+                                               'unchanged': expected_active == batch_id,
+                                               'publish_generation': after['publish_generation'],
+                                               'recovered_after_unknown_outcome': True}
+                            else:
+                                graph_upstream_error(published, 'C_EFFECTIVE_PUBLISH_FAILED',
+                                                     'C 发布结果未知且活动版本未切换。')
+                        else:
+                            graph_upstream_error(published, 'C_EFFECTIVE_PUBLISH_FAILED', 'C 无法发布有效知识批次。')
+                    else:
+                        publication = published.json()
 
                 result = {'revision': revision, 'batch_id': batch_id,
                           'import_replay': import_replay, 'publication': publication,
                           'counts': document['counts']}
                 status.update(state='synced', last_success_at=datetime.now(timezone.utc).isoformat(),
                               error=None, revision=revision, batch_id=batch_id,
-                              counts=document['counts'])
+                              counts=document['counts'],
+                              publish_generation=publication.get('publish_generation'))
                 return result
             except GraphBoundaryError as exc:
-                status.update(state='error', error={'code': exc.code, 'message': exc.message})
+                error = {'code': exc.code, 'message': exc.message}
+                if exc.stage is not None:
+                    error['stage'] = exc.stage
+                if exc.retryable is not None:
+                    error['retryable'] = exc.retryable
+                if exc.publication_outcome_unknown:
+                    error['publication_outcome_unknown'] = True
+                status.update(state='error', error=error)
                 raise
             except Exception as exc:
                 status.update(state='error', error={'code': 'GRAPH_AUTO_SYNC_FAILED',
@@ -264,8 +332,15 @@ def create_app(settings: Settings | None = None):
 
     @app.exception_handler(GraphBoundaryError)
     async def handle_graph_error(request: Request, exc: GraphBoundaryError):
+        error = {'code': exc.code, 'message': exc.message}
+        if exc.stage is not None:
+            error['stage'] = exc.stage
+        if exc.retryable is not None:
+            error['retryable'] = exc.retryable
+        if exc.publication_outcome_unknown:
+            error['publication_outcome_unknown'] = True
         return JSONResponse(status_code=exc.status, content={
-            'error': {'code': exc.code, 'message': exc.message},
+            'error': error,
             'request_id': request.state.request_id,
         })
 
@@ -273,8 +348,17 @@ def create_app(settings: Settings | None = None):
     async def graph_health():
         return upstream_response(await app.state.c_service.request('GET', '/api/health'))
 
+    @app.get('/api/admin/graph/publication-status')
+    async def graph_publication_status(page: int = Query(1, ge=1, le=100000),
+                                       page_size: int = Query(20, ge=1, le=100),
+                                       _session: Session = Depends(require_admin)):
+        response = await app.state.c_service.request('GET', '/api/admin/graph/publication-status',
+                                                     params={'page': page, 'page_size': page_size})
+        return upstream_response(response)
+
     @app.get('/api/research/{resource}')
-    async def c_research(resource: Literal['papers', 'entities', 'graph', 'graph-overview', 'statistics'], request: Request):
+    async def c_research(resource: Literal['papers', 'entities', 'graph', 'graph-overview', 'statistics',
+                                              'coauthors', 'institution-collaborations'], request: Request):
         response = await app.state.c_service.research('/api/research/' + resource, request.query_params.multi_items())
         return upstream_response(response)
 
@@ -319,8 +403,11 @@ def create_app(settings: Settings | None = None):
         if not metadata.get('publishable'):
             raise GraphBoundaryError(409, 'GRAPH_NOT_PUBLISHABLE', '批次完整性校验未通过，保留当前发布版本。')
         path = '/api/admin/batches/' + quote(batch_id, safe='') + '/publish'
-        return upstream_response(await app.state.c_service.request('POST', path,
-            body={'expected_active_batch_id': body.expected_active_batch_id, 'allow_developer_fixture': False}))
+        publish_body = {'expected_active_batch_id': body.expected_active_batch_id,
+                        'allow_developer_fixture': False}
+        if body.expected_publish_generation is not None:
+            publish_body['expected_publish_generation'] = body.expected_publish_generation
+        return upstream_response(await app.state.c_service.request('POST', path, body=publish_body))
 
     @app.get('/api/admin/graph/effective')
     def effective_graph_preview(expected_revision: str | None = Query(default=None, pattern='^[0-9a-f]{64}$'),

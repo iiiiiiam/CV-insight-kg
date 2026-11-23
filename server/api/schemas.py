@@ -39,6 +39,7 @@ class GraphImportRequest(BaseModel):
 class GraphPublishRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     expected_active_batch_id: str | None = Field(max_length=80)
+    expected_publish_generation: int | None = Field(default=None, ge=0)
 
 
 class EffectiveGraphSyncRequest(BaseModel):

@@ -139,13 +139,33 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
 
         return self.run(operation)
 
-    def publish(self, batch_id, expected, allow_fixture=False):
+    def publication_status(self, page=1, page_size=20):
+        def operation(tx):
+            registry = dict(tx.run("MATCH (r:CVRegistry {id:'research'}) RETURN properties(r) AS r").single()["r"])
+            total = tx.run("MATCH (b:CVBatch) RETURN count(b) AS n").single()["n"]
+            # Never return the full knowledge archive from this status endpoint.
+            items = [dict(r["b"]) for r in tx.run("""MATCH (b:CVBatch)
+                RETURN b {.id,.status,.source_revision,.source_batch_id,.provenance,.schema_version,
+                          .paper_count,.entity_count,.relation_count,.created_at,.published_at,.last_activated_at} AS b
+                ORDER BY b.published_at DESC,b.id SKIP $skip LIMIT $limit""",
+                skip=(page-1)*page_size, limit=page_size)]
+            active = next((b for b in items if b["id"] == registry.get("active_batch_id")), None)
+            if active is None and registry.get("active_batch_id"):
+                active = dict(tx.run("MATCH (b:CVBatch {id:$id}) RETURN b {.id,.status,.source_revision,.published_at,.last_activated_at} AS b",
+                                     id=registry["active_batch_id"]).single()["b"])
+            return dict(active_batch_id=registry.get("active_batch_id"), active=active,
+                        publish_generation=registry.get("publish_generation", 0),
+                        items=items, total=total, page=page, page_size=page_size)
+        return self.run(operation)
+
+    def publish(self, batch_id, expected, allow_fixture=False, expected_generation=None):
         def operation(tx):
             self.lock(tx)
-            active = tx.run(
-                "MATCH (r:CVRegistry {id:'research'}) RETURN r.active_batch_id AS id"
-            ).single()["id"]
-            if active != expected:
+            registry = tx.run(
+                "MATCH (r:CVRegistry {id:'research'}) RETURN r.active_batch_id AS id,coalesce(r.publish_generation,0) AS generation"
+            ).single()
+            active = registry["id"]
+            if active != expected or (expected_generation is not None and registry["generation"] != expected_generation):
                 raise GraphError(409, "ACTIVE_BATCH_CHANGED", "已发布版本发生变化，请刷新后再发布")
             row = tx.run(
                 "MATCH (b:CVBatch {id:$id}) RETURN properties(b) AS b", id=batch_id
@@ -162,14 +182,20 @@ class GraphRepository(GraphAnalytics, EffectiveStore):
             ).single()
             if counts["n"] != b["entity_count"] or counts["r"] != b["relation_count"]:
                 raise GraphError(409, "QUALITY_CHECK_FAILED", "批次完整性检查失败，保留旧版本")
+            if active == batch_id:
+                return {"batch_id":batch_id,"previous_batch_id":active,"status":"published",
+                        "source_revision":b.get("source_revision"),"unchanged":True,"publish_generation":registry["generation"]}
             tx.run(
-                "MATCH (r:CVRegistry {id:'research'}), (b:CVBatch {id:$id}) SET r.active_batch_id=$id, b.status='published', b.published_at=coalesce(b.published_at,toString(datetime()))",
+                "MATCH (r:CVRegistry {id:'research'}), (b:CVBatch {id:$id}) SET r.active_batch_id=$id, r.publish_generation=coalesce(r.publish_generation,0)+1, b.status='published', b.published_at=coalesce(b.published_at,toString(datetime())), b.last_activated_at=toString(datetime())",
                 id=batch_id,
             ).consume()
             return {
                 "batch_id": batch_id,
                 "previous_batch_id": active,
                 "status": "published",
+                "unchanged": False,
+                "publish_generation": registry["generation"]+1,
+                "source_revision": b.get("source_revision"),
             }
 
         return self.run(operation, write=True)

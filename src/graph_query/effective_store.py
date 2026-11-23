@@ -36,7 +36,7 @@ class EffectiveStore:
                 review_state_counts_json=canonical(document["counts"]["review_states"]),
                 effective_json=canonical(document),
             )
-            tx.run("CREATE (b:CVBatch) SET b=$props", props=props).consume()
+            tx.run("CREATE (b:CVBatch) SET b=$props,b.created_at=toString(datetime())", props=props).consume()
             tx.run(
                 "UNWIND $nodes AS n CREATE (e:CVEntity) SET e=n,e.batch_id=$batch",
                 nodes=nodes,

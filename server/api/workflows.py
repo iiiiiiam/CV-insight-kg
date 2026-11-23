@@ -107,17 +107,27 @@ def register_workflows(app, call_a, read_effective):
         meta = metadata.json()
         if meta.get('provenance') != 'effective_export' or meta.get('source_revision') != expected_revision:
             raise HTTPException(409, 'C 的数据来源或版本与 B 不一致')
-        result = await app.state.c_service.request('GET', '/api/research/statistics', params={'batch_id': batch_id})
+        result = await app.state.c_service.request('GET', '/api/research/report-statistics',
+            params={'batch_id': batch_id, 'expected_revision': expected_revision, 'limit': 30})
         if not result.is_success:
-            raise HTTPException(result.status_code, 'C 统计读取失败，可稍后重试')
-        data = result.json()
-        if data.get('paper_count') != document['counts']['papers'] or data.get('batch_id') != batch_id:
-            raise HTTPException(409, 'C 统计范围与本次知识快照不一致')
-        return dict(provider='C', revision=expected_revision,
-                    paper_ids=[p['input']['openalex_id'] for p in document['papers']],
-                    data={'batch_id': batch_id, 'statistics': data,
-                          'available_sections': ['years', 'distributions'],
-                          'pending_sections': ['dual_trends', 'coauthors', 'author_statistics', 'institution_statistics']})
+            try:
+                message = result.json().get('error', {}).get('message')
+            except (ValueError, TypeError, AttributeError):
+                message = None
+            raise HTTPException(result.status_code, message or 'C 报告统计读取失败，可稍后重试')
+        section = result.json()
+        paper_ids = sorted(p['input']['openalex_id'] for p in document['papers'])
+        data = section.get('data') if isinstance(section, dict) else None
+        statistics = data.get('statistics') if isinstance(data, dict) else None
+        if (not isinstance(section, dict) or not isinstance(data, dict)
+                or section.get('provider') != 'C' or section.get('revision') != expected_revision
+                or section.get('paper_ids') != paper_ids or data.get('batch_id') != batch_id
+                or data.get('revision') != expected_revision
+                or not isinstance(statistics, dict)
+                or statistics.get('paper_count') != document['counts']['papers']
+                or statistics.get('batch_id') != batch_id):
+            raise HTTPException(409, 'C 报告统计的论文范围、批次或知识版本与 B 不一致')
+        return section
 
     @app.get('/api/admin/handoffs/{identifier}/pipeline')
     async def pipeline(identifier: str, request: Request, _session=Depends(require_admin)):

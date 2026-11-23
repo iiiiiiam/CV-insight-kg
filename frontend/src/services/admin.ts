@@ -1,5 +1,5 @@
 import { auth } from '../stores/auth.ts'
-import { requestJson } from './http.ts'
+import { ApiError, requestJson } from './http.ts'
 
 export interface DatasetInfo {
   id: string
@@ -106,6 +106,26 @@ export interface HandoffData {format_version:string;batch_id:number;batch_code:s
 export function getDataOverview(days=7){return requestJson<DataOverview>(`/api/admin/data-overview?days=${days}`)}
 export function compareDataBatches(first:number,second:number){return requestJson<BatchComparison>(`/api/admin/batch-comparison?first=${first}&second=${second}`)}
 export function getHandoff(batchId:number){return requestJson<HandoffData>(`/api/admin/handoff?batch_id=${batchId}`)}
+export async function downloadPaperCsv(filters:{batchId?:number;venue?:string;year?:number}={}){
+  const query=new URLSearchParams()
+  if(filters.batchId)query.set('batch_id',String(filters.batchId))
+  if(filters.venue)query.set('venue',filters.venue)
+  if(filters.year)query.set('year',String(filters.year))
+  const response=await fetch('/api/admin/export'+(query.size?`?${query}`:''),{
+    credentials:'same-origin',signal:AbortSignal.timeout(120000),
+  })
+  if(!response.ok){
+    const body=await response.json().catch(()=>null)
+    throw new ApiError(body?.error?.message??body?.detail??`导出失败（${response.status}）`,response.status,body?.request_id??'')
+  }
+  const count=Number(response.headers.get('X-Paper-Count'))
+  if(!response.headers.get('Content-Type')?.toLowerCase().includes('text/csv')
+    ||!Number.isSafeInteger(count)||count<0){
+    throw new Error('论文导出响应缺少 CSV 类型或论文数量，请重新导出。')
+  }
+  const filename=filters.batchId?`papers-batch-${filters.batchId}.csv`:'papers.csv'
+  return {blob:await response.blob(),filename,count}
+}
 export interface NewPapers {date:string;timezone:string;total:number;page:number;page_size:number;items:{id:number;title:string;venue:string;year:number;first_seen_at:string;batch_id?:number;display_code?:string}[];withdrawals?:{batch_id:number;batch_code:string;display_code?:string;withdrawn_at:string;reason:string;removed_papers:number;retained_papers:number}[];withdrawn_papers?:number;net_papers?:number}
 export function getNewPapers(day:string,page=1){return requestJson<NewPapers>(`/api/admin/new-papers?day=${encodeURIComponent(day)}&page=${page}&page_size=10&view=additions`)}
 

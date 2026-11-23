@@ -68,9 +68,15 @@ def test_native_b_and_c_report_inputs_pin_same_revision(client, monkeypatch):
         assert identifier == 'effective-'+revision
         return httpx.Response(200, json={'provenance': 'effective_export', 'source_revision': revision})
     async def statistics(_self, method, path, **kwargs):
-        assert (method, path) == ('GET', '/api/research/statistics')
-        assert kwargs['params']['batch_id'] == 'effective-'+revision
-        return httpx.Response(200, json={'batch_id': 'effective-'+revision, 'paper_count': 1, 'years': []})
+        assert (method, path) == ('GET', '/api/research/report-statistics')
+        assert kwargs['params'] == {'batch_id': 'effective-'+revision,
+                                    'expected_revision': revision, 'limit': 30}
+        return httpx.Response(200, json={
+            'provider': 'C', 'revision': revision, 'paper_ids': ['W1'],
+            'data': {'format_version': 'c-report-statistics/1',
+                     'batch_id': 'effective-'+revision, 'revision': revision,
+                     'statistics': {'batch_id': 'effective-'+revision, 'paper_count': 1},
+                     'available_sections': ['statistics'], 'pending_sections': ['dual_trends']}})
     monkeypatch.setattr(CServiceClient, 'batch', batch)
     monkeypatch.setattr(CServiceClient, 'request', statistics)
     login(client)
@@ -79,6 +85,54 @@ def test_native_b_and_c_report_inputs_pin_same_revision(client, monkeypatch):
     assert b['paper_ids'] == c['paper_ids'] == ['W1']
     assert b['revision'] == c['revision'] == revision
     assert 'dual_trends' in c['data']['pending_sections']
+
+
+def test_publication_status_proxy_is_admin_only_and_preserves_history(client, monkeypatch):
+    async def request(_self, method, path, **kwargs):
+        assert (method, path) == ('GET', '/api/admin/graph/publication-status')
+        assert kwargs['params'] == {'page': 2, 'page_size': 5}
+        return httpx.Response(200, json={'active_batch_id': 'effective-current',
+            'active': {'id': 'effective-current'}, 'publish_generation': 4,
+            'items': [{'id': 'effective-current'}], 'total': 1, 'page': 2, 'page_size': 5})
+    monkeypatch.setattr(CServiceClient, 'request', request)
+    assert client.get('/api/admin/graph/publication-status?page=2&page_size=5').status_code == 401
+    login(client)
+    result = client.get('/api/admin/graph/publication-status?page=2&page_size=5')
+    assert result.status_code == 200
+    assert result.json()['publish_generation'] == 4
+
+
+def test_effective_sync_uses_active_batch_and_generation_cas(client, monkeypatch):
+    revision = 'c'*64
+    document = {'revision': revision, 'counts': {'papers': 1, 'entities': 2, 'relations': 1}}
+    class Workspace:
+        def export_effective(self, expected_revision=None):
+            assert expected_revision == revision
+            return document
+    monkeypatch.setattr('server.api.main.reading_workspace', lambda *a, **k: Workspace())
+    async def batch(_self, identifier):
+        assert identifier == 'effective-'+revision
+        return httpx.Response(200, json={'id': identifier, 'provenance': 'effective_export',
+            'source_revision': revision, 'publishable': True})
+    async def request(_self, method, path, **kwargs):
+        if path == '/api/admin/graph/publication-status':
+            return httpx.Response(200, json={'active_batch_id': 'effective-old',
+                'active': {'id': 'effective-old', 'source_revision': 'd'*64},
+                'publish_generation': 9, 'items': [], 'total': 1, 'page': 1, 'page_size': 1})
+        assert (method, path) == ('POST', '/api/admin/batches/effective-'+revision+'/publish')
+        assert kwargs['body'] == {'expected_active_batch_id': 'effective-old',
+                                  'expected_publish_generation': 9,
+                                  'allow_developer_fixture': False}
+        return httpx.Response(200, json={'batch_id': 'effective-'+revision,
+            'previous_batch_id': 'effective-old', 'status': 'published',
+            'unchanged': False, 'publish_generation': 10})
+    monkeypatch.setattr(CServiceClient, 'batch', batch)
+    monkeypatch.setattr(CServiceClient, 'request', request)
+    headers = login(client)
+    result = client.post('/api/admin/graph/effective/sync', headers=headers,
+                         json={'expected_revision': revision})
+    assert result.status_code == 200, result.text
+    assert result.json()['publication']['publish_generation'] == 10
 
 
 def test_c_report_input_rejects_other_revision(client, monkeypatch):

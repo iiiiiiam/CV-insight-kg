@@ -2,9 +2,10 @@
 import {computed,onMounted,ref,watch} from 'vue'
 import {RouterLink,useRoute} from 'vue-router'
 import StatePanel from '../components/StatePanel.vue'
-import {getDataOverview,getNewPapers,type DataOverview,type NewPapers} from '../services/admin.ts'
+import {downloadPaperCsv,getDataOverview,getNewPapers,type DataOverview,type NewPapers} from '../services/admin.ts'
 const route=useRoute()
 const overview=ref<DataOverview|null>(null),days=ref(14),loading=ref(false),error=ref('')
+const exporting=ref(false),exportNotice=ref(''),exportError=ref('')
 const selectedDate=ref(''),daily=ref<NewPapers|null>(null),dayError=ref(''),dayLoading=ref(false),page=ref(1)
 let version=0,dayVersion=0
 const number=(n:number|null|undefined)=>n==null?'—':n.toLocaleString('zh-CN')
@@ -20,11 +21,13 @@ const modeCount=(point:DataOverview['trend'][number],key:'manual'|'automatic')=>
 const sourceKeys=computed(()=>overview.value?.source_summary.map(s=>s.name)??[])
 async function load(){const v=++version;loading.value=true;error.value='';try{const value=await getDataOverview(days.value);if(v===version)overview.value=value}catch(e){if(v===version)error.value=e instanceof Error?e.message:'数据读取失败'}finally{if(v===version)loading.value=false}}
 async function showDay(date:string,next=1){const v=++dayVersion;selectedDate.value=date;page.value=next;daily.value=null;dayLoading.value=true;dayError.value='';try{const value=await getNewPapers(date,next);if(v===dayVersion)daily.value=value}catch(e){if(v===dayVersion)dayError.value=e instanceof Error?e.message:'论文读取失败'}finally{if(v===dayVersion)dayLoading.value=false}}
+async function exportAll(){exporting.value=true;exportNotice.value='';exportError.value='';try{const result=await downloadPaperCsv();const url=URL.createObjectURL(result.blob);const a=document.createElement('a');a.href=url;a.download=result.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);exportNotice.value=`已导出当前全部 ${result.count} 篇有效论文。`}catch(e){exportError.value=e instanceof Error?e.message:'当前论文集导出失败'}finally{exporting.value=false}}
 watch(days,()=>{selectedDate.value='';dayVersion++;void load()});onMounted(load)
 </script>
 <template>
 <section class="standard-page data-overview">
-<div class="page-heading overview-heading"><div><div class="eyebrow">DATA MANAGEMENT</div><h1>数据概览</h1><p>查看论文收录、每日新增和导入进度。</p></div><div class="heading-actions"><button class="button button-secondary" :disabled="loading" @click="load">刷新</button><RouterLink class="button button-secondary" to="/admin/jobs">批次对比</RouterLink><RouterLink class="button button-primary" to="/admin/imports">导入论文</RouterLink></div></div>
+<div class="page-heading overview-heading"><div><div class="eyebrow">DATA MANAGEMENT</div><h1>数据概览</h1><p>查看论文收录、每日新增和导入进度。</p></div><div class="heading-actions"><button class="button button-secondary" :disabled="loading" @click="load">刷新</button><button class="button button-secondary" :disabled="exporting||!overview" @click="exportAll">{{exporting?'正在导出…':'导出当前论文 CSV'}}</button><RouterLink class="button button-secondary" to="/admin/jobs">批次对比</RouterLink><RouterLink class="button button-primary" to="/admin/imports">导入论文</RouterLink></div></div>
+<p v-if="exportNotice" class="export-success" role="status">{{exportNotice}}</p><p v-if="exportError" class="inline-error" role="alert">{{exportError}}</p>
 <div v-if="overview?.demo_mode" class="demo-notice"><span v-if="route.query.preview==='clean-v2'" class="preview-version">新版预览 · </span>演示环境 · 使用真实论文，初始日期与自动采集为模拟展示</div>
 <StatePanel v-if="loading&&!overview" kind="loading" title="正在读取数据"/><StatePanel v-else-if="error" kind="error" title="数据读取失败" :description="error" retry @retry="load"/>
 <template v-else-if="overview">
@@ -41,6 +44,8 @@ watch(days,()=>{selectedDate.value='';dayVersion++;void load()});onMounted(load)
 </style>
 
 <style scoped>.latest-table a{color:inherit;text-decoration:none}.latest-table a:hover{color:#168f7d;text-decoration:underline}.latest-table a:focus-visible{outline:2px solid #35aa96;outline-offset:3px}</style>
+
+<style scoped>.export-success{font-size:12px;color:#287b68;background:#edf8f3;border:1px solid #cfe8df;border-radius:7px;padding:10px 13px;margin-bottom:14px}</style>
 
 <style scoped>
 .trend-chart{height:244px}.chart-guides{position:relative;display:block;padding:0;height:244px}.chart-guides>span:first-child{position:absolute;top:0;right:0}.chart-guides .zero-label{position:absolute;top:154px;right:0}.chart-guides .negative-label{position:absolute;top:182px;right:0;color:#bd8260}.chart-bars{border-bottom:0}.bar-column{padding:0;justify-content:flex-start}.positive-zone{height:160px;width:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;border-bottom:1px solid #d9e7e3;flex-shrink:0}.negative-zone{height:36px;width:100%;display:flex;justify-content:center;align-items:flex-start;position:relative;flex-shrink:0}.withdraw-stack{display:block;width:65%;max-width:30px;border-radius:0 0 3px 3px}.mode-withdrawal{background:repeating-linear-gradient(135deg,#d18b66 0,#d18b66 4px,#e4b39b 4px,#e4b39b 6px)}.withdraw-value{position:absolute;top:25px;font-size:9px;color:#b77754;white-space:nowrap}.bar-date{position:static;height:24px;flex-shrink:0}.day-section-heading{font-size:12px;color:#55777f;margin:16px 0 6px}.day-withdrawals{border-top:1px solid #e5edeb;margin-top:18px}.withdrawal-event{padding:12px 0;font-size:11px;color:#789099}.withdrawal-event>div{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.withdrawal-event strong{color:#b57955}.withdrawal-event p{margin:8px 0;line-height:1.7}

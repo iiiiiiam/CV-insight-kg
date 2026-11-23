@@ -15,6 +15,8 @@ from typing import Annotated, Literal
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.encoders import jsonable_encoder
 
 from neo4j.exceptions import Neo4jError, ServiceUnavailable, SessionExpired
 
@@ -104,6 +106,26 @@ def create_app(repository=None, admin_token=None):
 
 
 
+    def stage(request, code=None):
+        if code == 'INVALID_EFFECTIVE_SNAPSHOT':
+            return 'validate'
+        if code == 'QUALITY_CHECK_FAILED':
+            return 'integrity_check'
+        if code == 'ACTIVE_BATCH_CHANGED':
+            return 'compare_and_swap'
+        if request.url.path.endswith('/publish'):
+            return 'publish'
+        if request.url.path.endswith('/effective'):
+            return 'import'
+        return 'read'
+
+    @app.exception_handler(RequestValidationError)
+    async def invalid_request(request, error):
+        return JSONResponse(status_code=422, content={
+            'detail': jsonable_encoder(error.errors()),
+            'error': {'code':'INVALID_REQUEST','message':'请求参数或 JSON 格式不合法',
+                      'stage':'request_validation','retryable':False}})
+
     @app.exception_handler(GraphError)
 
     async def graph_error(request, error):
@@ -112,7 +134,8 @@ def create_app(repository=None, admin_token=None):
 
             status_code=error.status,
 
-            content={"error": {"code": error.code, "message": error.message}},
+            content={"error": {"code": error.code, "message": error.message,
+                               "stage":stage(request,error.code),"retryable":False}},
 
         )
 
@@ -126,7 +149,9 @@ def create_app(repository=None, admin_token=None):
 
             content={
 
-                "error": {"code": "GRAPH_UNAVAILABLE", "message": "图数据库暂不可用，请稍后重试"}
+                "error": {"code": "GRAPH_UNAVAILABLE", "message": "图数据库暂不可用，请查询发布状态后重试",
+                          "stage":stage(request),"retryable":isinstance(error,(ServiceUnavailable,SessionExpired)) or error.is_retryable(),
+                          "publication_outcome_unknown":request.url.path.endswith('/publish')}
 
             },
 
@@ -138,6 +163,13 @@ def create_app(repository=None, admin_token=None):
 
         app.add_exception_handler(kind, database_error)
 
+    @app.exception_handler(Exception)
+    async def unexpected_error(request, error):
+        return JSONResponse(status_code=500, content={'error':{
+            'code':'GRAPH_INTERNAL_ERROR','message':'图服务执行异常，请检查服务日志并核对活动版本',
+            'stage':stage(request),'retryable':False,
+            'publication_outcome_unknown':request.url.path.endswith('/publish')}})
+
 
 
     @app.get("/api/health")
@@ -146,7 +178,7 @@ def create_app(repository=None, admin_token=None):
 
         r.run(lambda tx: tx.run("RETURN 1").consume())
 
-        return {"status": "ok", "storage": "neo4j", "contract_version": "c-graph/1.0", "implementation_revision":"c-effective-graph-v3"}
+        return {"status": "ok", "storage": "neo4j", "contract_version": "c-graph/1.0", "implementation_revision":"c-effective-graph-v4"}
 
 
 
@@ -310,6 +342,34 @@ def create_app(repository=None, admin_token=None):
 
 
 
+    @app.get('/api/research/coauthors')
+    def coauthors(anchor_id: str=Query(...,min_length=1,max_length=500),
+                  batch_id: str=Query(...,min_length=1,max_length=80),
+                  page: int=Query(1,ge=1,le=100000), page_size: int=Query(20,ge=1,le=100),
+                  shared_paper_limit: int=Query(10,ge=1,le=100), f=Depends(filters), r=Depends(repo)):
+        return r.partners(anchor_id,batch_id,'author',f,page,page_size,shared_paper_limit)
+
+    @app.get('/api/research/institution-collaborations')
+    def institution_collaborations(institution_id: str=Query(...,min_length=1,max_length=500),
+                  batch_id: str=Query(...,min_length=1,max_length=80),
+                  page: int=Query(1,ge=1,le=100000), page_size: int=Query(20,ge=1,le=100),
+                  shared_paper_limit: int=Query(10,ge=1,le=100), f=Depends(filters), r=Depends(repo)):
+        return r.partners(institution_id,batch_id,'institution',f,page,page_size,shared_paper_limit)
+
+    @app.get('/api/research/report-statistics')
+    def report_statistics(batch_id: str=Query(...,min_length=1,max_length=80),
+                          expected_revision: str | None=Query(None,pattern='^[0-9a-f]{64}$'),
+                          limit: int=Query(30,ge=1,le=100),
+                          coauthor_id: str | None=Query(None,min_length=1,max_length=500),
+                          institution_id: str | None=Query(None,min_length=1,max_length=500),
+                          f=Depends(filters),r=Depends(repo)):
+        return r.report_statistics(batch_id,expected_revision,f,limit,coauthor_id,institution_id)
+
+    @app.get('/api/admin/graph/publication-status',dependencies=[Depends(admin)])
+    def publication_status(page: int=Query(1,ge=1,le=100000),
+                           page_size: int=Query(20,ge=1,le=100), r=Depends(repo)):
+        return r.publication_status(page,page_size)
+
     @app.get("/research/analytics", include_in_schema=False)
 
     def analytics_preview():
@@ -355,7 +415,8 @@ def create_app(repository=None, admin_token=None):
 
         return r.publish(
 
-            batch_id, body.expected_active_batch_id, body.allow_developer_fixture
+            batch_id, body.expected_active_batch_id, body.allow_developer_fixture,
+            expected_generation=body.expected_publish_generation
 
         )
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {getAuthorProfile,getInstitutionProfile,getResearchStatistics} from '../src/services/graph.ts'
+import {getAuthorProfile,getCoauthors,getInstitutionCollaborations,getInstitutionProfile,getResearchStatistics} from '../src/services/graph.ts'
 
 test('statistics reads latest only when no batch is specified and rejects a mixed batch',async()=>{
   const previousFetch = globalThis.fetch
@@ -85,5 +85,29 @@ test('institution profile pins one batch and applies the institution to statisti
     assert.equal(result.papers.total,2)
     assert.equal(result.authors.length,1)
     assert.deepEqual(scoped.sort(),['/api/research/papers','/api/research/statistics'])
+  }finally{globalThis.fetch=previousFetch}
+})
+
+test('coauthor and institution co-occurrence pages stay pinned to their anchor and revision',async()=>{
+  const previousFetch=globalThis.fetch
+  const revision='a'.repeat(64),batch='effective-'+revision,calls:string[]=[]
+  globalThis.fetch=async input=>{
+    const url=new URL(String(input),'http://test');calls.push(url.pathname)
+    const isAuthor=url.pathname.endsWith('/coauthors')
+    assert.equal(url.searchParams.get('batch_id'),batch)
+    assert.equal(url.searchParams.get('page'),'2')
+    assert.equal(url.searchParams.get('page_size'),'8')
+    const anchorId=isAuthor?'author:1':'institution:1'
+    assert.equal(url.searchParams.get(isAuthor?'anchor_id':'institution_id'),anchorId)
+    return Response.json({batch_id:batch,batch_provenance:'effective_export',revision,
+      anchor:{id:anchorId,source_id:null,name:'Anchor',identity_state:'resolved',paper_count:3},
+      items:[{id:isAuthor?'author:2':'institution:2',source_id:null,name:'Partner',identity_state:'resolved',paper_count:2,
+        shared_papers:[{id:'paper:1',title:'Shared',year:2024,source_id:'W1',source_url:null,sources:[]}],shared_papers_truncated:false}],
+      total:1,page:2,page_size:8,truncated:false,shared_paper_limit:8,basis:'shared_paper_evidence'})
+  }
+  try{
+    assert.equal((await getCoauthors('author:1',batch,2)).items[0]?.name,'Partner')
+    assert.equal((await getInstitutionCollaborations('institution:1',batch,2)).items[0]?.paper_count,2)
+    assert.deepEqual(calls,['/api/research/coauthors','/api/research/institution-collaborations'])
   }finally{globalThis.fetch=previousFetch}
 })

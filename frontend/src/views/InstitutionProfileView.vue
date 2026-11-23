@@ -5,17 +5,20 @@ import CrossPaperGraph from '../components/CrossPaperGraph.vue'
 import DetailDrawer from '../components/DetailDrawer.vue'
 import DistributionDonut from '../components/DistributionDonut.vue'
 import StatePanel from '../components/StatePanel.vue'
-import {getInstitutionProfile} from '../services/graph.ts'
-import type {InstitutionProfile} from '../services/graph.ts'
+import {getInstitutionCollaborations,getInstitutionProfile} from '../services/graph.ts'
+import type {InstitutionProfile,PartnerPage} from '../services/graph.ts'
 import {researchResultQuery} from '../services/research-navigation.ts'
 
 const route=useRoute(),router=useRouter()
 const institutionId=computed(()=>String(route.params.id??''))
 const requestedBatch=computed(()=>typeof route.query.batch_id==='string'?route.query.batch_id:'')
 const page=computed(()=>Math.max(1,Math.min(100000,parseInt(String(route.query.profile_page??'1'),10)||1)))
+const collaborationPage=computed(()=>Math.max(1,Math.min(100000,parseInt(String(route.query.collaboration_page??'1'),10)||1)))
 const profile=ref<InstitutionProfile|null>(null)
 const loading=ref(true),error=ref(''),retry=ref(0),drawer=ref<string|null>(null),showGraph=ref(false)
+const collaborations=ref<PartnerPage|null>(null),collaborationsLoading=ref(false),collaborationsError=ref('')
 const pageCount=computed(()=>profile.value?Math.max(1,Math.ceil(profile.value.papers.total/profile.value.papers.page_size)):1)
+const collaborationPageCount=computed(()=>collaborations.value?Math.max(1,Math.ceil(collaborations.value.total/collaborations.value.page_size)):1)
 const backLocation=computed(()=>(
   {path:'/research/papers',query:{...researchResultQuery(route.query),tab:'entities',kind:'institution',
     batch_id:profile.value?.batch_id||requestedBatch.value||undefined}}
@@ -41,7 +44,7 @@ const trend=computed(()=>{
   return {items,points,line,area,width,height,left,right,top,bottom,max}
 })
 
-watch([institutionId,requestedBatch],()=>{drawer.value=null;showGraph.value=false})
+watch([institutionId,requestedBatch],()=>{drawer.value=null;showGraph.value=false;collaborations.value=null;collaborationsError.value=''})
 watch([institutionId,requestedBatch,page,retry],async ([id,batch,currentPage],_,onCleanup)=>{
   const controller=new AbortController();onCleanup(()=>controller.abort())
   loading.value=true;error.value=''
@@ -55,14 +58,30 @@ watch([institutionId,requestedBatch,page,retry],async ([id,batch,currentPage],_,
   }finally{if(!controller.signal.aborted)loading.value=false}
 },{immediate:true})
 
+watch([institutionId,()=>profile.value?.batch_id??'',collaborationPage,retry],async ([id,batch,currentPage],_,onCleanup)=>{
+  if(!batch||profile.value?.institution.id!==id)return
+  const controller=new AbortController();onCleanup(()=>controller.abort())
+  collaborationsLoading.value=true;collaborationsError.value=''
+  try{
+    const result=await getInstitutionCollaborations(id,batch,currentPage,AbortSignal.any([controller.signal,AbortSignal.timeout(45000)]))
+    if(!controller.signal.aborted)collaborations.value=result
+  }catch(cause){if(!controller.signal.aborted){collaborations.value=null;collaborationsError.value=cause instanceof Error?cause.message:'机构共现统计读取失败。'}}
+  finally{if(!controller.signal.aborted)collaborationsLoading.value=false}
+},{immediate:true})
+
 function papersBy(field?:'year'|'topic'|'method'|'direction',value?:string){
   const query:Record<string,string>={tab:'papers',institution:institutionId.value,batch_id:profile.value?.batch_id??''}
   if(field&&value)query[field]=value
   return {path:'/research/papers',query}
 }
 function goToPage(value:number){void router.replace({query:{...route.query,profile_page:String(value)}})}
+function goToCollaborationPage(value:number){void router.replace({query:{...route.query,collaboration_page:String(value)}})}
 function openDistribution(field:'topic'|'method'|'direction',id:string){void router.push(papersBy(field,id))}
 function explore(seed:string){void router.push({path:'/research/papers',query:{...papersBy().query,seed,seed_label:profile.value?.institution.name}})}
+function partnerWidth(count:number){
+  const max=Math.max(1,...(collaborations.value?.items.map(item=>item.paper_count)??[]))
+  return `${Math.max(8,100*count/max)}%`
+}
 </script>
 
 <template>
@@ -86,6 +105,7 @@ function explore(seed:string){void router.push({path:'/research/papers',query:{.
         <div class="panel metric"><span>覆盖年份</span><strong>{{profile.statistics.years.length}}</strong><small>{{yearRange}}</small></div>
         <div class="panel metric"><span>研究方向</span><strong>{{profile.statistics.distributions.research_direction.items.length}}{{profile.statistics.distributions.research_direction.truncated?'＋':''}}</strong><small>{{profile.statistics.distributions.research_direction.truncated?'当前展示前列方向':'来自 B 的来源分类'}}</small></div>
         <div class="panel metric"><span>有证据作者</span><strong>{{profile.authors.length}}{{profile.detail.truncated?'＋':''}}</strong><small>{{profile.detail.truncated?'详情已截断，至少为该数量':'按稳定作者 ID 去重'}}</small></div>
+        <div class="panel metric"><span>同篇论文机构共现</span><strong>{{collaborations?.total??'—'}}</strong><small>不等同于合同合作关系</small></div>
       </div>
 
       <section class="panel trend-card">
@@ -122,6 +142,22 @@ function explore(seed:string){void router.push({path:'/research/papers',query:{.
         </div>
       </section>
 
+      <section class="panel card collaboration-card">
+        <div class="section-heading"><div><h2>同篇论文机构共现</h2><p class="small-note">双方机构必须在同一篇论文中具有真实署名机构证据；这里只表达共同出现，不推断合同合作、长期隶属或作者贡献。</p></div><strong v-if="collaborations">{{collaborations.total}} 个机构</strong></div>
+        <p v-if="collaborationsLoading" class="small-note" role="status">正在读取机构共现及共享论文证据…</p>
+        <p v-else-if="collaborationsError" class="small-note collaboration-warning">{{collaborationsError}}</p>
+        <p v-else-if="collaborations&&!collaborations.items.length" class="small-note">当前范围没有其他机构与该机构共同出现在同篇论文中。</p>
+        <article v-for="partner in collaborations?.items??[]" :key="partner.id" class="collaboration-row">
+          <div class="collaboration-summary"><RouterLink :to="{path:'/research/institutions/'+encodeURIComponent(partner.id),query:{batch_id:profile.batch_id}}"><strong>{{partner.name}}</strong></RouterLink><span>{{partner.paper_count}} 篇共现论文</span></div>
+          <div class="collaboration-track"><i :style="{width:partnerWidth(partner.paper_count)}"></i></div>
+          <details><summary>查看共享论文{{partner.shared_papers_truncated?'（仅列前'+partner.shared_papers.length+'篇）':''}}</summary><div class="collaboration-papers"><button v-for="paper in partner.shared_papers" :key="paper.id" type="button" class="text-button" @click="drawer=paper.id">{{paper.year??'年份未知'}} · {{paper.title}}</button></div></details>
+        </article>
+        <div v-if="collaborationPageCount>1" class="pagination">
+          <button type="button" class="button button-secondary" :disabled="collaborationPage<=1" @click="goToCollaborationPage(collaborationPage-1)">上一页</button><span>{{collaborationPage}} / {{collaborationPageCount}}</span>
+          <button type="button" class="button button-secondary" :disabled="collaborationPage>=collaborationPageCount" @click="goToCollaborationPage(collaborationPage+1)">下一页</button>
+        </div>
+      </section>
+
       <section class="panel card">
         <div class="section-heading"><div><h2>关联论文（{{profile.papers.total}} 篇）</h2><p class="small-note">列表、趋势和占比图均固定在同一发布批次。</p></div><RouterLink class="text-button" :to="papersBy()">进入完整检索 ↗</RouterLink></div>
         <p v-if="!profile.papers.items.length" class="small-note">本页没有论文。</p>
@@ -151,5 +187,6 @@ function explore(seed:string){void router.push({path:'/research/papers',query:{.
 .trend-card{padding:18px 20px;margin-bottom:14px}.trend-card header,.section-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.trend-card h2,.card h2{font-size:16px;margin-bottom:5px}.trend-card header p{font-size:12px;color:#617a82}.trend-card header>strong{font-size:13px;color:#2f756b}.trend-card svg{display:block;width:100%;max-height:290px;margin-top:6px;overflow:visible}.trend-card text{font:11px Microsoft YaHei,sans-serif;fill:#6a8188}.trend-card .count-label{fill:#2b6f65;font-weight:700}.grid-line{stroke:#dfeae7;stroke-dasharray:4 5}.axis-line{stroke:#b6cbc5}.trend-line{fill:none;stroke:#2e8879;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.trend-card circle{fill:#fbfdfd;stroke:#2e8879;stroke-width:4;cursor:pointer}.trend-card circle:hover{r:8;fill:#dff1eb}
 .distribution-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));align-items:start;margin-bottom:14px}.card{padding:18px 20px;margin-bottom:14px}.author-cloud{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.author-cloud a{padding:6px 10px;border-radius:999px;background:#edf5f3;color:#2e6d64;font-size:12px}.author-cloud a:hover{background:#dceee9}
 .paper-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #e4edeb}.paper-row div{min-width:0}.paper-row strong{display:block;font-size:13px;line-height:1.6}.paper-row small{display:block;color:#607a82;font-size:11px;line-height:1.7;margin-top:3px}.pagination{display:flex;align-items:center;justify-content:center;gap:12px;padding-top:16px}
+.collaboration-card .section-heading>strong{font-size:12px;color:#2f756b;white-space:nowrap}.collaboration-warning{color:#a66d4b}.collaboration-row{padding:12px 0;border-top:1px solid #e3ece9}.collaboration-summary{display:flex;justify-content:space-between;gap:12px;font-size:12px}.collaboration-summary a{color:#286f65}.collaboration-summary span{color:#71888e}.collaboration-track{height:7px;margin:8px 0;background:#e9f1ef;border-radius:6px;overflow:hidden}.collaboration-track i{display:block;height:100%;background:linear-gradient(90deg,#547aa1,#7db2b3);border-radius:6px}.collaboration-row details{font-size:11px;color:#617b82}.collaboration-row summary{cursor:pointer}.collaboration-papers{display:grid;gap:6px;padding-top:9px}.collaboration-papers button{text-align:left}
 @media(max-width:700px){.trend-card header,.section-heading,.paper-row{flex-direction:column;align-items:stretch}.trend-card svg{min-height:210px}.paper-row .text-button{align-self:flex-start}}
 </style>

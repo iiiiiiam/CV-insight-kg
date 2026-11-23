@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {auth} from '../src/stores/auth.ts'
-import {createHandoff,createReport,getPipeline} from '../src/services/workflows.ts'
+import {createHandoff,createReport,getPipeline,getPublicationStatus} from '../src/services/workflows.ts'
 
 const session={authenticated:true as const,username:'admin',display_name:'管理员',role:'admin' as const,
   csrf_token:'workflow-csrf',expires_at:'2026-12-01T00:00:00Z'}
@@ -38,5 +38,22 @@ test('pipeline status keeps A B and C as separate stages',async()=>{
     assert.equal(result.stages.A.status,'succeeded')
     assert.equal(result.stages.B.status,'processing')
     assert.equal(result.stages.C.status,'waiting')
+  }finally{globalThis.fetch=previous}
+})
+
+test('publication history is read through the D admin gateway',async()=>{
+  const previous=globalThis.fetch
+  globalThis.fetch=async input=>{
+    const url=new URL(String(input),'http://test')
+    assert.equal(url.pathname,'/api/admin/graph/publication-status')
+    assert.equal(url.searchParams.get('page'),'2')
+    assert.equal(url.searchParams.get('page_size'),'20')
+    return Response.json({active_batch_id:'effective-current',active:{id:'effective-current',status:'published'},
+      publish_generation:7,items:[{id:'effective-current',status:'published'}],total:1,page:2,page_size:20})
+  }
+  try{
+    const result=await getPublicationStatus(2)
+    assert.equal(result.publish_generation,7)
+    assert.equal(result.items[0]?.id,result.active_batch_id)
   }finally{globalThis.fetch=previous}
 })
