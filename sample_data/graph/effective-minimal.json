@@ -1,0 +1,1594 @@
+{
+  "format_version": "knowledge-effective/1.0",
+  "kind": "effective_knowledge",
+  "mode": "full_snapshot",
+  "publication_policy": "automatic_results_and_effective_public_corrections",
+  "rule_fingerprint": "b3624aa37d301cfacbe27267ed93ec6c9da9711ebd7e91ea9ecf05eeef3f7f65",
+  "base_vocabulary_fingerprint": "223f27cf8da6003cb6e07d6935e6974c599168e11e89f7ad0dba5efd07f615b5",
+  "counts": {
+    "papers": 1,
+    "entities": 12,
+    "relations": 13,
+    "review_states": {
+      "automatic": 25,
+      "human_confirmed": 0,
+      "human_corrected": 0
+    }
+  },
+  "papers": [
+    {
+      "input": {
+        "openalex_id": "https://openalex.org/W4402623740",
+        "title": "Tactile-Augmented Radiance Fields",
+        "abstract": "We present a scene representation, which we call a tactile-augmented radiance field (TaRF), that brings vision and touch into a shared 3D space. This representation can be used to estimate the visual and tactile signals for a given 3D position within a scene. We capture a scene's TaRF from a collection of photos and sparsely sampled touch probes. Our approach makes use of two insights: (i) common vision-based touch sensors are built on ordinary cameras and thus can be registered to images using meth-ods from multi-view geometry, and (ii) visually and structurally similar regions of a scene share the same tactile features. We use these insights to register touch signals to a captured visual scene, and to train a conditional diffusion model that, provided with an RGB-D image rendered from a neural radiance field, generates its corresponding tactile signal. To evaluate our approach, we collect a dataset of TaRFs. This dataset contains more touch samples than pre-vious real-world datasets, and it provides spatially aligned visual signals for each captured touch signal. We demon-strate the accuracy of our cross-modal generative model and the utility of the captured visual-tactile data on sev-eral downstream tasks. Project page: https://dou-yiming.github.io/TaRF.",
+        "year": 2024,
+        "venue": "CVPR",
+        "authorships": [
+          {
+            "author_position": "first",
+            "author": {
+              "id": "https://openalex.org/A5087183745",
+              "display_name": "Yiming Dou",
+              "orcid": null,
+              "observed_orcids": []
+            },
+            "institutions": [
+              {
+                "id": "https://openalex.org/I27837315",
+                "display_name": "University of Michigan",
+                "ror": "https://ror.org/00jmfr291",
+                "country_code": "US",
+                "type": "education",
+                "lineage": [
+                  "https://openalex.org/I27837315"
+                ]
+              }
+            ],
+            "countries": [
+              "US"
+            ],
+            "is_corresponding": false,
+            "raw_author_name": "Yiming Dou",
+            "raw_affiliation_strings": [
+              "University of Michigan"
+            ],
+            "raw_orcid": null,
+            "affiliations": [
+              {
+                "raw_affiliation_string": "University of Michigan",
+                "institution_ids": [
+                  "https://openalex.org/I27837315"
+                ]
+              }
+            ]
+          },
+          {
+            "author_position": "middle",
+            "author": {
+              "id": "https://openalex.org/A5111068870",
+              "display_name": "Fengyu Yang",
+              "orcid": "https://orcid.org/0009-0001-1094-8204",
+              "observed_orcids": [
+                "https://orcid.org/0009-0001-1094-8204"
+              ]
+            },
+            "institutions": [
+              {
+                "id": "https://openalex.org/I32971472",
+                "display_name": "Yale University",
+                "ror": "https://ror.org/03v76x132",
+                "country_code": "US",
+                "type": "education",
+                "lineage": [
+                  "https://openalex.org/I32971472"
+                ]
+              }
+            ],
+            "countries": [
+              "US"
+            ],
+            "is_corresponding": false,
+            "raw_author_name": "Fengyu Yang",
+            "raw_affiliation_strings": [
+              "Yale University"
+            ],
+            "raw_orcid": null,
+            "affiliations": [
+              {
+                "raw_affiliation_string": "Yale University",
+                "institution_ids": [
+                  "https://openalex.org/I32971472"
+                ]
+              }
+            ]
+          },
+          {
+            "author_position": "middle",
+            "author": {
+              "id": "https://openalex.org/A5115883506",
+              "display_name": "Yi Liu",
+              "orcid": "https://orcid.org/0000-0002-4978-127X",
+              "observed_orcids": [
+                "https://orcid.org/0000-0002-4978-127X",
+                "https://orcid.org/0009-0007-8292-3296"
+              ]
+            },
+            "institutions": [
+              {
+                "id": "https://openalex.org/I27837315",
+                "display_name": "University of Michigan",
+                "ror": "https://ror.org/00jmfr291",
+                "country_code": "US",
+                "type": "education",
+                "lineage": [
+                  "https://openalex.org/I27837315"
+                ]
+              }
+            ],
+            "countries": [
+              "US"
+            ],
+            "is_corresponding": false,
+            "raw_author_name": "Yi Liu",
+            "raw_affiliation_strings": [
+              "University of Michigan"
+            ],
+            "raw_orcid": null,
+            "affiliations": [
+              {
+                "raw_affiliation_string": "University of Michigan",
+                "institution_ids": [
+                  "https://openalex.org/I27837315"
+                ]
+              }
+            ]
+          },
+          {
+            "author_position": "middle",
+            "author": {
+              "id": "https://openalex.org/A5075873122",
+              "display_name": "Antonio Loquercio",
+              "orcid": "https://orcid.org/0000-0002-8410-3933",
+              "observed_orcids": [
+                "https://orcid.org/0000-0002-8410-3933"
+              ]
+            },
+            "institutions": [
+              {
+                "id": "https://openalex.org/I95457486",
+                "display_name": "University of California, Berkeley",
+                "ror": "https://ror.org/01an7q238",
+                "country_code": "US",
+                "type": "education",
+                "lineage": [
+                  "https://openalex.org/I95457486"
+                ]
+              }
+            ],
+            "countries": [
+              "US"
+            ],
+            "is_corresponding": false,
+            "raw_author_name": "Antonio Loquercio",
+            "raw_affiliation_strings": [
+              "UC Berkeley"
+            ],
+            "raw_orcid": null,
+            "affiliations": [
+              {
+                "raw_affiliation_string": "UC Berkeley",
+                "institution_ids": [
+                  "https://openalex.org/I95457486"
+                ]
+              }
+            ]
+          },
+          {
+            "author_position": "last",
+            "author": {
+              "id": "https://openalex.org/A5034304163",
+              "display_name": "Andrew Owens",
+              "orcid": "https://orcid.org/0000-0003-1935-8232",
+              "observed_orcids": [
+                "https://orcid.org/0000-0003-1935-8232",
+                "https://orcid.org/0000-0002-3535-025X"
+              ]
+            },
+            "institutions": [
+              {
+                "id": "https://openalex.org/I27837315",
+                "display_name": "University of Michigan",
+                "ror": "https://ror.org/00jmfr291",
+                "country_code": "US",
+                "type": "education",
+                "lineage": [
+                  "https://openalex.org/I27837315"
+                ]
+              }
+            ],
+            "countries": [
+              "US"
+            ],
+            "is_corresponding": false,
+            "raw_author_name": "Andrew Owens",
+            "raw_affiliation_strings": [
+              "University of Michigan"
+            ],
+            "raw_orcid": null,
+            "affiliations": [
+              {
+                "raw_affiliation_string": "University of Michigan",
+                "institution_ids": [
+                  "https://openalex.org/I27837315"
+                ]
+              }
+            ]
+          }
+        ],
+        "source_url": "https://openalex.org/W4402623740",
+        "dataset_id": "source-probe-ef8303f1b865"
+      },
+      "origin": {
+        "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+        "public_revision": "a3c8704924dc3adfb799c8e0103d73366a63d94efeca17fe27f20f8509bb7bd9",
+        "schema_version": "b-knowledge/0.1-draft",
+        "extraction_rule_version": "metadata-and-mentions/0.1",
+        "vocabulary_version": "cv-terms/0.2+sources.e4ce6603792d",
+        "vocabulary_fingerprint": "010efd093f5e5650e4cbf5b3459243a1adf641deba2a02f209840b67c94a6c87"
+      },
+      "entities": [
+        {
+          "candidate_id": "1ad07df7a447879c109d236586e94c5016d4e2e099e752942274d10e0793174e",
+          "content": {
+            "key": "venue:local:CVPR",
+            "kind": "venue",
+            "name": "CVPR",
+            "source_id": null
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"CVPR\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "venue"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "1f41eeda59a969c37ccf50fc9958f5024ca709bb1e27d1aef07ead14e76efa92",
+          "content": {
+            "key": "author:https://openalex.org/A5111068870",
+            "kind": "author",
+            "name": "Fengyu Yang",
+            "source_id": "https://openalex.org/A5111068870"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Fengyu Yang\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5111068870\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "22ba2a0b4376ef6bc6d923465a19f8d863ccd7e4fb283f35206e5c5b10d75a1f",
+          "content": {
+            "key": "method:term:source-17a1c1d7701410fb",
+            "kind": "method",
+            "name": "Diffusion",
+            "source_id": null
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "abstract",
+              "quote": "diffusion",
+              "start": 733,
+              "end": 742,
+              "path": []
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "55cdbd90ff320d6a436fb261570bbb3903d9be7046014ddcaa3265bc2a16be26",
+          "content": {
+            "key": "institution:https://openalex.org/I95457486",
+            "kind": "institution",
+            "name": "University of California, Berkeley",
+            "source_id": "https://openalex.org/I95457486"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"University of California, Berkeley\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I95457486\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "institutions",
+                0,
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "626a2b00ac67ba4b515da81dad5fc246f4a2979fac2dc470a6493442068792d9",
+          "content": {
+            "key": "author:https://openalex.org/A5115883506",
+            "kind": "author",
+            "name": "Yi Liu",
+            "source_id": "https://openalex.org/A5115883506"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Yi Liu\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5115883506\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "626e0ecf1baba8f818587258b195f12cbdc96813542ed748fce69590d077da02",
+          "content": {
+            "key": "author:https://openalex.org/A5075873122",
+            "kind": "author",
+            "name": "Antonio Loquercio",
+            "source_id": "https://openalex.org/A5075873122"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Antonio Loquercio\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5075873122\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "62e2f58a6c1fed246a9d40dedfdde71c962f005e2ce31d181fd90faa19ce9d4e",
+          "content": {
+            "key": "method:term:nerf",
+            "kind": "method",
+            "name": "NeRF",
+            "source_id": null
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "abstract",
+              "quote": "neural radiance field",
+              "start": 800,
+              "end": 821,
+              "path": []
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "838f09676c00982b0a69b354778744c65bfc8b8b5763133093c65969c0ec0ed4",
+          "content": {
+            "key": "institution:https://openalex.org/I32971472",
+            "kind": "institution",
+            "name": "Yale University",
+            "source_id": "https://openalex.org/I32971472"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Yale University\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I32971472\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "institutions",
+                0,
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "94a8314b6ff90f4f45279e703301220a05f6eefc6ce20f20d560136105fcd67a",
+          "content": {
+            "key": "author:https://openalex.org/A5087183745",
+            "kind": "author",
+            "name": "Yiming Dou",
+            "source_id": "https://openalex.org/A5087183745"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Yiming Dou\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5087183745\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "bd85f5dc8b155d70fcfe43e59c2f669e64042bca01d0494019d0ecf9a01ee142",
+          "content": {
+            "key": "author:https://openalex.org/A5034304163",
+            "kind": "author",
+            "name": "Andrew Owens",
+            "source_id": "https://openalex.org/A5034304163"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Andrew Owens\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5034304163\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "c2497ac7ccc972636b02f5e9a71f1f2d838e442e1570cd132b260c6dda7bfb4a",
+          "content": {
+            "key": "paper:https://openalex.org/W4402623740",
+            "kind": "paper",
+            "name": "Tactile-Augmented Radiance Fields",
+            "source_id": "https://openalex.org/W4402623740"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/W4402623740\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "openalex_id"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Tactile-Augmented Radiance Fields\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "title"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "d2d034e1ce9fb136f46d581f1b2d4cc61190d36c5e1df95f5114e984858330b1",
+          "content": {
+            "key": "institution:https://openalex.org/I27837315",
+            "kind": "institution",
+            "name": "University of Michigan",
+            "source_id": "https://openalex.org/I27837315"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"University of Michigan\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I27837315\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "institutions",
+                0,
+                "id"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"University of Michigan\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I27837315\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "institutions",
+                0,
+                "id"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"University of Michigan\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I27837315\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "institutions",
+                0,
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        }
+      ],
+      "relations": [
+        {
+          "candidate_id": "04768cc85abbd18a5a2402784c95ac57494b058cff420c8a353f05e7c9ec21ec",
+          "content": {
+            "source": "author:https://openalex.org/A5111068870",
+            "kind": "affiliated_with",
+            "target": "institution:https://openalex.org/I32971472"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Fengyu Yang\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5111068870\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "author",
+                "id"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Yale University\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I32971472\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "institutions",
+                0,
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "160b6d94aaa568e23d6c5a80c401bdb3b8849dd8dc727de3276bfc96e4b813fd",
+          "content": {
+            "source": "paper:https://openalex.org/W4402623740",
+            "kind": "mentions_method",
+            "target": "method:term:source-17a1c1d7701410fb"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "abstract",
+              "quote": "diffusion",
+              "start": 733,
+              "end": 742,
+              "path": []
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "2ebad63586ac4266b7d8bf1fb80820aaa171df9113fcbebac0e904a47952436d",
+          "content": {
+            "source": "paper:https://openalex.org/W4402623740",
+            "kind": "has_author",
+            "target": "author:https://openalex.org/A5087183745"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Yiming Dou\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5087183745\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "5e731c947329b8a7dbad3f03540fb02cebf05b28e6f8eece0528d25c1357dd6e",
+          "content": {
+            "source": "paper:https://openalex.org/W4402623740",
+            "kind": "has_author",
+            "target": "author:https://openalex.org/A5111068870"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Fengyu Yang\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5111068870\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                1,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "6acb1f82ed4d69cc66e8b8c39ac309e1232e355e738691df3e0f64128250ddd4",
+          "content": {
+            "source": "author:https://openalex.org/A5034304163",
+            "kind": "affiliated_with",
+            "target": "institution:https://openalex.org/I27837315"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Andrew Owens\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5034304163\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "author",
+                "id"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"University of Michigan\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I27837315\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "institutions",
+                0,
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "80c54fbec5e7682bbb080d9d2849dd0a5fead6df64a292a613000429af8770cb",
+          "content": {
+            "source": "author:https://openalex.org/A5075873122",
+            "kind": "affiliated_with",
+            "target": "institution:https://openalex.org/I95457486"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Antonio Loquercio\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5075873122\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "author",
+                "id"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"University of California, Berkeley\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I95457486\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "institutions",
+                0,
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "89641b53c08346c84e91bb52528752d01d23627332876ff983d4cbf4fb1c257d",
+          "content": {
+            "source": "paper:https://openalex.org/W4402623740",
+            "kind": "has_author",
+            "target": "author:https://openalex.org/A5115883506"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Yi Liu\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5115883506\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "9c2504c4f17df35224c7a17d8d99894fc2f04e314021a88c3cfebcf4e1ae0cff",
+          "content": {
+            "source": "paper:https://openalex.org/W4402623740",
+            "kind": "has_author",
+            "target": "author:https://openalex.org/A5034304163"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Andrew Owens\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5034304163\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                4,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "a61bfa6966b58b06c3bccd13212432eef09a5468008274798a86fc9a8f0c89f9",
+          "content": {
+            "source": "paper:https://openalex.org/W4402623740",
+            "kind": "published_in",
+            "target": "venue:local:CVPR"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"CVPR\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "venue"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "a6f7bdf30b2b06ebf09c873b657536d4f8cfa55e21d20da1b97f213d5d9e5c24",
+          "content": {
+            "source": "paper:https://openalex.org/W4402623740",
+            "kind": "mentions_method",
+            "target": "method:term:nerf"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "abstract",
+              "quote": "neural radiance field",
+              "start": 800,
+              "end": 821,
+              "path": []
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "dd1058d391696dea9560a740968ac8888177f47a15dda7fcec841c4bbc27b4f2",
+          "content": {
+            "source": "paper:https://openalex.org/W4402623740",
+            "kind": "has_author",
+            "target": "author:https://openalex.org/A5075873122"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Antonio Loquercio\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5075873122\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                3,
+                "author",
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "f2e9e3fa2ef6f7c95f4b67bdbc1498e3f5c26cfd1be4d99312eb7a0de5f4be96",
+          "content": {
+            "source": "author:https://openalex.org/A5115883506",
+            "kind": "affiliated_with",
+            "target": "institution:https://openalex.org/I27837315"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Yi Liu\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5115883506\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "author",
+                "id"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"University of Michigan\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I27837315\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                2,
+                "institutions",
+                0,
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        },
+        {
+          "candidate_id": "fa1dcc44ceee8b4da7ebb3a79a9008238fcbf4bfac770d7508a0acf6ad847279",
+          "content": {
+            "source": "author:https://openalex.org/A5087183745",
+            "kind": "affiliated_with",
+            "target": "institution:https://openalex.org/I27837315"
+          },
+          "evidence": [
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"Yiming Dou\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "author",
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/A5087183745\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "author",
+                "id"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"University of Michigan\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "institutions",
+                0,
+                "display_name"
+              ]
+            },
+            {
+              "paper_id": "https://openalex.org/W4402623740",
+              "dataset_id": "source-probe-ef8303f1b865",
+              "source_url": "https://openalex.org/W4402623740",
+              "input_fingerprint": "a4c4359899208dc69dca3ab4bd991482e20c21364ac5843bf8272c18b95a3f91",
+              "field": "metadata",
+              "quote": "\"https://openalex.org/I27837315\"",
+              "start": null,
+              "end": null,
+              "path": [
+                "authorships",
+                0,
+                "institutions",
+                0,
+                "id"
+              ]
+            }
+          ],
+          "provenance": {
+            "generation": "automatic",
+            "review_state": "automatic",
+            "rule_adjusted": false
+          }
+        }
+      ],
+      "source_classifications": [
+        {
+          "kind": "topic",
+          "name": "3D Shape Modeling and Analysis",
+          "source_id": "https://openalex.org/T10719",
+          "score": 0.3345000147819519,
+          "basis": "source_classification",
+          "source": "openalex",
+          "source_url": "https://api.openalex.org/works/W4402623740",
+          "source_path": [
+            "topics",
+            0
+          ],
+          "source_digest": "3d683d01995da6b68e7b3b1593bc7bb7e9fc02e3ddb98d048cf094ec5d18a296"
+        },
+        {
+          "kind": "topic",
+          "name": "Robot Manipulation and Learning",
+          "source_id": "https://openalex.org/T10653",
+          "score": 0.21140000224113464,
+          "basis": "source_classification",
+          "source": "openalex",
+          "source_url": "https://api.openalex.org/works/W4402623740",
+          "source_path": [
+            "topics",
+            1
+          ],
+          "source_digest": "3d683d01995da6b68e7b3b1593bc7bb7e9fc02e3ddb98d048cf094ec5d18a296"
+        },
+        {
+          "kind": "topic",
+          "name": "Interactive and Immersive Displays",
+          "source_id": "https://openalex.org/T10789",
+          "score": 0.06930000334978104,
+          "basis": "source_classification",
+          "source": "openalex",
+          "source_url": "https://api.openalex.org/works/W4402623740",
+          "source_path": [
+            "topics",
+            2
+          ],
+          "source_digest": "3d683d01995da6b68e7b3b1593bc7bb7e9fc02e3ddb98d048cf094ec5d18a296"
+        }
+      ]
+    }
+  ],
+  "revision": "280d5efdbe3dd03fa997a44135f20e0b2eefac5d1a8675d4118e74b04f43a98d",
+  "generated_at": "2026-11-08T07:52:47.097923+00:00"
+}

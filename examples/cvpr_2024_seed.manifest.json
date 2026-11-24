@@ -1,0 +1,9 @@
+{
+  "venue": "CVPR",
+  "year": 2024,
+  "source": "openalex",
+  "source_id": "S4210176548",
+  "count": 20,
+  "filter": "demo subset of primary_location.source.id:S4210176548,publication_year:2024",
+  "url": "https://api.openalex.org/works"
+}

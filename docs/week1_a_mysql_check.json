@@ -1,0 +1,17 @@
+{
+  "verified_at": "2026-10-29T04:40:44.636297+00:00",
+  "verification_type": "automated_mysql",
+  "backend": "mysql",
+  "tables_created_from_empty": true,
+  "papers": 20,
+  "raw_records": 20,
+  "batches": 2,
+  "batch_links": 40,
+  "batch_ids": [
+    1,
+    2
+  ],
+  "stable_paper_ids": true,
+  "raw_records_read_write": true,
+  "temporary_database_cleaned_up": true
+}

@@ -1,0 +1,10 @@
+{
+  "venue": "ICCV",
+  "year": 2023,
+  "source": "openalex",
+  "source_id": "S4363607764",
+  "count": 200,
+  "filename": "iccv_2023.jsonl",
+  "sha256": "e3030f5e2ef89660c8231d539d62a012141b2cb6f884f74e7dd4f591782218af",
+  "purpose": "Real supplementary papers; enter the main library only after an import action."
+}

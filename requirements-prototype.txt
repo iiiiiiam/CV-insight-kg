@@ -1,0 +1,2 @@
+# Optional local workbench only; do not replace the team's base requirements.
+streamlit>=1.66,<2

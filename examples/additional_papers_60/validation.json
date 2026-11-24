@@ -1,0 +1,23 @@
+{
+  "validated_at": "2026-11-01T04:41:01.737276+00:00",
+  "total_papers": 60,
+  "venue_counts": {
+    "CVPR": 20,
+    "ICCV": 20,
+    "ECCV": 20
+  },
+  "nonempty_abstracts": 60,
+  "unique_openalex_ids": 60,
+  "baseline_overlaps": 0,
+  "duplicate_dois": 0,
+  "duplicate_normalized_titles": 0,
+  "file_checksums_verified": 13,
+  "b_reference_commit": "00024d9c063de45d38e8f6852b9ef833a9f7cc23",
+  "b_paperinput_construction_passed": 60,
+  "openalex_native_adapter_equality_passed": 40,
+  "ecva_official_abstract_and_title_checks_passed": 20,
+  "csv_records": 60,
+  "extraction_executed": false,
+  "usage_assignment": "unassigned",
+  "uploaded": false
+}

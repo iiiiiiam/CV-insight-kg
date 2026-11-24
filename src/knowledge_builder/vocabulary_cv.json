@@ -1,0 +1,446 @@
+{
+  "version": "cv-fallback/0.1",
+  "terms": [
+    {
+      "kind": "dataset",
+      "key": "cifar-10",
+      "name": "CIFAR-10",
+      "aliases": [
+        "CIFAR-10",
+        "CIFAR10"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "cifar-100",
+      "name": "CIFAR-100",
+      "aliases": [
+        "CIFAR-100",
+        "CIFAR100"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "mnist",
+      "name": "MNIST",
+      "aliases": [
+        "MNIST"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "fashion-mnist",
+      "name": "Fashion-MNIST",
+      "aliases": [
+        "Fashion-MNIST",
+        "FashionMNIST",
+        "Fashion MNIST"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "stl-10",
+      "name": "STL-10",
+      "aliases": [
+        "STL-10",
+        "STL10"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "svhn",
+      "name": "SVHN",
+      "aliases": [
+        "SVHN"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "caltech-101",
+      "name": "Caltech-101",
+      "aliases": [
+        "Caltech-101",
+        "Caltech101"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "caltech-256",
+      "name": "Caltech-256",
+      "aliases": [
+        "Caltech-256",
+        "Caltech256"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "celeba",
+      "name": "CelebA",
+      "aliases": [
+        "CelebA"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "wider-face",
+      "name": "WIDER FACE",
+      "aliases": [
+        "WIDER FACE",
+        "WIDER-FACE"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "places365",
+      "name": "Places365",
+      "aliases": [
+        "Places365",
+        "Places-365"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "sun397",
+      "name": "SUN397",
+      "aliases": [
+        "SUN397"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "pascal-voc",
+      "name": "PASCAL VOC",
+      "aliases": [
+        "PASCAL VOC",
+        "PASCAL-VOC",
+        "VOC2007",
+        "VOC2012",
+        "VOC 2007",
+        "VOC 2012"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "ucf101",
+      "name": "UCF101",
+      "aliases": [
+        "UCF101",
+        "UCF-101"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "hmdb51",
+      "name": "HMDB51",
+      "aliases": [
+        "HMDB51",
+        "HMDB-51"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "kinetics-400",
+      "name": "Kinetics-400",
+      "aliases": [
+        "Kinetics-400",
+        "Kinetics400"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "flickr30k",
+      "name": "Flickr30k",
+      "aliases": [
+        "Flickr30k",
+        "Flickr-30k"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "oxford-pets",
+      "name": "Oxford-IIIT Pet",
+      "aliases": [
+        "Oxford-IIIT Pet",
+        "Oxford IIIT Pet"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "flowers102",
+      "name": "Oxford Flowers102",
+      "aliases": [
+        "Flowers102",
+        "Flowers-102",
+        "Oxford Flowers"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "food101",
+      "name": "Food-101",
+      "aliases": [
+        "Food-101",
+        "Food101"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "sintel",
+      "name": "MPI Sintel",
+      "aliases": [
+        "MPI Sintel",
+        "MPI-Sintel",
+        "Sintel"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "flyingchairs",
+      "name": "FlyingChairs",
+      "aliases": [
+        "FlyingChairs"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "flyingthings3d",
+      "name": "FlyingThings3D",
+      "aliases": [
+        "FlyingThings3D"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "eth3d",
+      "name": "ETH3D",
+      "aliases": [
+        "ETH3D"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/datasets.html"
+    },
+    {
+      "kind": "method",
+      "key": "resnet",
+      "name": "ResNet",
+      "aliases": [
+        "ResNet",
+        "ResNet-18",
+        "ResNet-34",
+        "ResNet-50",
+        "ResNet-101",
+        "ResNet-152",
+        "ResNet18",
+        "ResNet50",
+        "ResNet101"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "vision-transformer",
+      "name": "Vision Transformer",
+      "aliases": [
+        "Vision Transformer",
+        "ViT",
+        "ViT-B",
+        "ViT-L"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html",
+      "case_sensitive_aliases": [
+        "ViT"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "swin-transformer",
+      "name": "Swin Transformer",
+      "aliases": [
+        "Swin Transformer",
+        "Swin-Transformer"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "faster-rcnn",
+      "name": "Faster R-CNN",
+      "aliases": [
+        "Faster R-CNN",
+        "Faster-RCNN",
+        "Faster RCNN"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "mask-rcnn",
+      "name": "Mask R-CNN",
+      "aliases": [
+        "Mask R-CNN",
+        "Mask-RCNN",
+        "Mask RCNN"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "retinanet",
+      "name": "RetinaNet",
+      "aliases": [
+        "RetinaNet"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "deeplabv3",
+      "name": "DeepLabV3",
+      "aliases": [
+        "DeepLabV3",
+        "DeepLab-V3",
+        "DeepLabV3+"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "efficientnet",
+      "name": "EfficientNet",
+      "aliases": [
+        "EfficientNet"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "vgg",
+      "name": "VGG",
+      "aliases": [
+        "VGG16",
+        "VGG19",
+        "VGG-16",
+        "VGG-19"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "mobilenet",
+      "name": "MobileNet",
+      "aliases": [
+        "MobileNet",
+        "MobileNetV2",
+        "MobileNetV3"
+      ],
+      "source_url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "kind": "method",
+      "key": "clip",
+      "name": "CLIP",
+      "aliases": [
+        "CLIP",
+        "Contrastive Language-Image Pre-training",
+        "Contrastive Language-Image Pretraining"
+      ],
+      "source_url": "https://github.com/openai/CLIP",
+      "case_sensitive_aliases": [
+        "CLIP"
+      ]
+    },
+    {
+      "kind": "method",
+      "key": "segment-anything",
+      "name": "Segment Anything",
+      "aliases": [
+        "Segment Anything",
+        "Segment Anything Model"
+      ],
+      "source_url": "https://github.com/facebookresearch/segment-anything"
+    },
+    {
+      "kind": "method",
+      "key": "nerf",
+      "name": "NeRF",
+      "aliases": [
+        "NeRF",
+        "Neural Radiance Fields",
+        "Neural Radiance Field"
+      ],
+      "source_url": "https://github.com/bmild/nerf"
+    },
+    {
+      "kind": "method",
+      "key": "gaussian-splatting",
+      "name": "3D Gaussian Splatting",
+      "aliases": [
+        "3D Gaussian Splatting",
+        "3DGS"
+      ],
+      "source_url": "https://github.com/graphdeco-inria/gaussian-splatting"
+    },
+    {
+      "kind": "method",
+      "key": "stylegan2",
+      "name": "StyleGAN2",
+      "aliases": [
+        "StyleGAN2",
+        "StyleGAN-2"
+      ],
+      "source_url": "https://github.com/NVlabs/stylegan2"
+    },
+    {
+      "kind": "dataset",
+      "key": "semantic-kitti",
+      "name": "SemanticKITTI",
+      "aliases": [
+        "SemanticKITTI",
+        "Semantic-KITTI"
+      ],
+      "source_url": "https://www.semantic-kitti.org/dataset.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "semantic-poss",
+      "name": "SemanticPOSS",
+      "aliases": [
+        "SemanticPOSS",
+        "Semantic-POSS"
+      ],
+      "source_url": "https://poss.pku.edu.cn/semanticposs.html"
+    },
+    {
+      "kind": "dataset",
+      "key": "activitynet-captions",
+      "name": "ActivityNet Captions",
+      "aliases": [
+        "ActivityNet Captions",
+        "ActivityNet-Captions"
+      ],
+      "source_url": "https://activity-net.org/challenges/2019/tasks/anet_captioning.html"
+    }
+  ]
+}

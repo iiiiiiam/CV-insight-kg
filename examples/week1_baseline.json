@@ -1,0 +1,156 @@
+{
+  "dataset_id": "week1-cvpr2024-detection-v1",
+  "version": 1,
+  "name": "第一周 CVPR 2024 目标检测 20 篇基准样本",
+  "venue": "CVPR",
+  "year": 2024,
+  "source": "openalex",
+  "source_id": "S4210176548",
+  "expected_count": 20,
+  "filename": "cvpr_2024_seed.jsonl",
+  "sha256": "4715282cc7e1df2c476f4e244129ab75dd64146e18f3a05a957a42cac9f090f7",
+  "selection": "CVPR 2024; title contains object detection, DETR, or YOLO; abstract available; fixed 20-paper prototype subset",
+  "baseline_kind": "prototype_sample_only",
+  "papers": [
+    {
+      "openalex_id": "https://openalex.org/W4402754006",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01605",
+      "title": "DETRs Beat YOLOs on Real-time Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754006"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402716047",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01599",
+      "title": "YOLO-World: Real-Time Open-Vocabulary Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716047"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402772396",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01563",
+      "title": "CrossKD: Cross-Head Knowledge Distillation for Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402772396"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402754159",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01414",
+      "title": "RCBEVDet: Radar-Camera Fusion in Bird's Eye View for 3D Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754159"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402727868",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01625",
+      "title": "VSCode: General Visual Salient and Camouflaged Object Detection with 2D Prompt Learning",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727868"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402702923",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01664",
+      "title": "Salience DETR: Enhancing Detection Transformer with Hierarchical Salience Filtering Refinement",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402702923"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402703030",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01412",
+      "title": "IS-Fusion: Instance-Scene Collaborative Fusion for Multimodal 3D Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402703030"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402775842",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.02534",
+      "title": "Weakly Misalignment-Free Adaptive Feature Alignment for UAVs-Based Multimodal Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402775842"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402702961",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01611",
+      "title": "MS-DETR: Efficient DETR Training with Mixed Supervision",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402702961"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402716222",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01372",
+      "title": "SAFDNet: A Simple and Effective Network for Fully Sparse 3D Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716222"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402727805",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01640",
+      "title": "Unleashing Channel Potential: Space-Frequency Selection Convolution for SAR Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727805"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402704555",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.00976",
+      "title": "MonoCD: Monocular 3D Object Detection with Complementary Depths",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402704555"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402704573",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01204",
+      "title": "Boosting Object Detection with Zero-Shot Day-Night Domain Adaptation",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402704573"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402754181",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.02703",
+      "title": "Few-Shot Object Detection with Foundation Models",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754181"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402727763",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01901",
+      "title": "BEVNeXt: Reviving Dense BEV Frameworks for 3D Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727763"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402754284",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01583",
+      "title": "PointOBB: Learning Oriented Object Detection via Single Point Supervision",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754284"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402716116",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01565",
+      "title": "CAT: Exploiting Inter-Class Dynamics for Domain Adaptive Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716116"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402716350",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.02724",
+      "title": "Unbiased Faster R-CNN for Single-source Domain Generalized Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402716350"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402727857",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01436",
+      "title": "Towards Robust 3D Object Detection with LiDAR and 4D Radar Fusion in Various Weather Conditions",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402727857"
+    },
+    {
+      "openalex_id": "https://openalex.org/W4402754271",
+      "doi": "https://doi.org/10.1109/cvpr52733.2024.01648",
+      "title": "Rethinking Boundary Discontinuity Problem for Oriented Object Detection",
+      "year": 2024,
+      "source_url": "https://openalex.org/W4402754271"
+    }
+  ]
+}

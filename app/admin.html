@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>论文数据管理</title>
+<style>
+body{font:16px system-ui,sans-serif;max-width:1180px;margin:2rem auto;padding:0 1rem;color:#17212b;background:#f7f9fc}h1{font-size:1.8rem}h2{font-size:1.2rem}section{background:#fff;padding:1.3rem;margin:1rem 0;border:1px solid #dce3ec;border-radius:10px}input,select,button{font:inherit;padding:.55rem;border:1px solid #abb7c5;border-radius:5px}button{background:#155a99;color:#fff;cursor:pointer}button:disabled{opacity:.5;cursor:wait}.scroll{overflow:auto}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:.65rem;border-bottom:1px solid #e4e9ef;vertical-align:top}small{color:#526477}.error{color:#a11}.result{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}label{display:inline-block;margin:.35rem .7rem .35rem 0}a{color:#155a99}.toolbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body>
+<h1>论文数据管理</h1>
+<p>第一周样本导入 · 来源追溯 · 批次结果与重跑</p>
+<section>
+  <span id="mode"></span><span id="message" role="status" aria-live="polite"></span>
+</section>
+<section>
+  <h2>第一周固定样本</h2>
+  <p id="dataset">正在读取样本和基准清单。</p>
+  <button id="import-sample" disabled>导入固定 20 篇样本（可重复）</button>
+  <p id="import-result" class="result" role="status" aria-live="polite"></p>
+</section>
+<section id="source-settings" hidden>
+  <h2>数据源</h2>
+  <div class="scroll"><table><thead><tr><th>来源</th><th>启用</th><th>日志间隔（条）</th><th>重试次数</th><th>操作</th></tr></thead><tbody id="sources"></tbody></table></div>
+</section>
+<section>
+  <h2>在线刷新任务</h2>
+  <label>会议 <select id="venue"><option>CVPR</option><option>ICCV</option><option>ECCV</option></select></label>
+  <label>年份 <input id="year" type="number" min="1980" max="2100" value="2024"></label>
+  <label>数据源 <select id="job-source"><option value="auto">自动选择</option><option value="openalex">OpenAlex</option><option value="dblp">DBLP</option></select></label>
+  <button id="create-job" disabled>提交任务</button>
+</section>
+<section>
+  <div class="toolbar"><h2>导入批次与任务</h2><button id="refresh">刷新状态</button></div>
+  <div class="scroll"><table><thead><tr><th>批次号</th><th>类型 / 范围</th><th>来源</th><th>状态 / 阶段</th><th>成功 / 失败</th><th>操作</th></tr></thead><tbody id="jobs"></tbody></table></div>
+</section>
+<section>
+  <h2>批次详情与真实论文</h2>
+  <div id="detail" class="result">选择批次查看论文、来源和导入结果。</div>
+  <p id="paper-count"></p><button id="export" hidden>导出本批次 CSV</button>
+  <div class="scroll"><table><thead><tr><th>稳定 ID</th><th>标题</th><th>年份</th><th>来源</th><th>本批次</th></tr></thead><tbody id="batch-papers"></tbody></table></div>
+</section>
+<script>
+const $ = id => document.getElementById(id);
+let current = null, datasetId = null, previousTotal = null, authorized = false, visibleJobs = [];
+function message(value, bad = false) { $('message').textContent = ' ' + value; $('message').className = bad ? 'error' : ''; }
+function cell(value) { const td = document.createElement('td'); td.textContent = value ?? ''; return td; }
+function action(label, handler, disabled = false) { const b = document.createElement('button'); b.textContent = label; b.disabled = disabled; b.addEventListener('click', handler); return b; }
+async function api(path, options = {}) {
+  const r = await fetch('/api/admin' + path, {...options, headers: {'Content-Type': 'application/json', ...(options.headers || {})}});
+  const data = await r.json();
+  if (!r.ok) throw Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail));
+  return data;
+}
+function renderSources(sources) {
+  $('sources').replaceChildren(...sources.map(source => {
+    const row = document.createElement('tr'); row.append(cell(source.name));
+    const enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.checked = source.enabled;
+    const interval = document.createElement('input'); interval.type = 'number'; interval.min = 1; interval.max = 1000; interval.value = source.page_size; interval.style.width = '5em';
+    const retries = document.createElement('input'); retries.type = 'number'; retries.min = 1; retries.max = 8; retries.value = source.max_retries; retries.style.width = '4em';
+    for (const input of [enabled, interval, retries]) { const td = cell(''); td.append(input); row.append(td); }
+    const save = action('保存', async () => { try { await api('/sources/' + source.name, {method: 'PUT', body: JSON.stringify({enabled: enabled.checked, page_size: Number(interval.value), max_retries: Number(retries.value)})}); message('已保存'); } catch (e) { message(e.message, true); } });
+    const td = cell(''); td.append(save); row.append(td); return row;
+  }));
+}
+function renderJobs(jobs) {
+  $('jobs').replaceChildren(...jobs.map(job => {
+    const row = document.createElement('tr');
+    const kind = job.kind === 'sample' ? '固定样本' : job.kind === 'file' ? '文件导入' : '在线刷新';
+    for (const value of [job.batch_code, kind + ' / ' + job.venue + ' ' + job.year, job.source, job.status + ' / ' + job.stage, job.succeeded + ' / ' + job.failed]) row.append(cell(value));
+    const td = cell('');
+    td.append(action('详情', () => showJob(job.id)), ' ', action('重试', async () => { try { await api('/jobs/' + job.id + '/retry', {method: 'POST'}); await refresh(); } catch (e) { message(e.message, true); } }, !authorized || !['failed', 'partial'].includes(job.status)));
+    row.append(td); return row;
+  }));
+}
+async function refresh() {
+  if (!authorized) { await loadOverview(); return; }
+  try {
+    const [sources, jobs, datasets] = await Promise.all([api('/sources'), api('/jobs'), api('/datasets')]);
+    renderSources(sources); renderJobs(jobs);
+    const sample = datasets.items[0]; datasetId = sample.dataset_id;
+    $('dataset').textContent = `${sample.name} · ${sample.source} · ${sample.venue} ${sample.year}\n基准编号：${sample.dataset_id}；固定 ${sample.expected_count} 篇。`;
+    $('import-sample').disabled = false;
+    if (!current && jobs.length) current = jobs[0].id;
+    if (current) await showJob(current);
+    message('已更新');
+  } catch (e) { authorized = false; $('import-sample').disabled = true; $('create-job').disabled = true; $('source-settings').hidden = true; message(e.message, true); }
+}
+async function loadOverview() {
+  try {
+    const response = await fetch('/api/import-overview');
+    if (!response.ok) throw Error('读取导入结果失败');
+    const overview = await response.json(), sample = overview.dataset;
+    datasetId = sample.dataset_id; visibleJobs = overview.batches;
+    $('dataset').textContent = `${sample.name} · ${sample.venue} ${sample.year} · 已有 ${overview.total_papers} 篇论文`;
+    renderJobs(visibleJobs);
+    if (!current && visibleJobs.length) current = visibleJobs[0].id;
+    if (current) await showJob(current);
+    else $('detail').textContent = '暂无导入记录。';
+    message('只读预览');
+  } catch (e) { message(e.message, true); }
+}
+async function importSample() {
+  $('import-sample').disabled = true;
+  try {
+    const job = await api('/imports', {method: 'POST', body: JSON.stringify({dataset_id: datasetId})});
+    const repeated = previousTotal !== null && previousTotal === job.total_papers;
+    $('import-result').textContent = `${job.batch_code}：${job.status}，成功 ${job.succeeded}，失败 ${job.failed}。\n本批次关联 ${job.paper_count} 篇；数据库共 ${job.total_papers} 篇。${repeated ? '\n与上次导入后的总数相同，未新增重复论文。' : ''}`;
+    previousTotal = job.total_papers; current = job.id; await refresh();
+  } catch (e) { message(e.message, true); }
+  finally { $('import-sample').disabled = !authorized || !datasetId; }
+}
+async function showJob(id) {
+  try {
+    let job, papers;
+    if (authorized) [job, papers] = await Promise.all([api('/jobs/' + id), api('/jobs/' + id + '/papers?page_size=100')]);
+    else {
+      job = visibleJobs.find(item => item.id === id);
+      if (!job) return;
+      const response = await fetch('/api/papers?batch_id=' + id + '&page_size=100');
+      if (!response.ok) throw Error('读取批次论文失败');
+      papers = await response.json();
+    }
+    current = id;
+    $('detail').textContent = `${job.batch_code} · ${job.venue} ${job.year}\n基准：${job.dataset_id || '在线或文件批次'}\n状态：${job.status} / ${job.stage}；成功 ${job.succeeded}，失败 ${job.failed}` + (authorized ? `\n错误或提示：${job.error || '无'}\n\n` + (job.events || []).map(e => `[${e.created_at}] ${e.level} ${e.message}`).join('\n') : '');
+    $('paper-count').textContent = `本批次关联 ${job.paper_count} 篇，当前显示 ${papers.items.length} 篇。历史批次若未记录论文关联，将显示 0 篇。`;
+    $('batch-papers').replaceChildren(...papers.items.map(paper => {
+      const row = document.createElement('tr');
+      row.append(cell(paper.id), cell(paper.title), cell(paper.year), cell(paper.source_url || paper.openalex_id || paper.dblp_key || '缺失'), cell(job.batch_code));
+      return row;
+    }));
+    $('export').hidden = !authorized;
+  } catch (e) { message(e.message, true); }
+}
+async function exportBatch() {
+  try {
+    const r = await fetch('/api/admin/export?batch_id=' + current);
+    if (!r.ok) throw Error((await r.json()).detail);
+    const url = URL.createObjectURL(await r.blob()), link = document.createElement('a'); link.href = url; link.download = 'batch-' + current + '.csv'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (e) { message(e.message, true); }
+}
+$('refresh').addEventListener('click', refresh);
+$('import-sample').addEventListener('click', importSample);
+$('export').addEventListener('click', exportBatch);
+$('create-job').addEventListener('click', async () => { try { const job = await api('/jobs', {method: 'POST', body: JSON.stringify({venue: $('venue').value, year: Number($('year').value), source: $('job-source').value})}); current = job.id; await refresh(); } catch (e) { message(e.message, true); } });
+async function initializePage() {
+  try {
+    const response = await fetch('/api/runtime');
+    const state = await response.json();
+    authorized = state.local_demo;
+    $('mode').textContent = authorized ? '本机演示' : '数据预览';
+    $('create-job').disabled = !authorized;
+    $('source-settings').hidden = !authorized;
+    await refresh();
+  } catch(e) { message(e.message, true); }
+}
+initializePage();
+</script>
+</body>
+</html>

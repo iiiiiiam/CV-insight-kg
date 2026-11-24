@@ -1,0 +1,21 @@
+﻿openalex_id,doi,title,year,source_url
+https://openalex.org/W4402754006,https://doi.org/10.1109/cvpr52733.2024.01605,DETRs Beat YOLOs on Real-time Object Detection,2024,https://openalex.org/W4402754006
+https://openalex.org/W4402716047,https://doi.org/10.1109/cvpr52733.2024.01599,YOLO-World: Real-Time Open-Vocabulary Object Detection,2024,https://openalex.org/W4402716047
+https://openalex.org/W4402772396,https://doi.org/10.1109/cvpr52733.2024.01563,CrossKD: Cross-Head Knowledge Distillation for Object Detection,2024,https://openalex.org/W4402772396
+https://openalex.org/W4402754159,https://doi.org/10.1109/cvpr52733.2024.01414,RCBEVDet: Radar-Camera Fusion in Bird's Eye View for 3D Object Detection,2024,https://openalex.org/W4402754159
+https://openalex.org/W4402727868,https://doi.org/10.1109/cvpr52733.2024.01625,VSCode: General Visual Salient and Camouflaged Object Detection with 2D Prompt Learning,2024,https://openalex.org/W4402727868
+https://openalex.org/W4402702923,https://doi.org/10.1109/cvpr52733.2024.01664,Salience DETR: Enhancing Detection Transformer with Hierarchical Salience Filtering Refinement,2024,https://openalex.org/W4402702923
+https://openalex.org/W4402703030,https://doi.org/10.1109/cvpr52733.2024.01412,IS-Fusion: Instance-Scene Collaborative Fusion for Multimodal 3D Object Detection,2024,https://openalex.org/W4402703030
+https://openalex.org/W4402775842,https://doi.org/10.1109/cvpr52733.2024.02534,Weakly Misalignment-Free Adaptive Feature Alignment for UAVs-Based Multimodal Object Detection,2024,https://openalex.org/W4402775842
+https://openalex.org/W4402702961,https://doi.org/10.1109/cvpr52733.2024.01611,MS-DETR: Efficient DETR Training with Mixed Supervision,2024,https://openalex.org/W4402702961
+https://openalex.org/W4402716222,https://doi.org/10.1109/cvpr52733.2024.01372,SAFDNet: A Simple and Effective Network for Fully Sparse 3D Object Detection,2024,https://openalex.org/W4402716222
+https://openalex.org/W4402727805,https://doi.org/10.1109/cvpr52733.2024.01640,Unleashing Channel Potential: Space-Frequency Selection Convolution for SAR Object Detection,2024,https://openalex.org/W4402727805
+https://openalex.org/W4402704555,https://doi.org/10.1109/cvpr52733.2024.00976,MonoCD: Monocular 3D Object Detection with Complementary Depths,2024,https://openalex.org/W4402704555
+https://openalex.org/W4402704573,https://doi.org/10.1109/cvpr52733.2024.01204,Boosting Object Detection with Zero-Shot Day-Night Domain Adaptation,2024,https://openalex.org/W4402704573
+https://openalex.org/W4402754181,https://doi.org/10.1109/cvpr52733.2024.02703,Few-Shot Object Detection with Foundation Models,2024,https://openalex.org/W4402754181
+https://openalex.org/W4402727763,https://doi.org/10.1109/cvpr52733.2024.01901,BEVNeXt: Reviving Dense BEV Frameworks for 3D Object Detection,2024,https://openalex.org/W4402727763
+https://openalex.org/W4402754284,https://doi.org/10.1109/cvpr52733.2024.01583,PointOBB: Learning Oriented Object Detection via Single Point Supervision,2024,https://openalex.org/W4402754284
+https://openalex.org/W4402716116,https://doi.org/10.1109/cvpr52733.2024.01565,CAT: Exploiting Inter-Class Dynamics for Domain Adaptive Object Detection,2024,https://openalex.org/W4402716116
+https://openalex.org/W4402716350,https://doi.org/10.1109/cvpr52733.2024.02724,Unbiased Faster R-CNN for Single-source Domain Generalized Object Detection,2024,https://openalex.org/W4402716350
+https://openalex.org/W4402727857,https://doi.org/10.1109/cvpr52733.2024.01436,Towards Robust 3D Object Detection with LiDAR and 4D Radar Fusion in Various Weather Conditions,2024,https://openalex.org/W4402727857
+https://openalex.org/W4402754271,https://doi.org/10.1109/cvpr52733.2024.01648,Rethinking Boundary Discontinuity Problem for Oriented Object Detection,2024,https://openalex.org/W4402754271

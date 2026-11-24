@@ -1,0 +1,4877 @@
+[
+  {
+    "openalex_id": "https://openalex.org/W4402727167",
+    "title": "Exploring Region-Word Alignment in Built-in Detector for Open-Vocabulary Object Detection",
+    "abstract": "Open-vocabulary object detection aims to detect novel categories that are independent from the base categories used during training. Most modern methods adhere to the paradigm of learning vision-language space from a large-scale multi-modal corpus and subsequently transferring the acquired knowledge to off-the-shelf detectors like Faster-RCNN. However, information attenuation or destruction may occur during the process of knowledge transfer due to the domain gap, hampering the generalization ability on novel categories. To mitigate this predicament, in this paper, we present a novel framework named BIND, standing for Bulit-IN Detector, to eliminate the need for module replacement or knowledge transfer to off-the-shelf detectors. Specifically, we design a two-stage training framework with an Encoder-Decoder structure. In the first stage, an image-text dual encoder is trained to learn region-word alignment from a corpus of image-text pairs. In the second stage, a DETR-style decoder is trained to perform detection on annotated object detection datasets. In contrast to conventional manually designed non-adaptive anchors, which generate numerous redundant proposals, we develop an anchor proposal network that generates anchor proposals with high likelihood based on candidates adaptively, thereby substantially improving detection efficiency. Experimental results on two public benchmarks, COCO and LVIS, demonstrate that our method stands as a state-of-the-art approach for open-vocabulary object detection.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": null,
+          "display_name": "Heng Zhang",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210103986",
+            "display_name": "Jingdong (China)",
+            "ror": "https://ror.org/01dkjkq64",
+            "country_code": "CN",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Heng Zhang",
+        "raw_affiliation_strings": [
+          "JD.com"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "JD.com",
+            "institution_ids": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5113554811",
+          "display_name": "Qiuyu Zhao",
+          "orcid": "https://orcid.org/0009-0006-5458-4787",
+          "observed_orcids": [
+            "https://orcid.org/0009-0006-5458-4787"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210103986",
+            "display_name": "Jingdong (China)",
+            "ror": "https://ror.org/01dkjkq64",
+            "country_code": "CN",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Qiuyu Zhao",
+        "raw_affiliation_strings": [
+          "JD.com"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "JD.com",
+            "institution_ids": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5012126618",
+          "display_name": "Linyu Zheng",
+          "orcid": "https://orcid.org/0000-0001-9003-4068",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-9003-4068"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210103986",
+            "display_name": "Jingdong (China)",
+            "ror": "https://ror.org/01dkjkq64",
+            "country_code": "CN",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Linyu Zheng",
+        "raw_affiliation_strings": [
+          "JD.com"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "JD.com",
+            "institution_ids": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": null,
+          "display_name": "Hao Zeng",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210103986",
+            "display_name": "Jingdong (China)",
+            "ror": "https://ror.org/01dkjkq64",
+            "country_code": "CN",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Hao Zeng",
+        "raw_affiliation_strings": [
+          "JD.com"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "JD.com",
+            "institution_ids": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5026929470",
+          "display_name": "Zhiwei Ge",
+          "orcid": "https://orcid.org/0009-0004-3808-7276",
+          "observed_orcids": [
+            "https://orcid.org/0009-0004-3808-7276"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210103986",
+            "display_name": "Jingdong (China)",
+            "ror": "https://ror.org/01dkjkq64",
+            "country_code": "CN",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Zhiwei Ge",
+        "raw_affiliation_strings": [
+          "JD.com"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "JD.com",
+            "institution_ids": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5035487123",
+          "display_name": "Tianhao Li",
+          "orcid": "https://orcid.org/0009-0006-9543-649X",
+          "observed_orcids": [
+            "https://orcid.org/0009-0006-9543-649X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210103986",
+            "display_name": "Jingdong (China)",
+            "ror": "https://ror.org/01dkjkq64",
+            "country_code": "CN",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Tianhao Li",
+        "raw_affiliation_strings": [
+          "JD.com"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "JD.com",
+            "institution_ids": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5063258475",
+          "display_name": "Sulong Xu",
+          "orcid": "https://orcid.org/0000-0003-0345-334X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-0345-334X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210103986",
+            "display_name": "Jingdong (China)",
+            "ror": "https://ror.org/01dkjkq64",
+            "country_code": "CN",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Sulong Xu",
+        "raw_affiliation_strings": [
+          "JD.com"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "JD.com",
+            "institution_ids": [
+              "https://openalex.org/I4210103986"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402727167",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402704617",
+    "title": "Active Domain Adaptation with False Negative Prediction for Object Detection",
+    "abstract": "Domain adaptation adapts models to various scenes with different appearances. In this field, active domain adaptation is crucial in effectively sampling a limited number of data in the target domain. We propose an active domain adaptation method for object detection, focusing on quantifying the undetectability of objects. Existing methods for active sampling encounter challenges in considering undetected objects while estimating the uncertainty of model predictions. Our proposed active sampling strategy addresses this issue using an active learning approach that simultaneously accounts for uncertainty and undetectability. Our newly proposed False Negative Prediction Module evaluates the undetectability of images containing undetected objects, enabling more informed active sampling. This approach considers previously overlooked undetected objects, thereby reducing false negative errors. Moreover, using unlabeled data, our proposed method utilizes uncertainty-guided pseudo-labeling to enhance domain adaptation further. Extensive experiments demonstrate that the performance of our proposed method closely rivals that of fully supervised learning while requiring only a fraction of the labeling efforts needed for the latter.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5110769102",
+          "display_name": "Yuzuru Nakamura",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I1283155146",
+            "display_name": "Panasonic (Japan)",
+            "ror": "https://ror.org/011tm7n37",
+            "country_code": "JP",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I1283155146"
+            ]
+          }
+        ],
+        "countries": [
+          "JP"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yuzuru Nakamura",
+        "raw_affiliation_strings": [
+          "Panasonic Holdings Corporation"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Panasonic Holdings Corporation",
+            "institution_ids": [
+              "https://openalex.org/I1283155146"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5050908853",
+          "display_name": "Yasunori Ishii",
+          "orcid": "https://orcid.org/0000-0003-4630-3464",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-4630-3464"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I1283155146",
+            "display_name": "Panasonic (Japan)",
+            "ror": "https://ror.org/011tm7n37",
+            "country_code": "JP",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I1283155146"
+            ]
+          }
+        ],
+        "countries": [
+          "JP"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yasunori Ishii",
+        "raw_affiliation_strings": [
+          "Panasonic Holdings Corporation"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Panasonic Holdings Corporation",
+            "institution_ids": [
+              "https://openalex.org/I1283155146"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5062009349",
+          "display_name": "Takayoshi Yamashita",
+          "orcid": "https://orcid.org/0000-0003-2631-9856",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-2631-9856"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I184937672",
+            "display_name": "Chubu University",
+            "ror": "https://ror.org/02sps0775",
+            "country_code": "JP",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I184937672"
+            ]
+          }
+        ],
+        "countries": [
+          "JP"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Takayoshi Yamashita",
+        "raw_affiliation_strings": [
+          "Chubu University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Chubu University",
+            "institution_ids": [
+              "https://openalex.org/I184937672"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402704617",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727044",
+    "title": "Prompt3D: Random Prompt Assisted Weakly-Supervised 3D Object Detection",
+    "abstract": "The prohibitive cost of annotations for fully supervised 3D indoor object detection limits its practicality. In this work, we propose Random Prompt Assisted Weakly-supervised 3D Object Detection, termed as Prompt3D, a weakly-supervised approach that leverages position-level labels to overcome this challenge. Explicitly, our method focuses on enhancing labeling using synthetic scenes crafted from 3D shapes generated via random prompts. First, a Synthetic Scene Generation (SSG) module is introduced to assemble synthetic scenes with a curated collection of 3D shapes, created via random prompts for each category. These scenes are enriched with automatically generated point-level annotations, providing a robust supervisory frame-work for training the detection algorithm. To enhance the transfer of knowledge from virtual to real datasets, we then introduce a Prototypical Proposal Feature Alignment (PPFA) module. This module effectively alleviates the domain gap by directly minimizing the distance between feature prototypes of the same class proposals across two domains. Compared with sota BR, our method improves by 5.4% and 8.7% on mAP with VoteNet and GroupFree3D serving as detectors respectively, demonstrating the effectiveness of our proposed method. Code is available at: https://github.com/huishengye/prompt3d.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": null,
+          "display_name": "Xiaohong Zhang",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I881766915",
+            "display_name": "Nanjing University",
+            "ror": "https://ror.org/01rxvg760",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xiaohong Zhang",
+        "raw_affiliation_strings": [
+          "Nanjing University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Nanjing University",
+            "institution_ids": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": null,
+          "display_name": "Huisheng Ye",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I881766915",
+            "display_name": "Nanjing University",
+            "ror": "https://ror.org/01rxvg760",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Huisheng Ye",
+        "raw_affiliation_strings": [
+          "Nanjing University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Nanjing University",
+            "institution_ids": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100397285",
+          "display_name": "Jingwen Li",
+          "orcid": "https://orcid.org/0000-0002-4324-7148",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-4324-7148"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I881766915",
+            "display_name": "Nanjing University",
+            "ror": "https://ror.org/01rxvg760",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jingwen Li",
+        "raw_affiliation_strings": [
+          "Nanjing University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Nanjing University",
+            "institution_ids": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": null,
+          "display_name": "Qinyu Tang",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I881766915",
+            "display_name": "Nanjing University",
+            "ror": "https://ror.org/01rxvg760",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Qinyu Tang",
+        "raw_affiliation_strings": [
+          "Nanjing University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Nanjing University",
+            "institution_ids": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5101758786",
+          "display_name": "Yuanqi Li",
+          "orcid": "https://orcid.org/0000-0003-2469-6842",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-2469-6842"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I881766915",
+            "display_name": "Nanjing University",
+            "ror": "https://ror.org/01rxvg760",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yuanqi Li",
+        "raw_affiliation_strings": [
+          "Nanjing University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Nanjing University",
+            "institution_ids": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5009275869",
+          "display_name": "Yanwen Guo",
+          "orcid": "https://orcid.org/0000-0002-7605-5206",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-7605-5206"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I881766915",
+            "display_name": "Nanjing University",
+            "ror": "https://ror.org/01rxvg760",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yanwen Guo",
+        "raw_affiliation_strings": [
+          "Nanjing University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Nanjing University",
+            "institution_ids": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5042385843",
+          "display_name": "Jie Jassic Guo",
+          "orcid": "https://orcid.org/0000-0002-4176-7617",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-4176-7617"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I881766915",
+            "display_name": "Nanjing University",
+            "ror": "https://ror.org/01rxvg760",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jie Guo",
+        "raw_affiliation_strings": [
+          "Nanjing University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Nanjing University",
+            "institution_ids": [
+              "https://openalex.org/I881766915"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402727044",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727881",
+    "title": "Neural Exposure Fusion for High-Dynamic Range Object Detection",
+    "abstract": "Computer vision in unconstrained outdoor scenarios must tackle challenging high dynamic range (HDR) scenes and rapidly changing illumination conditions. Existing methods address this problem with multi-capture HDR sensors and a hardware image signal processor (ISP) that produces a single fused image as input to a downstream neural network. The output of the HDR sensor is a set of low dy-namic range (LDR) exposures, and the fusion in the ISP is performed in image space and typically optimized for hu-man perception on a display. Preferring tonemapped content with smooth transition regions over detail (and noise) in the resulting image, this image fusion does typically not preserve all information from the LDR exposures that may be essential for downstream computer vision tasks. In this work, we depart from conventional HDR image fusion and propose a learned task-driven fusion in the feature domain. Instead of using a single companded image, we introduce a novel local cross-attention fusion mechanism that exploits semantic features from all exposures learned in an end-to-end fashion with supervision from downstream detection losses. The proposed method outperforms all tested conventional HDR exposure fusion and auto-exposure methods in challenging automotive HDR scenarios.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5064765410",
+          "display_name": "Emmanuel Onzon",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210124078",
+            "display_name": "Torc Robotics (United States)",
+            "ror": "https://ror.org/03233xn13",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210124078"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Emmanuel Onzon",
+        "raw_affiliation_strings": [
+          "Torc Robotics"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Torc Robotics",
+            "institution_ids": [
+              "https://openalex.org/I4210124078"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5081593486",
+          "display_name": "Maximilian Bömer",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210124078",
+            "display_name": "Torc Robotics (United States)",
+            "ror": "https://ror.org/03233xn13",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210124078"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Maximilian Bömer",
+        "raw_affiliation_strings": [
+          "Torc Robotics"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Torc Robotics",
+            "institution_ids": [
+              "https://openalex.org/I4210124078"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5060060011",
+          "display_name": "Fahim Mannan",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210124078",
+            "display_name": "Torc Robotics (United States)",
+            "ror": "https://ror.org/03233xn13",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210124078"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Fahim Mannan",
+        "raw_affiliation_strings": [
+          "Torc Robotics"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Torc Robotics",
+            "institution_ids": [
+              "https://openalex.org/I4210124078"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5059313827",
+          "display_name": "Felix Heide",
+          "orcid": "https://orcid.org/0000-0002-8054-9823",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-8054-9823"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210124078",
+            "display_name": "Torc Robotics (United States)",
+            "ror": "https://ror.org/03233xn13",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210124078"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Felix Heide",
+        "raw_affiliation_strings": [
+          "Torc Robotics"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Torc Robotics",
+            "institution_ids": [
+              "https://openalex.org/I4210124078"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402727881",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402704616",
+    "title": "YolOOD: Utilizing Object Detection Concepts for Multi-Label Out-of-Distribution Detection",
+    "abstract": "Out-of-distribution (OOD) detection has attracted a large amount of attention from the machine learning research community in recent years due to its importance in deployed systems. Most of the previous studies focused on the detection of OOD samples in the multiclass classification task. However, OOD detection in the multi-label classification task, a more common real-world use case, remains an underexplored domain. In this research, we propose YolOOD - a method that utilizes concepts from the object detection domain to perform OOD detection in the multi-label classification task. Object detection models have an inherent ability to distinguish between objects of interest (in-distribution data) and irrelevant objects (OOD data) in images that contain multiple objects belonging to different class categories. These abilities allow us to convert a regular object detection model into an image classifier with inherent OOD detection capabilities with just minor changes. We compare our approach to state-of-the-art OOD detection methods and demonstrate YolOOD's ability to outperform these methods on a comprehensive suite of in-distribution and OOD benchmark datasets.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5033720635",
+          "display_name": "Alon Zolfi",
+          "orcid": "https://orcid.org/0000-0003-0270-1743",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-0270-1743"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I124227911",
+            "display_name": "Ben-Gurion University of the Negev",
+            "ror": "https://ror.org/05tkyf982",
+            "country_code": "IL",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ],
+        "countries": [
+          "IL"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Alon Zolfi",
+        "raw_affiliation_strings": [
+          "Ben-Gurion University of the Negev,Israel"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Ben-Gurion University of the Negev,Israel",
+            "institution_ids": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5084959917",
+          "display_name": "Guy Amit",
+          "orcid": "https://orcid.org/0000-0002-5987-4402",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-5987-4402"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I124227911",
+            "display_name": "Ben-Gurion University of the Negev",
+            "ror": "https://ror.org/05tkyf982",
+            "country_code": "IL",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ],
+        "countries": [
+          "IL"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Guy Amit",
+        "raw_affiliation_strings": [
+          "Ben-Gurion University of the Negev,Israel"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Ben-Gurion University of the Negev,Israel",
+            "institution_ids": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5004849396",
+          "display_name": "Amit Baras",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I124227911",
+            "display_name": "Ben-Gurion University of the Negev",
+            "ror": "https://ror.org/05tkyf982",
+            "country_code": "IL",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ],
+        "countries": [
+          "IL"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Amit Baras",
+        "raw_affiliation_strings": [
+          "Ben-Gurion University of the Negev,Israel"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Ben-Gurion University of the Negev,Israel",
+            "institution_ids": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5051573944",
+          "display_name": "Satoru Koda",
+          "orcid": "https://orcid.org/0000-0002-9187-9625",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-9187-9625"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I2252096349",
+            "display_name": "Fujitsu (Japan)",
+            "ror": "https://ror.org/038e2g226",
+            "country_code": "JP",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I2252096349"
+            ]
+          }
+        ],
+        "countries": [
+          "JP"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Satoru Koda",
+        "raw_affiliation_strings": [
+          "Fujitsu Limited,Japan"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Fujitsu Limited,Japan",
+            "institution_ids": [
+              "https://openalex.org/I2252096349"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5075800271",
+          "display_name": "Ikuya Morikawa",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I2252096349",
+            "display_name": "Fujitsu (Japan)",
+            "ror": "https://ror.org/038e2g226",
+            "country_code": "JP",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I2252096349"
+            ]
+          }
+        ],
+        "countries": [
+          "JP"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Ikuya Morikawa",
+        "raw_affiliation_strings": [
+          "Fujitsu Limited,Japan"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Fujitsu Limited,Japan",
+            "institution_ids": [
+              "https://openalex.org/I2252096349"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5072913672",
+          "display_name": "Yuval Elovici",
+          "orcid": "https://orcid.org/0000-0002-9641-128X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-9641-128X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I124227911",
+            "display_name": "Ben-Gurion University of the Negev",
+            "ror": "https://ror.org/05tkyf982",
+            "country_code": "IL",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ],
+        "countries": [
+          "IL"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yuval Elovici",
+        "raw_affiliation_strings": [
+          "Ben-Gurion University of the Negev,Israel"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Ben-Gurion University of the Negev,Israel",
+            "institution_ids": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5002391103",
+          "display_name": "Asaf Shabtai",
+          "orcid": "https://orcid.org/0000-0003-0630-4059",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-0630-4059"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I124227911",
+            "display_name": "Ben-Gurion University of the Negev",
+            "ror": "https://ror.org/05tkyf982",
+            "country_code": "IL",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ],
+        "countries": [
+          "IL"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Asaf Shabtai",
+        "raw_affiliation_strings": [
+          "Ben-Gurion University of the Negev,Israel"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Ben-Gurion University of the Negev,Israel",
+            "institution_ids": [
+              "https://openalex.org/I124227911"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402704616",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402753636",
+    "title": "UniMODE: Unified Monocular 3D Object Detection",
+    "abstract": "Realizing unified monocular 3D object detection, including both indoor and outdoor scenes, holds great importance in applications like robot navigation. However, involving various scenarios of data to train models poses challenges due to their significantly different characteristics, e.g., di-verse geometry properties and heterogeneous domain distributions. To address these challenges, we build a detector based on the bird's-eye-view (BEV) detection paradigm, where the explicit feature projection is beneficial to ad-dressing the geometry learning ambiguity when employing multiple scenarios of data to train detectors. Then, we split the classical BEV detection architecture into two stages and propose an uneven BEV grid design to handle the convergence instability caused by the aforementioned challenges. Moreover, we develop a sparse BEV feature projection strategy to reduce computational cost and a unified do-main alignment method to handle heterogeneous domains. Combining these techniques, a unified detector UniMODE is derived, which surpasses the previous state-of-the-art on the challenging Omni3D dataset (a large-scale dataset including both indoor and outdoor scenes) by 4.9% AP3D, revealing the first successful generalization of a BEV detector to unified 3D object detection.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5081985247",
+          "display_name": "Zhuoling Li",
+          "orcid": "https://orcid.org/0000-0002-9188-8521",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-9188-8521"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I889458895",
+            "display_name": "University of Hong Kong",
+            "ror": "https://ror.org/02zhqgq86",
+            "country_code": "HK",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I889458895"
+            ]
+          }
+        ],
+        "countries": [
+          "HK"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Zhuoling Li",
+        "raw_affiliation_strings": [
+          "IHKU"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "IHKU",
+            "institution_ids": [
+              "https://openalex.org/I889458895"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5032067104",
+          "display_name": "Xiaogang Xu",
+          "orcid": "https://orcid.org/0000-0002-7928-7336",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-7928-7336"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I177725633",
+            "display_name": "Chinese University of Hong Kong",
+            "ror": "https://ror.org/00t33hh48",
+            "country_code": "HK",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I177725633"
+            ]
+          }
+        ],
+        "countries": [
+          "HK"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xiaogang Xu",
+        "raw_affiliation_strings": [
+          "CUHK"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "CUHK",
+            "institution_ids": [
+              "https://openalex.org/I177725633"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5113969216",
+          "display_name": "Ser-Nam Lim",
+          "orcid": "https://orcid.org/0000-0001-9525-0288",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-9525-0288"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I106165777",
+            "display_name": "University of Central Florida",
+            "ror": "https://ror.org/036nfer12",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I106165777"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "SerNam Lim",
+        "raw_affiliation_strings": [
+          "UCF"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "UCF",
+            "institution_ids": [
+              "https://openalex.org/I106165777"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5078109015",
+          "display_name": "Hengshuang Zhao",
+          "orcid": "https://orcid.org/0000-0001-8277-2706",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-8277-2706"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I889458895",
+            "display_name": "University of Hong Kong",
+            "ror": "https://ror.org/02zhqgq86",
+            "country_code": "HK",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I889458895"
+            ]
+          }
+        ],
+        "countries": [
+          "HK"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Hengshuang Zhao",
+        "raw_affiliation_strings": [
+          "IHKU"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "IHKU",
+            "institution_ids": [
+              "https://openalex.org/I889458895"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402753636",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402754222",
+    "title": "Point2RBox: Combine Knowledge from Synthetic Visual Patterns for End-to-End Oriented Object Detection with Single Point Supervision",
+    "abstract": "With the rapidly increasing demand for oriented object detection (OOD), recent research involving weakly-supervised detectors for learning rotated box (RBox) from the horizontal box (HBox) has attracted more and more attention. In this paper, we explore a more challenging yet label-efficient setting, namely single point-supervised OOD, and present our approach called Point2RBox. Specifically, we propose to leverage two principles: 1) Synthetic pattern knowledge combination: By sampling around each labeled point on the image, we spread the object feature to synthetic visual patterns with known boxes to provide the knowledge for box regression. 2) Transform self-supervision: With a transformed input image (e.g. scaled/rotated), the output RBoxes are trained to follow the same transformation so that the network can perceive the relative size/rotation between objects. The detector is further enhanced by a few devised techniques to cope with peripheral issues, e.g. The anchor/layer assignment as the size of the object is not available in our point supervision setting. To our best knowledge, Point2RBox is the first end-to-end solution for point-supervised OOD. In particular, our method uses a lightweight paradigm, yet it achieves a competitive performance among point-supervised alternatives, 41.05%/27.62%/80.01% on DOTA/DIOR/HRSC datasets.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5116592774",
+          "display_name": "Yi Yu",
+          "orcid": "https://orcid.org/0000-0003-2730-9553",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-2730-9553"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I76569877",
+            "display_name": "Southeast University",
+            "ror": "https://ror.org/04ct4d772",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I76569877"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yi Yu",
+        "raw_affiliation_strings": [
+          "Southeast University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Southeast University",
+            "institution_ids": [
+              "https://openalex.org/I76569877"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5043503650",
+          "display_name": "Xue Yang",
+          "orcid": "https://orcid.org/0000-0002-7084-9101",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-7084-9101"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4391012619",
+            "display_name": "Shanghai Artificial Intelligence Laboratory",
+            "ror": "https://ror.org/03wkvpx79",
+            "country_code": "CN",
+            "type": "facility",
+            "lineage": [
+              "https://openalex.org/I4391012619"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xue Yang",
+        "raw_affiliation_strings": [
+          "Shanghai AI Laboratory"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Shanghai AI Laboratory",
+            "institution_ids": [
+              "https://openalex.org/I4391012619"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100685484",
+          "display_name": "Qingyun Li",
+          "orcid": "https://orcid.org/0000-0003-0274-0304",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-0274-0304",
+            "https://orcid.org/0009-0003-3338-9067"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I204983213",
+            "display_name": "Harbin Institute of Technology",
+            "ror": "https://ror.org/01yqg2h08",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I204983213"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Qingyun Li",
+        "raw_affiliation_strings": [
+          "Harbin Institute of Technology"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Harbin Institute of Technology",
+            "institution_ids": [
+              "https://openalex.org/I204983213"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5109138805",
+          "display_name": "Feipeng Da",
+          "orcid": "https://orcid.org/0000-0001-5475-3145",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-5475-3145",
+            "https://orcid.org/0000-0001-6413-1331"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I76569877",
+            "display_name": "Southeast University",
+            "ror": "https://ror.org/04ct4d772",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I76569877"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Feipeng Da",
+        "raw_affiliation_strings": [
+          "Southeast University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Southeast University",
+            "institution_ids": [
+              "https://openalex.org/I76569877"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5051797244",
+          "display_name": "Yifeng Dai",
+          "orcid": "https://orcid.org/0000-0002-5037-3695",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-5037-3695"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I99065089",
+            "display_name": "Tsinghua University",
+            "ror": "https://ror.org/03cve4549",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I99065089"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jifeng Dai",
+        "raw_affiliation_strings": [
+          "Tsinghua University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Tsinghua University",
+            "institution_ids": [
+              "https://openalex.org/I99065089"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100748135",
+          "display_name": "Yu Qiao",
+          "orcid": "https://orcid.org/0000-0002-1889-2567",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-1889-2567",
+            "https://orcid.org/0000-0003-4045-8473"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4391012619",
+            "display_name": "Shanghai Artificial Intelligence Laboratory",
+            "ror": "https://ror.org/03wkvpx79",
+            "country_code": "CN",
+            "type": "facility",
+            "lineage": [
+              "https://openalex.org/I4391012619"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yu Qiao",
+        "raw_affiliation_strings": [
+          "Shanghai AI Laboratory"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Shanghai AI Laboratory",
+            "institution_ids": [
+              "https://openalex.org/I4391012619"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5087158377",
+          "display_name": "Junchi Yan",
+          "orcid": "https://orcid.org/0000-0001-9639-7679",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-9639-7679"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I183067930",
+            "display_name": "Shanghai Jiao Tong University",
+            "ror": "https://ror.org/0220qvk04",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I183067930"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Junchi Yan",
+        "raw_affiliation_strings": [
+          "Shanghai Jiao Tong University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Shanghai Jiao Tong University",
+            "institution_ids": [
+              "https://openalex.org/I183067930"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402754222",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727829",
+    "title": "Scene Adaptive Sparse Transformer for Event-based Object Detection",
+    "abstract": "While recent Transformer-based approaches have shown impressive performances on event-based object detection tasks, their high computational costs still diminish the low power consumption advantage of event cameras. Image-based works attempt to reduce these costs by introducing sparse Transformers. However, they display inade-quate sparsity and adaptability when applied to event-based object detection, since these approaches cannot balance the fine granularity of token-level sparsification and the efficiency of window-based Transformers, leading to re-duced performance and efficiency. Furthermore, they lack scene-specific sparsity optimization, resulting in information loss and a lower recall rate. To overcome these limi-tations, we propose the Scene Adaptive Sparse Transformer (SAST). SAST enables window-token co-sparsification, sig-nificantly enhancing fault tolerance and reducing compu-tational overhead. Leveraging the innovative scoring and selection modules, along with the Masked Sparse Window Self-Attention, SAST showcases remarkable scene-aware adaptability: It focuses only on important objects and dy-namically optimizes sparsity level according to scene complexity, maintaining a remarkable balance between performance and computational cost. The evaluation results show that SAST outperforms all other dense and sparse networks in both performance and efficiency on two large-scale event-based object detection datasets (1 Mpx and Genl). Code: https://github.com/Peterande/SAST.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5072441298",
+          "display_name": "Yansong Peng",
+          "orcid": "https://orcid.org/0000-0001-8685-1495",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-8685-1495"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I126520041",
+            "display_name": "University of Science and Technology of China",
+            "ror": "https://ror.org/04c4dkn09",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I126520041",
+              "https://openalex.org/I19820366"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yansong Peng",
+        "raw_affiliation_strings": [
+          "University of Science and Technology of China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Science and Technology of China",
+            "institution_ids": [
+              "https://openalex.org/I126520041"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5104270736",
+          "display_name": "Hebei Li",
+          "orcid": "https://orcid.org/0000-0002-7529-6331",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-7529-6331"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I126520041",
+            "display_name": "University of Science and Technology of China",
+            "ror": "https://ror.org/04c4dkn09",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I126520041",
+              "https://openalex.org/I19820366"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Hebei Li",
+        "raw_affiliation_strings": [
+          "University of Science and Technology of China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Science and Technology of China",
+            "institution_ids": [
+              "https://openalex.org/I126520041"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5068339381",
+          "display_name": "Yueyi Zhang",
+          "orcid": "https://orcid.org/0000-0002-8627-2124",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-8627-2124"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I126520041",
+            "display_name": "University of Science and Technology of China",
+            "ror": "https://ror.org/04c4dkn09",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I126520041",
+              "https://openalex.org/I19820366"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yueyi Zhang",
+        "raw_affiliation_strings": [
+          "University of Science and Technology of China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Science and Technology of China",
+            "institution_ids": [
+              "https://openalex.org/I126520041"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5107957387",
+          "display_name": "Xiaoyan Sun",
+          "orcid": "https://orcid.org/0009-0003-8390-8988",
+          "observed_orcids": [
+            "https://orcid.org/0009-0003-8390-8988"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I126520041",
+            "display_name": "University of Science and Technology of China",
+            "ror": "https://ror.org/04c4dkn09",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I126520041",
+              "https://openalex.org/I19820366"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xiaoyan Sun",
+        "raw_affiliation_strings": [
+          "University of Science and Technology of China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Science and Technology of China",
+            "institution_ids": [
+              "https://openalex.org/I126520041"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5103150943",
+          "display_name": "Feng He Wu",
+          "orcid": "https://orcid.org/0000-0001-7266-5579",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-7266-5579"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I126520041",
+            "display_name": "University of Science and Technology of China",
+            "ror": "https://ror.org/04c4dkn09",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I126520041",
+              "https://openalex.org/I19820366"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Feng Wu",
+        "raw_affiliation_strings": [
+          "University of Science and Technology of China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Science and Technology of China",
+            "institution_ids": [
+              "https://openalex.org/I126520041"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402727829",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402660130",
+    "title": "Scene-adaptive and Region-aware Multi-modal Prompt for Open Vocabulary Object Detection",
+    "abstract": "Open Vocabulary Object Detection (OVD) aims to detect objects from novel classes described by text inputs based on the generalization ability of trained classes. Existing methods mainly focus on transferring knowledge from large Vision and Language models (VLM) to detectors through knowledge distillation. However, these approaches show weak ability in adapting to diverse classes and aligning be-tween the image-level pre-training and region-level detection, thereby impeding effective knowledge transfer. Moti-vated by the prompt tuning, we propose scene-adaptive and region-aware multi-modal prompts to address these issues by effectively adapting class-aware knowledge from VLM to the detector at the region level. Specifically, to enhance the adaptability to diverse classes, we design a scene-adaptive prompt generator from a scene perspective to consider both the commonality and diversity of the class distributions, and formulate a novel selection mechanism to facilitate the ac-quisition of common knowledge across all classes and spe-cific insights relevant to each scene. Meanwhile, to bridge the gap between the pre-trained model and the detector, we present a region-aware multi-modal alignment module, which employs the region prompt to incorporate the po-sitional information for feature distillation and integrates textual prompts to align visual and linguistic representations. Extensive experimental results demonstrate that the proposed method significantly outperforms the state-of-the-art models on the OV-COCO and OV-LVIS datasets, sur-passing the current method by 3.0% mAP and 4.6% APr.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": null,
+          "display_name": "Xiaowei Zhao",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I82880672",
+            "display_name": "Beihang University",
+            "ror": "https://ror.org/00wk2mp56",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xiaowei Zhao",
+        "raw_affiliation_strings": [
+          "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment",
+            "institution_ids": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5024067284",
+          "display_name": "Xianglong Liu",
+          "orcid": "https://orcid.org/0000-0001-8425-4195",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-8425-4195",
+            "https://orcid.org/0000-0002-7618-3275",
+            "https://orcid.org/0009-0001-6606-7166",
+            "https://orcid.org/0009-0001-9019-7702"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I82880672",
+            "display_name": "Beihang University",
+            "ror": "https://ror.org/00wk2mp56",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xianglong Liu",
+        "raw_affiliation_strings": [
+          "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment",
+            "institution_ids": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5081734550",
+          "display_name": "Duorui Wang",
+          "orcid": "https://orcid.org/0000-0002-9502-873X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-9502-873X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I82880672",
+            "display_name": "Beihang University",
+            "ror": "https://ror.org/00wk2mp56",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Duorui Wang",
+        "raw_affiliation_strings": [
+          "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment",
+            "institution_ids": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5070737461",
+          "display_name": "Yajun Gao",
+          "orcid": "https://orcid.org/0009-0007-1631-6631",
+          "observed_orcids": [
+            "https://orcid.org/0009-0007-1631-6631"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I82880672",
+            "display_name": "Beihang University",
+            "ror": "https://ror.org/00wk2mp56",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yajun Gao",
+        "raw_affiliation_strings": [
+          "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment",
+            "institution_ids": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5019291446",
+          "display_name": "Zhide Liu",
+          "orcid": "https://orcid.org/0000-0001-8200-7780",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-8200-7780"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I82880672",
+            "display_name": "Beihang University",
+            "ror": "https://ror.org/00wk2mp56",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Zhide Liu",
+        "raw_affiliation_strings": [
+          "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Beihang University,State Key Laboratory of Complex &#x0026; Critical Software Environment",
+            "institution_ids": [
+              "https://openalex.org/I82880672"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402660130",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402753402",
+    "title": "HINTED: Hard Instance Enhanced Detector with Mixed-Density Feature Fusion for Sparsely-Supervised 3D Object Detection",
+    "abstract": "Current sparsely-supervised object detection methods largely depend on high threshold settings to derive high-quality pseudo labels from detector predictions. However, hard instances within point clouds frequently display incomplete structures, causing decreased confidence scores in their assigned pseudo-labels. Previous methods inevitably result in inadequate positive supervision for these instances. To address this problem, we propose a novel Hard INsTance Enhanced Detector (HINTED), for sparsely-supervised 3D object detection. Firstly, we design a self-boosting teacher (SBT) model to generate more potential pseudo-labels, enhancing the effectiveness of information transfer. Then, we introduce a mixed-density student (MDS) model to concentrate on hard instances during the training phase, thereby improving detection accuracy. Our extensive experiments on the KITTI dataset validate our method's superior performance. Compared with leading sparsely-supervised methods, HINTED significantly improves the detection performance on hard instances, no-tably outperforming fully-supervised methods in detecting challenging categories like cyclists. HINTED also significantly outperforms the state-of-the-art semi-supervised method on challenging categories. The code is available at https://github.com/xmuqimingxia/HINTED.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5059888118",
+          "display_name": "Qiming Xia",
+          "orcid": "https://orcid.org/0000-0002-6440-5694",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-6440-5694"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Qiming Xia",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5113408083",
+          "display_name": "Wei Ye",
+          "orcid": "https://orcid.org/0009-0004-5220-2525",
+          "observed_orcids": [
+            "https://orcid.org/0009-0004-5220-2525",
+            "https://orcid.org/0009-0002-8698-6896"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Wei Ye",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5103427617",
+          "display_name": "Hai Xia Wu",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Hai Wu",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5040677234",
+          "display_name": "Shijia Zhao",
+          "orcid": "https://orcid.org/0000-0002-6372-6779",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-6372-6779"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Shijia Zhao",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5054338260",
+          "display_name": "Leyuan Xing",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Leyuan Xing",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": null,
+          "display_name": "Xun Huang",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xun Huang",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5024719468",
+          "display_name": "Jinhao Deng",
+          "orcid": "https://orcid.org/0000-0003-1271-5532",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-1271-5532"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jinhao Deng",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100658181",
+          "display_name": "Xin Li",
+          "orcid": "https://orcid.org/0000-0002-1670-1368",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-1670-1368"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I91045830",
+            "display_name": "Texas A&M University",
+            "ror": "https://ror.org/01f5ytq51",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I91045830"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xin Li",
+        "raw_affiliation_strings": [
+          "Texas A&#x0026;M University,Section of Visual Computing and Interactive Media,Texas,USA"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Texas A&#x0026;M University,Section of Visual Computing and Interactive Media,Texas,USA",
+            "institution_ids": [
+              "https://openalex.org/I91045830"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5047386824",
+          "display_name": "Chenglu Wen",
+          "orcid": "https://orcid.org/0000-0002-6189-1236",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-6189-1236"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Chenglu Wen",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5103351032",
+          "display_name": "Cheng Wang",
+          "orcid": "https://orcid.org/0009-0008-7751-6167",
+          "observed_orcids": [
+            "https://orcid.org/0009-0008-7751-6167"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I191208505",
+            "display_name": "Xiamen University",
+            "ror": "https://ror.org/00mcjh785",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Cheng Wang",
+        "raw_affiliation_strings": [
+          "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Xiamen University,Fujian Key Laboratory of Sensing and Computing for Smart Cities,Xiamen,China",
+            "institution_ids": [
+              "https://openalex.org/I191208505"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402753402",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727002",
+    "title": "3DiffTection: 3D Object Detection with Geometry-Aware Diffusion Features",
+    "abstract": "3DiffTection introduces a novel method for 3D object detection from single images, utilizing a 3D-aware diffusion model for feature extraction. Addressing the resource-intensive nature of annotating large-scale 3D image data, our approach leverages pretrained diffusion models, traditionally used for 2D tasks, and adapts them for 3D detection through geometric and semantic tuning. Geometrically, we enhance the model to perform view synthesis from single images, incorporating an epipolar warp operator. This process utilizes easily accessible posed image data, eliminating the need for manual annotation. Semantically, the model is further refined on target detection data. Both stages utilize ControlNet, ensuring the preservation of original feature capabilities. Through our methodology, we obtain 3D-aware features that excel in identifying cross-view point correspondences. In 3D detection, 3DiffTection substantially surpasses previous benchmarks, e.g., Cube-RCNN, by 9.43% in AP3D on the Omni3D-ARkitscene dataset. Furthermore, 3DiffTection demonstrates robust label efficiency and generalizes well to cross-domain data, nearly matching fully-supervised models in zero-shot scenarios. Project page: https://research.nvidia.com/labs/toronto-ai/3difftection/.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5083914796",
+          "display_name": "Chenfeng Xu",
+          "orcid": "https://orcid.org/0000-0002-4941-6985",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-4941-6985"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I1304085615",
+            "display_name": "Nvidia (United Kingdom)",
+            "ror": "https://ror.org/02kr42612",
+            "country_code": "GB",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I1304085615",
+              "https://openalex.org/I4210127875"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I4210127875",
+            "display_name": "Nvidia (United States)",
+            "ror": "https://ror.org/03jdj4y14",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210127875"
+            ]
+          }
+        ],
+        "countries": [
+          "GB",
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Chenfeng XU",
+        "raw_affiliation_strings": [
+          "NVIDIA"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NVIDIA",
+            "institution_ids": [
+              "https://openalex.org/I1304085615",
+              "https://openalex.org/I4210127875"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5110139272",
+          "display_name": "Huan Ling",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I1304085615",
+            "display_name": "Nvidia (United Kingdom)",
+            "ror": "https://ror.org/02kr42612",
+            "country_code": "GB",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I1304085615",
+              "https://openalex.org/I4210127875"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I4210127875",
+            "display_name": "Nvidia (United States)",
+            "ror": "https://ror.org/03jdj4y14",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210127875"
+            ]
+          }
+        ],
+        "countries": [
+          "GB",
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Huan Ling",
+        "raw_affiliation_strings": [
+          "NVIDIA"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NVIDIA",
+            "institution_ids": [
+              "https://openalex.org/I1304085615",
+              "https://openalex.org/I4210127875"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5070642269",
+          "display_name": "Sanja Fidler",
+          "orcid": "https://orcid.org/0000-0003-1040-3260",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-1040-3260"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I1304085615",
+            "display_name": "Nvidia (United Kingdom)",
+            "ror": "https://ror.org/02kr42612",
+            "country_code": "GB",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I1304085615",
+              "https://openalex.org/I4210127875"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I4210127875",
+            "display_name": "Nvidia (United States)",
+            "ror": "https://ror.org/03jdj4y14",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210127875"
+            ]
+          }
+        ],
+        "countries": [
+          "GB",
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Sanja Fidler",
+        "raw_affiliation_strings": [
+          "NVIDIA"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NVIDIA",
+            "institution_ids": [
+              "https://openalex.org/I1304085615",
+              "https://openalex.org/I4210127875"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5006347979",
+          "display_name": "Or Litany",
+          "orcid": "https://orcid.org/0000-0001-6700-7379",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-6700-7379"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I1304085615",
+            "display_name": "Nvidia (United Kingdom)",
+            "ror": "https://ror.org/02kr42612",
+            "country_code": "GB",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I1304085615",
+              "https://openalex.org/I4210127875"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I4210127875",
+            "display_name": "Nvidia (United States)",
+            "ror": "https://ror.org/03jdj4y14",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I4210127875"
+            ]
+          }
+        ],
+        "countries": [
+          "GB",
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Or Litany",
+        "raw_affiliation_strings": [
+          "NVIDIA"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NVIDIA",
+            "institution_ids": [
+              "https://openalex.org/I1304085615",
+              "https://openalex.org/I4210127875"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402727002",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402754221",
+    "title": "AIDE: An Automatic Data Engine for Object Detection in Autonomous Driving",
+    "abstract": "Autonomous vehicle (AV) systems rely on robust perception models as a cornerstone of safety assurance. However, objects encountered on the road exhibit a long-tailed distri-bution, with rare or unseen categories posing challenges to a deployed perception model. This necessitates an expen-sive process of continuously curating and annotating data with significant human effort. We propose to leverage recent advances in vision-language and large language models to design an Automatic Data Engine (AIDE) that automati-cally identifies issues, efficiently curates data, improves the model through auto-labeling, and verifies the model through generation of diverse scenarios. This process operates it-eratively, allowing for continuous self-improvement of the model. We further establish a benchmark for open-world detection on AV datasets to comprehensively evaluate vari-ous learning paradigms, demonstrating our method's supe-rior performance at a reduced cost.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5086774067",
+          "display_name": "Mingfu Liang",
+          "orcid": "https://orcid.org/0000-0001-6779-2418",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-6779-2418"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I111979921",
+            "display_name": "Northwestern University",
+            "ror": "https://ror.org/000e0be47",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I111979921"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Mingfu Liang",
+        "raw_affiliation_strings": [
+          "Northwestern University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Northwestern University",
+            "institution_ids": [
+              "https://openalex.org/I111979921"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5046487166",
+          "display_name": "Jong-Chyi Su",
+          "orcid": "https://orcid.org/0000-0002-7933-8308",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-7933-8308"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210107353",
+            "display_name": "NEC (United States)",
+            "ror": "https://ror.org/01v791m31",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I118347220",
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jong-Chyi Su",
+        "raw_affiliation_strings": [
+          "NEC Laboratories America"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NEC Laboratories America",
+            "institution_ids": [
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5078774200",
+          "display_name": "Samuel Schulter",
+          "orcid": "https://orcid.org/0000-0002-7341-5907",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-7341-5907"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210107353",
+            "display_name": "NEC (United States)",
+            "ror": "https://ror.org/01v791m31",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I118347220",
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Samuel Schulter",
+        "raw_affiliation_strings": [
+          "NEC Laboratories America"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NEC Laboratories America",
+            "institution_ids": [
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5002261892",
+          "display_name": "Sparsh Garg",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210107353",
+            "display_name": "NEC (United States)",
+            "ror": "https://ror.org/01v791m31",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I118347220",
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Sparsh Garg",
+        "raw_affiliation_strings": [
+          "NEC Laboratories America"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NEC Laboratories America",
+            "institution_ids": [
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5057626493",
+          "display_name": "Shiyu Zhao",
+          "orcid": "https://orcid.org/0000-0002-4978-725X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-4978-725X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I102322142",
+            "display_name": "Rutgers, The State University of New Jersey",
+            "ror": "https://ror.org/05vt9qd57",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I102322142"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Shiyu Zhao",
+        "raw_affiliation_strings": [
+          "Rutgers University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Rutgers University",
+            "institution_ids": [
+              "https://openalex.org/I102322142"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5002074693",
+          "display_name": "Ying Wu",
+          "orcid": "https://orcid.org/0000-0002-4095-8315",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-4095-8315"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I111979921",
+            "display_name": "Northwestern University",
+            "ror": "https://ror.org/000e0be47",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I111979921"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Ying Wu",
+        "raw_affiliation_strings": [
+          "Northwestern University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Northwestern University",
+            "institution_ids": [
+              "https://openalex.org/I111979921"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5046609009",
+          "display_name": "Manmohan Krishna Chandraker",
+          "orcid": "https://orcid.org/0000-0003-4683-2454",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-4683-2454"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210107353",
+            "display_name": "NEC (United States)",
+            "ror": "https://ror.org/01v791m31",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I118347220",
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Manmohan Chandraker",
+        "raw_affiliation_strings": [
+          "NEC Laboratories America"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NEC Laboratories America",
+            "institution_ids": [
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402754221",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402715759",
+    "title": "PTT: Point-Trajectory Transformer for Efficient Temporal 3D Object Detection",
+    "abstract": "Recent temporal LiDAR-based 3D object detectors achieve promising performance based on the two-stage proposal-based approach. They generate 3D box candidates from the first-stage dense detector, followed by different temporal aggregation methods. However, these approaches require per-frame objects or whole point clouds, posing challenges related to memory bank utilization. Moreover, point clouds and trajectory features are combined solely based on concatenation, which may neglect effective interactions between them. In this paper, we propose a point-trajectory transformer with long short-term memory for efficient temporal 3D object detection. To this end, we only utilize point clouds of current-frame objects and their historical trajectories as input to minimize the memory bank storage requirement. Furthermore, we introduce modules to encode trajectory features, focusing on long short-term and future-aware perspectives, and then effectively aggregate them with point cloud features. We conduct extensive experiments on the large-scale Waymo dataset to demon-strate that our approach performs well against state-of-the-art methods. Code and models will be made publicly available at https://github.com/kuanchihhuang/Ptt.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5052378221",
+          "display_name": "Kuan‐Chih Huang",
+          "orcid": "https://orcid.org/0000-0001-7100-8091",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-7100-8091"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I156087764",
+            "display_name": "University of California, Merced",
+            "ror": "https://ror.org/00d9ah105",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I156087764"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Kuan–Chih Huang",
+        "raw_affiliation_strings": [
+          "University of California,Merced"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of California,Merced",
+            "institution_ids": [
+              "https://openalex.org/I156087764"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5063701709",
+          "display_name": "Weijie Lyu",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I156087764",
+            "display_name": "University of California, Merced",
+            "ror": "https://ror.org/00d9ah105",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I156087764"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Weijie Lyu",
+        "raw_affiliation_strings": [
+          "University of California,Merced"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of California,Merced",
+            "institution_ids": [
+              "https://openalex.org/I156087764"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100418319",
+          "display_name": "Ming–Hsuan Yang",
+          "orcid": "https://orcid.org/0000-0003-4848-2304",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-4848-2304",
+            "https://orcid.org/0000-0001-6364-0417"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I156087764",
+            "display_name": "University of California, Merced",
+            "ror": "https://ror.org/00d9ah105",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I156087764"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Ming–Hsuan Yang",
+        "raw_affiliation_strings": [
+          "University of California,Merced"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of California,Merced",
+            "institution_ids": [
+              "https://openalex.org/I156087764"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5112904753",
+          "display_name": "Yi–Hsuan Tsai",
+          "orcid": "https://orcid.org/0000-0003-2107-4300",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-2107-4300"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I1291425158",
+            "display_name": "Google (United States)",
+            "ror": "https://ror.org/00njsd438",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I1291425158",
+              "https://openalex.org/I4210128969"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yi–Hsuan Tsai",
+        "raw_affiliation_strings": [
+          "Google"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Google",
+            "institution_ids": [
+              "https://openalex.org/I1291425158"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402715759",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402716321",
+    "title": "Retrieval-Augmented Open-Vocabulary Object Detection",
+    "abstract": "Open-vocabulary object detection (OVD) has been stud-ied with Vision-Language Models (VLMs) to detect novel objects beyond the pre-trained categories. Previous ap-proaches improve the generalization ability to expand the knowledge of the detector, using ‘positive’ pseudo-labels with additional ‘class' names, e.g., sock, iPod, and alli-gator. To extend the previous methods in two aspects, we propose Retrieval-Augmented Losses and visual Features (RALF). Our method retrieves related ‘negative’ classes and augments loss functions. Also, visual features are aug-mented with ‘verbalized concepts' of classes, e.g., worn on the feet, handheld music player, and sharp teeth. Specif-ically, RALF consists of two modules: Retrieval Aug-mented Losses (RAL) and Retrieval-Augmented visual Fea-tures (RAF). RAL constitutes two losses reflecting the se-mantic similarity with negative vocabularies. In addition, RAF augments visual features with the verbalized con-cepts from a large language model (LLM). Our experiments demonstrate the effectiveness of RALF on COCO and LVIS benchmark datasets. We achieve improvement up to 3.4 box APN50on novel categories of the COCO dataset and 3.6 mask APr gains on the LVIS dataset. Code is available at https://github.com/mlvlab/RALF.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5011048461",
+          "display_name": "Jooyeon Kim",
+          "orcid": "https://orcid.org/0000-0001-8432-6056",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-8432-6056"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I197347611",
+            "display_name": "Korea University",
+            "ror": "https://ror.org/047dqcg40",
+            "country_code": "KR",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I197347611"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I4210161052",
+            "display_name": "Korea University",
+            "ror": "https://ror.org/05m1gnk07",
+            "country_code": "JP",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I4210161052"
+            ]
+          }
+        ],
+        "countries": [
+          "JP",
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jooyeon Kim",
+        "raw_affiliation_strings": [
+          "Korea University,Department of Computer Science and Engineering"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Korea University,Department of Computer Science and Engineering",
+            "institution_ids": [
+              "https://openalex.org/I197347611",
+              "https://openalex.org/I4210161052"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5007257708",
+          "display_name": "Eulrang Cho",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I2250650973",
+            "display_name": "Samsung (South Korea)",
+            "ror": "https://ror.org/04w3jy968",
+            "country_code": "KR",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I2250650973"
+            ]
+          }
+        ],
+        "countries": [
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Eulrang Cho",
+        "raw_affiliation_strings": [
+          "Samsung Research"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Samsung Research",
+            "institution_ids": [
+              "https://openalex.org/I2250650973"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5043210468",
+          "display_name": "Sehyung Kim",
+          "orcid": "https://orcid.org/0009-0003-6381-9291",
+          "observed_orcids": [
+            "https://orcid.org/0009-0003-6381-9291"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I197347611",
+            "display_name": "Korea University",
+            "ror": "https://ror.org/047dqcg40",
+            "country_code": "KR",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I197347611"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I4210161052",
+            "display_name": "Korea University",
+            "ror": "https://ror.org/05m1gnk07",
+            "country_code": "JP",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I4210161052"
+            ]
+          }
+        ],
+        "countries": [
+          "JP",
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Sehyung Kim",
+        "raw_affiliation_strings": [
+          "Korea University,Department of Computer Science and Engineering"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Korea University,Department of Computer Science and Engineering",
+            "institution_ids": [
+              "https://openalex.org/I197347611",
+              "https://openalex.org/I4210161052"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5084814930",
+          "display_name": "Hyunwoo J. Kim",
+          "orcid": "https://orcid.org/0000-0002-2181-9264",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-2181-9264"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I197347611",
+            "display_name": "Korea University",
+            "ror": "https://ror.org/047dqcg40",
+            "country_code": "KR",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I197347611"
+            ]
+          },
+          {
+            "id": "https://openalex.org/I4210161052",
+            "display_name": "Korea University",
+            "ror": "https://ror.org/05m1gnk07",
+            "country_code": "JP",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I4210161052"
+            ]
+          }
+        ],
+        "countries": [
+          "JP",
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Hyunwoo J. Kim",
+        "raw_affiliation_strings": [
+          "Korea University,Department of Computer Science and Engineering"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Korea University,Department of Computer Science and Engineering",
+            "institution_ids": [
+              "https://openalex.org/I197347611",
+              "https://openalex.org/I4210161052"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402716321",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727372",
+    "title": "SDDGR: Stable Diffusion-Based Deep Generative Replay for Class Incremental Object Detection",
+    "abstract": "In the field of class incremental leaming (CIL), generative replay has become increasingly prominent as a method to mitigate the catastrophic forgetting, alongside the continuous improvements in generative models. However, its application in class incremental object detection (CIOD) has been significantly limited, primarily due to the complexities of scenes involving multiple labels. In this paper, we propose a novel approach called stable diffusion deep generative replay (SDDGR) for CIOD. Our method utilizes a diffusion-based generative model with pre-trained text-to-image diffusion networks to generate realistic and diverse synthetic images. SDDGR incorporates an iterative refinement strategy to produce high-quality images encompassing old classes. Additionally, we adopt an L2 knowledge distillation technique to improve the retention of prior knowledge in synthetic images. Furthermore, our approach includes pseudo-labeling for old objects within new task images, preventing misclassification as background elements. Extensive experiments on the COCO 2017 dataset demonstrate that SD-DGR significantly outperforms existing algorithms, achieving a new state-of-the-art in various CIOD scenarios.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5101678009",
+          "display_name": "Junsu Kim",
+          "orcid": "https://orcid.org/0009-0009-9679-336X",
+          "observed_orcids": [
+            "https://orcid.org/0009-0009-9679-336X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I48566637",
+            "display_name": "Ulsan National Institute of Science and Technology",
+            "ror": "https://ror.org/017cjz748",
+            "country_code": "KR",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ],
+        "countries": [
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Junsu Kim",
+        "raw_affiliation_strings": [
+          "UNIST"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "UNIST",
+            "institution_ids": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5101416574",
+          "display_name": "Hoseong Cho",
+          "orcid": "https://orcid.org/0000-0002-6091-1450",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-6091-1450"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I48566637",
+            "display_name": "Ulsan National Institute of Science and Technology",
+            "ror": "https://ror.org/017cjz748",
+            "country_code": "KR",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ],
+        "countries": [
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Hoseong Cho",
+        "raw_affiliation_strings": [
+          "UNIST"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "UNIST",
+            "institution_ids": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5101609491",
+          "display_name": "Jihyeon Kim",
+          "orcid": "https://orcid.org/0000-0002-8568-6018",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-8568-6018"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I48566637",
+            "display_name": "Ulsan National Institute of Science and Technology",
+            "ror": "https://ror.org/017cjz748",
+            "country_code": "KR",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ],
+        "countries": [
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jihyeon Kim",
+        "raw_affiliation_strings": [
+          "UNIST"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "UNIST",
+            "institution_ids": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5093511556",
+          "display_name": "Yihalem Yimolal Tiruneh",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I48566637",
+            "display_name": "Ulsan National Institute of Science and Technology",
+            "ror": "https://ror.org/017cjz748",
+            "country_code": "KR",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ],
+        "countries": [
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yihalem Yimolal Tiruneh",
+        "raw_affiliation_strings": [
+          "UNIST"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "UNIST",
+            "institution_ids": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5101907863",
+          "display_name": "Seungryul Baek",
+          "orcid": "https://orcid.org/0000-0002-0856-6880",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-0856-6880"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I48566637",
+            "display_name": "Ulsan National Institute of Science and Technology",
+            "ror": "https://ror.org/017cjz748",
+            "country_code": "KR",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ],
+        "countries": [
+          "KR"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Seungryul Baek",
+        "raw_affiliation_strings": [
+          "UNIST"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "UNIST",
+            "institution_ids": [
+              "https://openalex.org/I48566637"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402727372",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727806",
+    "title": "Taming Self-Training for Open-Vocabulary Object Detection",
+    "abstract": "Recent studies have shown promising performance in open-vocabulary object detection (OVD) by utilizing pseudo labels (PLs) from pre-trained vision and language models (VLMs). However, teacher-student self-training, a powerful and widely used paradigm to leverage PLs, is rarely explored for OVD. This work identifies two challenges of using self-training in OVD: noisy PLs from VLMs and frequent distribution changes of PLs. To address these challenges, we propose SAS-Det that tames self-training for OVD from two key perspectives. First, we present a split-and-fusion (SAF) head that splits a standard detection into an open-branch and a closed-branch. This design can reduce noisy supervision from pseudo boxes. More-over, the two branches learn complementary knowledge from different training data, significantly enhancing performance when fused together. Second, in our view, un-like in closed-set tasks, the PL distributions in OVD are solely determined by the teacher model. We introduce a periodic update strategy to decrease the number of up-dates to the teacher, thereby decreasing the frequency of changes in PL distributions, which stabilizes the training process. Extensive experiments demonstrate SAS-Det is both efficient and effective. SAS-Det outperforms recent models of the same scale by a clear margin and achieves 37.4 AP50and 29.1 APron novel categories of the COCO and LVIS benchmarks, respectively. Code is available at https://github.com/xiaofeng94/SAS-Det.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5052346042",
+          "display_name": "Shiyu Zhao",
+          "orcid": "https://orcid.org/0000-0003-3098-8059",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-3098-8059"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I102322142",
+            "display_name": "Rutgers, The State University of New Jersey",
+            "ror": "https://ror.org/05vt9qd57",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I102322142"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Shiyu Zhao",
+        "raw_affiliation_strings": [
+          "Rutgers University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Rutgers University",
+            "institution_ids": [
+              "https://openalex.org/I102322142"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5078774200",
+          "display_name": "Samuel Schulter",
+          "orcid": "https://orcid.org/0000-0002-7341-5907",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-7341-5907"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210107353",
+            "display_name": "NEC (United States)",
+            "ror": "https://ror.org/01v791m31",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I118347220",
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Samuel Schulter",
+        "raw_affiliation_strings": [
+          "NEC Laboratories America"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NEC Laboratories America",
+            "institution_ids": [
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5101850043",
+          "display_name": "Long Zhao",
+          "orcid": "https://orcid.org/0000-0001-8921-8564",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-8921-8564"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I1291425158",
+            "display_name": "Google (United States)",
+            "ror": "https://ror.org/00njsd438",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I1291425158",
+              "https://openalex.org/I4210128969"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Long Zhao",
+        "raw_affiliation_strings": [
+          "Google Research"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Google Research",
+            "institution_ids": [
+              "https://openalex.org/I1291425158"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5101655938",
+          "display_name": "Zhi-xing Zhang",
+          "orcid": "https://orcid.org/0000-0003-3051-7599",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-3051-7599"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I102322142",
+            "display_name": "Rutgers, The State University of New Jersey",
+            "ror": "https://ror.org/05vt9qd57",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I102322142"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Zhixing Zhang",
+        "raw_affiliation_strings": [
+          "Rutgers University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Rutgers University",
+            "institution_ids": [
+              "https://openalex.org/I102322142"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5007327340",
+          "display_name": "B. G. Vijay Kumar",
+          "orcid": "https://orcid.org/0000-0001-8188-2241",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-8188-2241"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210107353",
+            "display_name": "NEC (United States)",
+            "ror": "https://ror.org/01v791m31",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I118347220",
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "B G Vijay Kumar",
+        "raw_affiliation_strings": [
+          "NEC Laboratories America"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NEC Laboratories America",
+            "institution_ids": [
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5104016960",
+          "display_name": "Yumin Suh",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210107353",
+            "display_name": "NEC (United States)",
+            "ror": "https://ror.org/01v791m31",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I118347220",
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yumin Suh",
+        "raw_affiliation_strings": [
+          "NEC Laboratories America"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NEC Laboratories America",
+            "institution_ids": [
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5046609009",
+          "display_name": "Manmohan Krishna Chandraker",
+          "orcid": "https://orcid.org/0000-0003-4683-2454",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-4683-2454"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I4210107353",
+            "display_name": "NEC (United States)",
+            "ror": "https://ror.org/01v791m31",
+            "country_code": "US",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I118347220",
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Manmohan Chandraker",
+        "raw_affiliation_strings": [
+          "NEC Laboratories America"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "NEC Laboratories America",
+            "institution_ids": [
+              "https://openalex.org/I4210107353"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5109600054",
+          "display_name": "Dimitris Metaxas",
+          "orcid": "https://orcid.org/0000-0002-6033-282X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-6033-282X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I102322142",
+            "display_name": "Rutgers, The State University of New Jersey",
+            "ror": "https://ror.org/05vt9qd57",
+            "country_code": "US",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I102322142"
+            ]
+          }
+        ],
+        "countries": [
+          "US"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Dimitris N. Metaxas",
+        "raw_affiliation_strings": [
+          "Rutgers University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Rutgers University",
+            "institution_ids": [
+              "https://openalex.org/I102322142"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402727806",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402703091",
+    "title": "Pseudo Label Refinery for Unsupervised Domain Adaptation on Cross-Dataset 3D Object Detection",
+    "abstract": "Recent self-training techniques have shown notable improvements in unsupervised domain adaptation for 3D object detection (3D UDA). These techniques typically select pseudo labels, i.e., 3D boxes, to supervise models for the target domain. However, this selection process inevitably introduces unreliable 3D boxes, in which 3D points cannot be definitively assigned as foreground or background. Previous techniques mitigate this by reweighting these boxes as pseudo labels, but these boxes can still poison the training process. To resolve this problem, in this paper, we propose a novel pseudo label refinery framework. Specifically, in the selection process, to improve the reliability of pseudo boxes, we propose a complementary augmentation strategy. This strategy involves either removing all points within an unre-liable box or replacing it with a high-confidence box. More-over, the point numbers of instances in high-beam datasets are considerably higher than those in low-beam datasets, also degrading the quality of pseudo labels during the training process. We alleviate this issue by generating additional proposals and aligning RoI features across different domains. Experimental results demonstrate that our method effectively enhances the quality of pseudo labels and consistently surpasses the state-of-the-art methods on six autonomous driving benchmarks. Code will be available at https://github.com/Zhanwei-Z/PERE.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5007760669",
+          "display_name": "Zhanwei Zhang",
+          "orcid": "https://orcid.org/0000-0003-3244-7352",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-3244-7352"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I76130692",
+            "display_name": "Zhejiang University",
+            "ror": "https://ror.org/00a2xv884",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Zhanwei Zhang",
+        "raw_affiliation_strings": [
+          "Zhejiang University,State Key Lab of CAD&#x0026;CG"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Zhejiang University,State Key Lab of CAD&#x0026;CG",
+            "institution_ids": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100730802",
+          "display_name": "Minghao Chen",
+          "orcid": "https://orcid.org/0000-0002-2871-5812",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-2871-5812",
+            "https://orcid.org/0009-0004-5749-4352"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I50760025",
+            "display_name": "Hangzhou Dianzi University",
+            "ror": "https://ror.org/0576gt767",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I50760025"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Minghao Chen",
+        "raw_affiliation_strings": [
+          "School of Computer Sciene and Technology, Hangzhou Dianzi University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "School of Computer Sciene and Technology, Hangzhou Dianzi University",
+            "institution_ids": [
+              "https://openalex.org/I50760025"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5002735305",
+          "display_name": "Shuai Xiao",
+          "orcid": "https://orcid.org/0000-0003-4058-8120",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-4058-8120"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I45928872",
+            "display_name": "Alibaba Group (China)",
+            "ror": "https://ror.org/00k642b80",
+            "country_code": "CN",
+            "type": "company",
+            "lineage": [
+              "https://openalex.org/I45928872"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Shuai Xiao",
+        "raw_affiliation_strings": [
+          "Alibaba Group"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Alibaba Group",
+            "institution_ids": [
+              "https://openalex.org/I45928872"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5005730128",
+          "display_name": "Liang Peng",
+          "orcid": "https://orcid.org/0000-0002-7146-2451",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-7146-2451"
+          ]
+        },
+        "institutions": [],
+        "countries": [],
+        "is_corresponding": false,
+        "raw_author_name": "Liang Peng",
+        "raw_affiliation_strings": [
+          "Fabu Inc"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Fabu Inc",
+            "institution_ids": []
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5008019444",
+          "display_name": "Hengjia Li",
+          "orcid": "https://orcid.org/0009-0007-6184-9437",
+          "observed_orcids": [
+            "https://orcid.org/0009-0007-6184-9437"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I76130692",
+            "display_name": "Zhejiang University",
+            "ror": "https://ror.org/00a2xv884",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Hengjia Li",
+        "raw_affiliation_strings": [
+          "Zhejiang University,State Key Lab of CAD&#x0026;CG"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Zhejiang University,State Key Lab of CAD&#x0026;CG",
+            "institution_ids": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5104264817",
+          "display_name": "Binbin Lin",
+          "orcid": "https://orcid.org/0000-0002-0330-6406",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-0330-6406"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I76130692",
+            "display_name": "Zhejiang University",
+            "ror": "https://ror.org/00a2xv884",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Binbin Lin",
+        "raw_affiliation_strings": [
+          "School of Software Technology, Zhejiang University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "School of Software Technology, Zhejiang University",
+            "institution_ids": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5100741315",
+          "display_name": "Ping Li",
+          "orcid": "https://orcid.org/0000-0002-8515-7773",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-8515-7773",
+            "https://orcid.org/0000-0002-8678-8139"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I50760025",
+            "display_name": "Hangzhou Dianzi University",
+            "ror": "https://ror.org/0576gt767",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I50760025"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Ping Li",
+        "raw_affiliation_strings": [
+          "School of Computer Sciene and Technology, Hangzhou Dianzi University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "School of Computer Sciene and Technology, Hangzhou Dianzi University",
+            "institution_ids": [
+              "https://openalex.org/I50760025"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5029109301",
+          "display_name": "Wenxiao Wang",
+          "orcid": "https://orcid.org/0000-0002-6399-292X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-6399-292X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I76130692",
+            "display_name": "Zhejiang University",
+            "ror": "https://ror.org/00a2xv884",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Wenxiao Wang",
+        "raw_affiliation_strings": [
+          "School of Software Technology, Zhejiang University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "School of Software Technology, Zhejiang University",
+            "institution_ids": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5101833492",
+          "display_name": "Boxi Wu",
+          "orcid": "https://orcid.org/0000-0003-4494-193X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-4494-193X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I76130692",
+            "display_name": "Zhejiang University",
+            "ror": "https://ror.org/00a2xv884",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Boxi Wu",
+        "raw_affiliation_strings": [
+          "School of Software Technology, Zhejiang University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "School of Software Technology, Zhejiang University",
+            "institution_ids": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5061528283",
+          "display_name": "Deng Cai",
+          "orcid": "https://orcid.org/0000-0003-3444-8383",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-3444-8383"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I76130692",
+            "display_name": "Zhejiang University",
+            "ror": "https://ror.org/00a2xv884",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Deng Cai",
+        "raw_affiliation_strings": [
+          "Zhejiang University,State Key Lab of CAD&#x0026;CG"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Zhejiang University,State Key Lab of CAD&#x0026;CG",
+            "institution_ids": [
+              "https://openalex.org/I76130692"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402703091",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727860",
+    "title": "Endow SAM with Keen Eyes: Temporal-Spatial Prompt Learning for Video Camouflaged Object Detection",
+    "abstract": "The Segment Anything Model (SAM), a prompt-driven foundational model, has demonstrated remarkable performance in natural image segmentation. However, its application in video camouflaged object detection (VCOD) en-counters challenges, chiefly stemming from the overlooked temporal-spatial associations and the unreliability of user-provided prompts for camouflaged objects that are difficult to discern with the naked eye. To tackle the above issues, we endow SAM with keen eyes and propose the Temporal-spatial Prompt SAM (TSP-SAM), a novel approach tailored for VCOD via an ingenious prompted learning scheme. Firstly, motion-driven self-prompt learning is employed to capture the camouflaged object, thereby bypassing the need for user-provided prompts. With the detected subtle motion cues across consecutive video frames, the overall movement of the camouflaged object is captured for more precise spa-tial localization. Subsequently, to eliminate the prompt bias resulting from inter-frame discontinuities, the long-range consistency within the video sequences is taken into account to promote the robustness of the self-prompts. It is also injected into the encoder of SAM to enhance the representational capabilities. Extensive experimental results on two benchmarks demonstrate that the proposed TSP-SAM achieves a significant improvement over the state-of-the-art methods. With the mIoU metric increasing by 7.8% and 9.6%, TSP-SAM emerges as a groundbreaking step forward in the field of VCOD.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5003043056",
+          "display_name": "Wenjun Hui",
+          "orcid": "https://orcid.org/0000-0002-2204-4472",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-2204-4472",
+            "https://orcid.org/0000-0003-1478-9404"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I21193070",
+            "display_name": "Beijing Jiaotong University",
+            "ror": "https://ror.org/01yj56c84",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I21193070"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Wenjun Hui",
+        "raw_affiliation_strings": [
+          "Institute of Information Science, Beijing Jiaotong University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Institute of Information Science, Beijing Jiaotong University",
+            "institution_ids": [
+              "https://openalex.org/I21193070"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5101867605",
+          "display_name": "Zhenfeng Zhu",
+          "orcid": "https://orcid.org/0000-0001-7315-3276",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-7315-3276"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I21193070",
+            "display_name": "Beijing Jiaotong University",
+            "ror": "https://ror.org/01yj56c84",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I21193070"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Zhenfeng Zhu",
+        "raw_affiliation_strings": [
+          "Institute of Information Science, Beijing Jiaotong University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Institute of Information Science, Beijing Jiaotong University",
+            "institution_ids": [
+              "https://openalex.org/I21193070"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5042419001",
+          "display_name": "Shuai Zheng",
+          "orcid": "https://orcid.org/0000-0001-8560-8135",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-8560-8135"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I21193070",
+            "display_name": "Beijing Jiaotong University",
+            "ror": "https://ror.org/01yj56c84",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I21193070"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Shuai Zheng",
+        "raw_affiliation_strings": [
+          "Institute of Information Science, Beijing Jiaotong University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Institute of Information Science, Beijing Jiaotong University",
+            "institution_ids": [
+              "https://openalex.org/I21193070"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5100362745",
+          "display_name": "Yao Zhao",
+          "orcid": "https://orcid.org/0000-0002-8581-9554",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-8581-9554"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I21193070",
+            "display_name": "Beijing Jiaotong University",
+            "ror": "https://ror.org/01yj56c84",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I21193070"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yao Zhao",
+        "raw_affiliation_strings": [
+          "Institute of Information Science, Beijing Jiaotong University"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Institute of Information Science, Beijing Jiaotong University",
+            "institution_ids": [
+              "https://openalex.org/I21193070"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402727860",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402753639",
+    "title": "LEOD: Label-Efficient Object Detection for Event Cameras",
+    "abstract": "Object detection with event cameras benefits from the sensor's low latency and high dynamic range. However, it is costly to fully label event streams for supervised training due to their high temporal resolution. To reduce this cost, we present LEOD, the first method for label-efficient event-based detection. Our approach unifies weakly- and semi-supervised object detection with a self-training mech-anism. We first utilize a detector pre-trained on limited la-bels to produce pseudo ground truth on unlabeled events. Then, the detector is re-trained with both real and generated labels. Leveraging the temporal consistency of events, we run bi-directional inference and apply tracking-based post-processing to enhance the quality of pseudo labels. To sta-bilize training against label noise, we further design a soft anchor assignment strategy. We introduce new experimental protocols to evaluate the task of label-efficient event-based detection on Gen1 and 1Mpx datasets. LEOD consistently outperforms supervised baselines across various labeling ratios. For example, on Gen1, it improves mAP by 8.6% and 7.8% for RVT-S trained with 1% and 2% labels. On 1Mpx, RVT-S with 10% labels even surpasses its fully-supervised counterpart using 100% labels. LEOD maintains its effectiveness even when all labeled data are available, reaching new state-of-the-art results. Finally, we show that our method readily scales to improve larger detectors as well. Code: https://github.com/Wuziyi616/LEOD.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5101782370",
+          "display_name": "Ziyi Wu",
+          "orcid": "https://orcid.org/0000-0002-8247-5872",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-8247-5872"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I185261750",
+            "display_name": "University of Toronto",
+            "ror": "https://ror.org/03dbr7087",
+            "country_code": "CA",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I185261750"
+            ]
+          }
+        ],
+        "countries": [
+          "CA"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Ziyi Wu",
+        "raw_affiliation_strings": [
+          "University of Toronto"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Toronto",
+            "institution_ids": [
+              "https://openalex.org/I185261750"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5008591453",
+          "display_name": "Mathias Gehrig",
+          "orcid": "https://orcid.org/0000-0003-2223-4265",
+          "observed_orcids": [
+            "https://orcid.org/0000-0003-2223-4265"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I202697423",
+            "display_name": "University of Zurich",
+            "ror": "https://ror.org/02crff812",
+            "country_code": "CH",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I202697423"
+            ]
+          }
+        ],
+        "countries": [
+          "CH"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Mathias Gehrig",
+        "raw_affiliation_strings": [
+          "University of Zurich"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Zurich",
+            "institution_ids": [
+              "https://openalex.org/I202697423"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": null,
+          "display_name": "Qing Lyu",
+          "orcid": null,
+          "observed_orcids": []
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I185261750",
+            "display_name": "University of Toronto",
+            "ror": "https://ror.org/03dbr7087",
+            "country_code": "CA",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I185261750"
+            ]
+          }
+        ],
+        "countries": [
+          "CA"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Qing Lyu",
+        "raw_affiliation_strings": [
+          "University of Toronto"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Toronto",
+            "institution_ids": [
+              "https://openalex.org/I185261750"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5111337673",
+          "display_name": "Xudong Liu",
+          "orcid": "https://orcid.org/0009-0003-9196-4015",
+          "observed_orcids": [
+            "https://orcid.org/0009-0003-9196-4015"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I185261750",
+            "display_name": "University of Toronto",
+            "ror": "https://ror.org/03dbr7087",
+            "country_code": "CA",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I185261750"
+            ]
+          }
+        ],
+        "countries": [
+          "CA"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xudong Liu",
+        "raw_affiliation_strings": [
+          "University of Toronto"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Toronto",
+            "institution_ids": [
+              "https://openalex.org/I185261750"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5078356081",
+          "display_name": "Igor Gilitschenski",
+          "orcid": "https://orcid.org/0000-0001-6426-365X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0001-6426-365X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I185261750",
+            "display_name": "University of Toronto",
+            "ror": "https://ror.org/03dbr7087",
+            "country_code": "CA",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I185261750"
+            ]
+          }
+        ],
+        "countries": [
+          "CA"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Igor Gilitschenski",
+        "raw_affiliation_strings": [
+          "University of Toronto"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "University of Toronto",
+            "institution_ids": [
+              "https://openalex.org/I185261750"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402753639",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402704540",
+    "title": "SNIDA: Unlocking Few-Shot Object Detection with Non-Linear Semantic Decoupling Augmentation",
+    "abstract": "Once only a few-shot annotated samples are available, the performance of learning-based object detection would be heavily dropped. Many few-shot object detection (FSOD) methods have been proposed to tackle this issue by adopting image-level augmentations in linear manners. Nevertheless, those handcrafted enhancements often suf-fer from limited diversity and lack of semantic awareness, resulting in unsatisfactory performance. To this end, we propose a Semantic-guided Nonlinear Instance-level Data Augmentation method (SNIDA) for FSOD by decoupling the foreground and background to increase their diversities respectively. We design a semantic awareness enhancement strategy to separate objects from backgrounds. Concretely, masks of instances are extracted by an unsupervised semantic segmentation module. Then the diversity of samples would be improved by fusing instances into different backgrounds. Considering the shortcomings of augmenting images in a limited transformation space of existing traditional data augmentation methods, we introduce an object reconstruction enhancement module. The aim of this module is to generate sufficient diversity and nonlinear training data at the instance level through a semantic-guided masked autoencoder. In this way, the potential of data can be fully exploited in various object detection scenarios. Extensive experiments on PASCAL VOC and MS-COCO demonstrate that the proposed method outperforms base-lines by a large margin and achieves new state-of-the-art results under different shot settings.",
+    "year": 2024,
+    "venue": "CVPR",
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5100738102",
+          "display_name": "Yanjie Wang",
+          "orcid": "https://orcid.org/0000-0002-2305-1041",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-2305-1041"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I47720641",
+            "display_name": "Huazhong University of Science and Technology",
+            "ror": "https://ror.org/00p991c53",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I47720641"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Yanjie Wang",
+        "raw_affiliation_strings": [
+          "Huazhong University of Science and Technology,Wuhan,China,430074"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Huazhong University of Science and Technology,Wuhan,China,430074",
+            "institution_ids": [
+              "https://openalex.org/I47720641"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5067026960",
+          "display_name": "Xu Zou",
+          "orcid": "https://orcid.org/0000-0002-0251-7404",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-0251-7404"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I47720641",
+            "display_name": "Huazhong University of Science and Technology",
+            "ror": "https://ror.org/00p991c53",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I47720641"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Xu Zou",
+        "raw_affiliation_strings": [
+          "Huazhong University of Science and Technology,Wuhan,China,430074"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Huazhong University of Science and Technology,Wuhan,China,430074",
+            "institution_ids": [
+              "https://openalex.org/I47720641"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5075653923",
+          "display_name": "Luxin Yan",
+          "orcid": "https://orcid.org/0000-0002-5445-2702",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-5445-2702"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I47720641",
+            "display_name": "Huazhong University of Science and Technology",
+            "ror": "https://ror.org/00p991c53",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I47720641"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Luxin Yan",
+        "raw_affiliation_strings": [
+          "Huazhong University of Science and Technology,Wuhan,China,430074"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Huazhong University of Science and Technology,Wuhan,China,430074",
+            "institution_ids": [
+              "https://openalex.org/I47720641"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "middle",
+        "author": {
+          "id": "https://openalex.org/A5101458851",
+          "display_name": "Sheng Zhong",
+          "orcid": "https://orcid.org/0000-0002-8658-3061",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-8658-3061"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I47720641",
+            "display_name": "Huazhong University of Science and Technology",
+            "ror": "https://ror.org/00p991c53",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I47720641"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Sheng Zhong",
+        "raw_affiliation_strings": [
+          "Huazhong University of Science and Technology,Wuhan,China,430074"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Huazhong University of Science and Technology,Wuhan,China,430074",
+            "institution_ids": [
+              "https://openalex.org/I47720641"
+            ]
+          }
+        ]
+      },
+      {
+        "author_position": "last",
+        "author": {
+          "id": "https://openalex.org/A5055004003",
+          "display_name": "Jiahuan Zhou",
+          "orcid": "https://orcid.org/0000-0002-3301-747X",
+          "observed_orcids": [
+            "https://orcid.org/0000-0002-3301-747X"
+          ]
+        },
+        "institutions": [
+          {
+            "id": "https://openalex.org/I20231570",
+            "display_name": "Peking University",
+            "ror": "https://ror.org/02v51f717",
+            "country_code": "CN",
+            "type": "education",
+            "lineage": [
+              "https://openalex.org/I20231570"
+            ]
+          }
+        ],
+        "countries": [
+          "CN"
+        ],
+        "is_corresponding": false,
+        "raw_author_name": "Jiahuan Zhou",
+        "raw_affiliation_strings": [
+          "Wangxuan Institute of Computer Technology, Peking University,Beijing,China,100871"
+        ],
+        "raw_orcid": null,
+        "affiliations": [
+          {
+            "raw_affiliation_string": "Wangxuan Institute of Computer Technology, Peking University,Beijing,China,100871",
+            "institution_ids": [
+              "https://openalex.org/I20231570"
+            ]
+          }
+        ]
+      }
+    ],
+    "source_url": "https://openalex.org/W4402704540",
+    "dataset_id": "additional-cvpr2024-detection-20-v1"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "venue": "CVPR",
+  "year": 2024,
+  "source": "openalex",
+  "source_id": "S4210176548",
+  "count": 2724,
+  "filter": "primary_location.source.id:S4210176548,publication_year:2024",
+  "url": "https://api.openalex.org/works",
+  "filename": "cvpr_2024.jsonl",
+  "sha256": "ef8303f1b8655545b3603f4633097f72ccc282626b0d7db7bcdf671e3ba469b9",
+  "with_abstract": 2713,
+  "note": "OpenAlex conference-source records; may include proceedings front matter. Original records preserved."
+}

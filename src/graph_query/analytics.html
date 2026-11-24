@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+  <title>C · 作者画像与研究统计</title>
+  <style>
+    body {
+      font: 16px/1.6 system-ui;
+      background: #f3f6fa;
+      color: #183443;
+      max-width: 1000px;
+      margin: 32px auto;
+      padding: 20px;
+    }
+    section {
+      background: white;
+      border-radius: 14px;
+      padding: 22px;
+      margin: 20px 0;
+    }
+    input,
+    button {
+      font: inherit;
+      padding: 8px;
+      border: 1px solid #bdccd4;
+      border-radius: 6px;
+    }
+    button {
+      background: #166f80;
+      color: white;
+      cursor: pointer;
+    }
+    a {
+      color: #166f80;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    td,
+    th {
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      padding: 8px;
+    }
+    .muted {
+      color: #627482;
+    }
+    meter {
+      width: 140px;
+    }
+    #status {
+      color: #8a4d15;
+    }
+    label {
+      display: inline-block;
+      margin: 5px;
+    }
+    h1 {
+      font-size: 26px;
+    }
+  </style>
+  <h1>作者画像与研究分布</h1>
+  <p class="muted">C 独立演示。固定已发布批次；同名作者按稳定 ID 区分。</p>
+  <section>
+    <form id="scope">
+      <label
+        >批次 <input id="batch" required placeholder="已发布批次号" /></label
+      ><button>读取研究统计</button>
+    </form>
+    <p id="status" role="status" aria-live="polite"></p>
+    <form id="find">
+      <label>作者姓名或 ID <input id="name" required /></label
+      ><button>查找作者</button>
+    </form>
+    <ul id="authors"></ul>
+  </section>
+  <main id="result"></main>
+  <script type="module">
+    import {mountGraph} from "/assets/c-graph-view.js";
+    import {mountPaperDetail} from "/assets/c-paper-detail.js";
+    const $ = (s) => document.querySelector(s);
+    function el(tag, text) {
+      const n = document.createElement(tag);
+      if (text !== undefined) n.textContent = text;
+      return n;
+    }
+    let generation = 0,
+      profileId = null,
+      page = 1;
+    async function api(path, params) {
+      const r = await fetch(
+        "/api/research/" + path + "?" + new URLSearchParams(params),
+      );
+      const body = await r.json();
+      if (!r.ok) throw Error(body.error?.message || "请求参数不合法");
+      return body;
+    }
+    function link(text, path, params) {
+      const a = el("a", text);
+      a.href = path + "?" + new URLSearchParams(params);
+      return a;
+    }
+    function renderStats(root, s) {
+      if(s.provenance==="effective_export" && s.basis.relations!=="public_effective"){root.append(el("strong","后端仍在使用旧 confirmed 过滤，请从当前 C 目录重启服务后再验收；此处的0不能当作来源无数据。"));return}
+      root.append(
+        el("h2", `${s.paper_count} 篇关联论文`),
+        el("p", `批次：${s.batch_id}；来源：${s.provenance}`),
+      );
+      if (s.basis.fixture)
+        root.append(el("strong", "开发演示数据：不能作为正式人工确认成果。"));
+      root.append(el("p", s.basis.notice));
+      for (const kind of ["topic", "method"]) {
+        const d = s.distributions[kind];
+        root.append(
+          el(
+            "h3",
+            kind === "topic"
+              ? "研究主题（有效提及）"
+              : "相关方法（有效提及）",
+          ),
+        );
+        if(!d.items.length)root.append(el("p","当前范围无此类关联；若全批次也为0，表示来源数据暂未提供相应关联。"));
+        const table = el("table");
+        for (const x of d.items) {
+          const tr = el("tr"),
+            td = el("td");
+          const a = link(x.name, "/research", {
+            batch_id: s.batch_id,
+            [kind]: x.id,
+          });
+          td.append(a);
+          a.onclick = (e) => {
+            e.preventDefault();
+            showPapers({ ...s.filters, [kind]: x.id }, s.batch_id);
+          };
+          tr.append(
+            td,
+            el("td", `${x.paper_count} 篇`),
+            el("td", `${(x.share * 100).toFixed(1)}%`),
+          );
+          table.append(tr);
+        }
+        root.append(
+          table,
+          el(
+            "p",
+            `未提供此类有效关联：${d.papers_without_effective_relation ?? d.papers_without_confirmed_relation} 篇${d.truncated ? "；分布仅显示前若干项" : ""}`,
+          ),
+        );
+      }
+      root.append(el("h3", "年份分布"));
+      for (const y of s.years) {
+        const b = el("button", `${y.year}：${y.paper_count} 篇`);
+        b.onclick = () =>
+          showPapers({ ...s.filters, year: y.year }, s.batch_id);
+        root.append(b);
+      }
+    }
+    function paperList(root, items, batch) {
+      const ul = el("ul");
+      for (const p of items) {
+        const li = el("li");
+        li.append(
+          link(
+            `${p.year} · ${p.title}`,
+            "/research/papers/" + encodeURIComponent(p.id),
+            { batch_id: batch },
+          ),
+        );
+        const graph = el("button", "关联图谱");
+        graph.onclick = () => showGraph(p.id, batch);
+        li.append(" ", graph);
+        ul.append(li);
+      }
+      root.append(ul);
+      if (!items.length) root.append(el("p", "没有符合条件的论文。"));
+    }
+    async function showGraph(seed,batch){
+      const section=el('section'),host=el('div'),detail=el('div');section.append(el('h2','关联图谱'),host,detail);$('#result').append(section);
+      const showDetail=async(id,b)=>{try{const d=await api('entities/'+encodeURIComponent(id),{batch_id:b});mountPaperDetail(detail,d,next=>showDetail(next,b))}catch(e){$('#status').textContent=e.message}};
+      mountGraph(host,{seed,batch,load:params=>api('graph',params),onSelect:showDetail});section.scrollIntoView();
+    }
+    async function showPapers(filters, batch) {
+      const token = ++generation;
+      try {
+        const d = await api("papers", {
+          ...filters,
+          batch_id: batch,
+          page_size: 100,
+        });
+        if (token !== generation) return;
+        const s = el("section");
+        s.append(el("h2", `统计下钻：${d.total} 篇（显示前 100 篇）`));
+        paperList(s, d.items, batch);
+        $("#result").append(s);
+        s.scrollIntoView();
+      } catch (e) {
+        $("#status").textContent = e.message;
+      }
+    }
+    async function showProfile(id, batch, p = 1) {
+      const token = ++generation;
+      try {
+        const d = await api("author-profiles/" + encodeURIComponent(id), {
+          batch_id: batch,
+          page: p,
+          page_size: 10,
+        });
+        if (token !== generation) return;
+        if(d.statistics.provenance==="effective_export" && d.statistics.basis.relations!=="public_effective")throw Error("后端仍使用旧 confirmed 查询，请从当前 C 目录重启服务后重新验收。");
+        profileId = id;
+        page = p;
+        const s = el("section");
+        s.append(
+          el("h2", d.author.name),
+          el("p", d.author.id),
+          el(
+            "p",
+            `其他同名 ID：${d.identity.same_name_other_ids}；未按姓名合并`,
+          ),
+          el(
+            "p",
+            d.institutions.length
+              ? d.institutions.map((i) => i.name).join("、")
+              : "来源未提供机构关联",
+          ),
+        );
+        renderStats(s, d.statistics);
+        paperList(s, d.papers.items, batch);
+        for (const [label, target, disabled] of [
+          ["上一页", p - 1, p === 1],
+          ["下一页", p + 1, p * 10 >= d.papers.total],
+        ]) {
+          const b = el("button", label);
+          b.disabled = disabled;
+          b.onclick = () => showProfile(id, batch, target);
+          s.append(b);
+        }
+        $("#result").replaceChildren(s);
+        $("#status").textContent = "";
+      } catch (e) {
+        $("#status").textContent = e.message;
+      }
+    }
+    $("#scope").onsubmit = async (e) => {
+      e.preventDefault();
+      const token = ++generation;
+      $("#result").replaceChildren();
+      $("#authors").replaceChildren();
+      try {
+        const s = await api("statistics", { batch_id: $("#batch").value });
+        if (token !== generation) return;
+        const section = el("section");
+        renderStats(section, s);
+        $("#result").append(section);
+        $("#status").textContent = "";
+      } catch (e) {
+        $("#status").textContent = e.message;
+      }
+    };
+    $("#find").onsubmit = async (e) => {
+      e.preventDefault();
+      const token = ++generation,
+        batch = $("#batch").value;
+      if (!batch) {
+        $("#status").textContent = "请先填写已发布批次号";
+        return;
+      }
+      try {
+        const d = await api("entities", {
+          q: $("#name").value,
+          kind: "author",
+          batch_id: batch,
+          limit: 100,
+        });
+        if (token !== generation) return;
+        $("#authors").replaceChildren();
+        for (const a of d.items) {
+          const li = el("li"),
+            b = el("button", `${a.name} · ${a.id}`);
+          b.onclick = () => showProfile(a.id, d.batch_id);
+          li.append(b);
+          $("#authors").append(li);
+        }
+        $("#status").textContent = d.items.length
+          ? d.truncated
+            ? "作者结果已截断，请缩小检索条件"
+            : ""
+          : "未找到该作者";
+      } catch (e) {
+        $("#status").textContent = e.message;
+      }
+    };
+    $("#batch").value =
+      new URLSearchParams(location.search).get("batch_id") || "";
+  </script>
+</html>

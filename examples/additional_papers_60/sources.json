@@ -1,0 +1,882 @@
+[
+  {
+    "openalex_id": "https://openalex.org/W4402727167",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01606",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402727167",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402704617",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.02719",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402704617",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727044",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.02649",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402727044",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727881",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01663",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402727881",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402704616",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.00553",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402704616",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402753636",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01567",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402753636",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402754222",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01588",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402754222",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727829",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01589",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402727829",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402660130",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01584",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402660130",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402753402",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01451",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402753402",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727002",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01010",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402727002",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402754221",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01392",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402754221",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402715759",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01415",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402715759",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402716321",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01650",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402716321",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727372",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.02718",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402727372",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727806",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01322",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402727806",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402703091",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01448",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402703091",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402727860",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01803",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402727860",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402753639",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01602",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402753639",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402704540",
+    "venue": "CVPR",
+    "year": 2024,
+    "doi": "https://doi.org/10.1109/cvpr52733.2024.01192",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4402704540",
+    "venue_verification": {
+      "openalex_source_id": "S4210176548"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872222",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.02154",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872222",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872076",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00591",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872076",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872937",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00581",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872937",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390874500",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00606",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390874500",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390871877",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.01684",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390871877",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390873226",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.01575",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390873226",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872346",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00311",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872346",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390874155",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.01613",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390874155",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390873168",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00344",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390873168",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872581",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00627",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872581",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872804",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00617",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872804",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872451",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00620",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872451",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872851",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00618",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872851",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390873076",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.01540",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390873076",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872587",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00598",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872587",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872787",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00579",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872787",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390871665",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00639",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390871665",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390873589",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00592",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390873589",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390872566",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.01563",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390872566",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4390873637",
+    "venue": "ICCV",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/iccv51070.2023.00285",
+    "metadata_source": "openalex",
+    "abstract_source": "openalex",
+    "abstract_url": "https://openalex.org/W4390873637",
+    "venue_verification": {
+      "openalex_source_id": "S4363607764"
+    },
+    "authors_source": "openalex"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403943254",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72973-7_6",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6646_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:6646",
+      "official_doi": "10.1007/978-3-031-72973-7_6"
+    },
+    "retrieved_at": "2026-11-01T04:39:09Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403889064",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72754-2_19",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/5039_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:5039",
+      "official_doi": "10.1007/978-3-031-72754-2_19"
+    },
+    "retrieved_at": "2026-11-01T04:39:09Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403943467",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72973-7_12",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6670_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:6670",
+      "official_doi": "10.1007/978-3-031-72973-7_12"
+    },
+    "retrieved_at": "2026-11-01T04:39:11Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404612908",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72970-6_3",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6319_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:6319",
+      "official_doi": "10.1007/978-3-031-72970-6_3"
+    },
+    "retrieved_at": "2026-11-01T04:39:11Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403878234",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72992-8_5",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7259_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:7259",
+      "official_doi": "10.1007/978-3-031-72992-8_5"
+    },
+    "retrieved_at": "2026-11-01T04:39:12Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403908247",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-73337-6_1",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/3307_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:3307",
+      "official_doi": "10.1007/978-3-031-73337-6_1"
+    },
+    "retrieved_at": "2026-11-01T04:39:12Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403947141",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-73247-8_15",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/1751_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:1751",
+      "official_doi": "10.1007/978-3-031-73247-8_15"
+    },
+    "retrieved_at": "2026-11-01T04:39:14Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404582597",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72643-9_7",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/2551_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:2551",
+      "official_doi": "10.1007/978-3-031-72643-9_7"
+    },
+    "retrieved_at": "2026-11-01T04:39:14Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404002755",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72967-6_25",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6619_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:6619",
+      "official_doi": "10.1007/978-3-031-72967-6_25"
+    },
+    "retrieved_at": "2026-11-01T04:39:15Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403726563",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-73414-4_3",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/4804_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:4804",
+      "official_doi": "10.1007/978-3-031-73414-4_3"
+    },
+    "retrieved_at": "2026-11-01T04:39:15Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403889749",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72754-2_4",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/4960_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:4960",
+      "official_doi": "10.1007/978-3-031-72754-2_4"
+    },
+    "retrieved_at": "2026-11-01T04:39:16Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403081532",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72658-3_20",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/1001_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:1001",
+      "official_doi": "10.1007/978-3-031-72658-3_20"
+    },
+    "retrieved_at": "2026-11-01T04:39:16Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404879642",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-73668-1_11",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/6966_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:6966",
+      "official_doi": "10.1007/978-3-031-73668-1_11"
+    },
+    "retrieved_at": "2026-11-01T04:39:18Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404124946",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-73223-2_19",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/12207_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:12207",
+      "official_doi": "10.1007/978-3-031-73223-2_19"
+    },
+    "retrieved_at": "2026-11-01T04:39:18Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403888715",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72907-2_10",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/11201_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:11201",
+      "official_doi": "10.1007/978-3-031-72907-2_10"
+    },
+    "retrieved_at": "2026-11-01T04:39:19Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404582914",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72643-9_9",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/2556_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:2556",
+      "official_doi": "10.1007/978-3-031-72643-9_9"
+    },
+    "retrieved_at": "2026-11-01T04:39:19Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404545547",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-73036-8_19",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/8038_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:8038",
+      "official_doi": "10.1007/978-3-031-73036-8_19"
+    },
+    "retrieved_at": "2026-11-01T04:39:20Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4404719253",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-73001-6_15",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/7221_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:7221",
+      "official_doi": "10.1007/978-3-031-73001-6_15"
+    },
+    "retrieved_at": "2026-11-01T04:39:21Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4402951669",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-73232-4_10",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/55_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:55",
+      "official_doi": "10.1007/978-3-031-73232-4_10"
+    },
+    "retrieved_at": "2026-11-01T04:39:22Z"
+  },
+  {
+    "openalex_id": "https://openalex.org/W4403705821",
+    "venue": "ECCV",
+    "year": 2024,
+    "doi": "https://doi.org/10.1007/978-3-031-72764-1_16",
+    "metadata_source": "ecva",
+    "abstract_source": "ecva",
+    "abstract_url": "https://www.ecva.net/papers/eccv_2024/papers_ECCV/html/5312_ECCV_2024_paper.php",
+    "authors_source": "ecva",
+    "institutions_available": false,
+    "identity_mapping_source": "openalex",
+    "venue_verification": {
+      "official_index_url": "https://www.ecva.net/papers.php",
+      "official_source_id": "eccv2024:5312",
+      "official_doi": "10.1007/978-3-031-72764-1_16"
+    },
+    "retrieved_at": "2026-11-01T04:39:22Z"
+  }
+]

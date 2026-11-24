@@ -1,0 +1,292 @@
+{
+  "$defs": {
+    "Entity": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "paper",
+            "author",
+            "institution",
+            "topic",
+            "method",
+            "task",
+            "dataset",
+            "venue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "maximum": 2100,
+              "minimum": 1900,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Year"
+        },
+        "abstract": {
+          "anyOf": [
+            {
+              "maxLength": 100000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Abstract"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Id"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "missing_fields": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Missing Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "updated_at"
+      ],
+      "title": "Entity",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "paper_id": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Paper Id",
+          "type": "string"
+        },
+        "source_url": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Source Url",
+          "type": "string"
+        },
+        "field": {
+          "enum": [
+            "title",
+            "abstract",
+            "metadata"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "quote": {
+          "maxLength": 20000,
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        },
+        "locator": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "reviewer": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Reviewer",
+          "type": "string"
+        },
+        "reviewed_at": {
+          "format": "date-time",
+          "title": "Reviewed At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "paper_id",
+        "source_url",
+        "field",
+        "quote",
+        "locator",
+        "reviewer",
+        "reviewed_at"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Link": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Target",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "has_author",
+            "affiliated_with",
+            "published_in",
+            "mentions_topic",
+            "mentions_method",
+            "mentions_task",
+            "mentions_dataset"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "const": "confirmed",
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "maxItems": 50,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "kind",
+        "status",
+        "evidence"
+      ],
+      "title": "Link",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "const": "c-graph/1.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "batch_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$",
+      "title": "Batch Id",
+      "type": "string"
+    },
+    "source_batch_id": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Source Batch Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "vocabulary_version": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Vocabulary Version",
+      "type": "string"
+    },
+    "provenance": {
+      "enum": [
+        "reviewed_export",
+        "developer_fixture"
+      ],
+      "title": "Provenance",
+      "type": "string"
+    },
+    "entities": {
+      "items": {
+        "$ref": "#/$defs/Entity"
+      },
+      "maxItems": 10000,
+      "minItems": 1,
+      "title": "Entities",
+      "type": "array"
+    },
+    "relations": {
+      "items": {
+        "$ref": "#/$defs/Link"
+      },
+      "maxItems": 30000,
+      "title": "Relations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "contract_version",
+    "batch_id",
+    "source_batch_id",
+    "schema_version",
+    "vocabulary_version",
+    "provenance",
+    "entities",
+    "relations"
+  ],
+  "title": "BatchInput",
+  "type": "object"
+}

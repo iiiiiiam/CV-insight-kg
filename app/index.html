@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>论文数据开发预览</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6fa;color:#17243b;font:15px/1.6 system-ui,sans-serif}header{background:#fff;border-bottom:1px solid #dde3ef;padding:22px max(24px,calc((100vw - 1240px)/2));display:flex;justify-content:space-between;gap:20px;align-items:center}h1{font-size:22px;margin:0}h2{font-size:19px;margin:0 0 12px}p{margin:8px 0}small,.muted{color:#607087}a{color:#235cb3}main{max-width:1240px;margin:28px auto;padding:0 24px}.card{background:white;border:1px solid #dde3ef;border-radius:12px;padding:22px}.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:20px}label{display:grid;gap:5px;font-size:13px}.query{flex:1;min-width:220px}input,select,button{font:inherit;border:1px solid #bdc9dc;border-radius:6px;padding:9px 12px}button{background:#235cb3;color:#fff;cursor:pointer}button:disabled{opacity:.5}.layout{display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:start}.paper{width:100%;text-align:left;background:#fff;color:#17243b;border:0;border-bottom:1px solid #e4e9f2;border-radius:0;padding:16px 0}.paper:hover,.paper.selected{color:#235cb3;background:#f3f7ff}.paper-title{display:block;font-weight:600;margin-bottom:5px}.tag{display:inline-block;background:#edf3fc;color:#235cb3;padding:3px 9px;border-radius:5px;font-size:12px;margin:3px 6px 3px 0}.abstract{white-space:pre-wrap;line-height:1.8}.metadata{overflow-wrap:anywhere;margin-bottom:16px}.error{color:#a12828}nav{display:flex;gap:16px;white-space:nowrap}.pager{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:12px}@media(max-width:850px){.layout{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header><div><h1>论文数据开发预览</h1><small>真实论文 · 可追溯来源 · 导入批次</small></div><nav><a href="/admin">导入管理</a><a href="/docs">API 文档</a></nav></header>
+<main>
+<form id="filters" class="card filters">
+<label class="query">关键词<input id="q" placeholder="例如 object detection、DETR、YOLO"></label>
+<label>会议<select id="venue"><option value="">全部会议</option><option>CVPR</option><option>ICCV</option><option>ECCV</option></select></label>
+<label>年份<input id="year" type="number" min="1980" max="2100" placeholder="全部" style="width:110px"></label>
+<button type="submit">搜索论文</button>
+</form>
+<div class="layout">
+<section class="card"><h2>论文列表</h2><p id="summary" class="muted" role="status">正在读取数据…</p><div id="papers"></div><div class="pager"><button id="previous" disabled>上一页</button><span id="page-number"></span><button id="next" disabled>下一页</button></div></section>
+<section class="card" id="detail"><h2>论文详情</h2><p class="muted">点击左侧论文，查看摘要、来源和导入批次。</p></section>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);let page=1,total=0,selected=null;
+function element(tag,text,className){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(className)e.className=className;return e;}
+async function request(path){const response=await fetch(path);if(!response.ok)throw Error('读取失败，请确认服务已启动');return response.json();}
+async function showPaper(id){
+ try{const paper=await request('/api/papers/'+id);selected=id;document.querySelectorAll('.paper').forEach(b=>b.classList.toggle('selected',Number(b.dataset.id)===id));
+ const detail=$('detail');detail.replaceChildren(element('h2',paper.title));
+ const tags=element('div');tags.append(element('span',paper.venue+' '+paper.year,'tag'),element('span','论文 ID '+paper.id,'tag'));detail.append(tags,element('p',paper.authors.join(' · ')||'作者信息缺失','muted'));
+ const meta=element('div',undefined,'metadata');meta.append(element('p','DOI：'+(paper.doi||'缺失')),element('p','OpenAlex ID：'+(paper.openalex_id||'缺失')));detail.append(meta,element('h2','摘要'),element('p',paper.abstract||'摘要缺失','abstract'),element('h2','来源与批次'));
+ for(const source of paper.sources){const p=element('p');p.append(element('span',source.name+'：'));if(source.url&&source.url.startsWith('https://')){const a=element('a',source.url);a.href=source.url;a.target='_blank';a.rel='noopener';p.append(a);}else p.append(element('span',source.source_id));detail.append(p);}
+ const batches=element('p');for(const batch of paper.batches)batches.append(element('span',batch.batch_code,'tag'));if(!paper.batches.length)batches.textContent='暂无批次关联记录';detail.append(batches);
+ }catch(e){$('detail').replaceChildren(element('p',e.message,'error'));}
+}
+async function load(){try{const params=new URLSearchParams({page:String(page),page_size:'10'});for(const key of ['q','venue','year'])if($(key).value.trim())params.set(key,$(key).value.trim());const data=await request('/api/papers?'+params);total=data.total;
+ $('summary').textContent=total?'共 '+total+' 篇真实论文':'没有匹配的论文。可调整筛选，或进入“导入管理”导入样本。';
+ $('papers').replaceChildren(...data.items.map(p=>{const b=element('button',undefined,'paper');b.type='button';b.dataset.id=p.id;b.classList.toggle('selected',p.id===selected);b.append(element('span',p.title,'paper-title'),element('small',p.venue+' '+p.year+' · '+p.authors.slice(0,3).join('、')));b.addEventListener('click',()=>showPaper(p.id));return b;}));
+ $('page-number').textContent='第 '+page+' / '+Math.max(1,Math.ceil(total/10))+' 页';$('previous').disabled=page<=1;$('next').disabled=page*10>=total;
+ if(data.items.length)await showPaper(data.items[0].id);else $('detail').replaceChildren(element('h2','论文详情'),element('p','暂无可展示的论文。','muted'));
+ }catch(e){$('summary').textContent=e.message;$('summary').className='error';}}
+$('filters').addEventListener('submit',e=>{e.preventDefault();page=1;load();});$('previous').addEventListener('click',()=>{page--;load();});$('next').addEventListener('click',()=>{page++;load();});load();
+</script>
+</body></html>
