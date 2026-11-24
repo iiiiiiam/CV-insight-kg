@@ -36,7 +36,8 @@ def main():
     seed_sources()
     print('A数据服务已启动：http://127.0.0.1:8000；数据库位于server/.local。')
     import subprocess, sys
-    worker = subprocess.Popen([sys.executable, '-m', 'app.worker'], env=os.environ.copy())
+    from server.process_command import module_command
+    worker = subprocess.Popen(module_command('app.worker'), env=os.environ.copy())
     try:
         uvicorn.run('app.api:app', host='127.0.0.1', port=8000)
     finally:

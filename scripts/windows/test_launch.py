@@ -17,7 +17,8 @@ class SupervisorTests(unittest.TestCase):
     def test_sync_error_is_not_accepted_as_ready(self):
         supervisor = launch.Supervisor({}, Path('.'))
         with patch.object(launch, 'urlopen', return_value=io.BytesIO(
-                b'{"status":"ok","graph_sync":{"state":"error"}}')):
+                b'{"status":"ok","graph_sync":{"state":"error"}}')), \
+                patch.object(Path, 'write_text'):
             with self.assertRaisesRegex(RuntimeError, 'synchronization failed'):
                 supervisor.wait('http://127.0.0.1:8001/api/health', synced=True)
 

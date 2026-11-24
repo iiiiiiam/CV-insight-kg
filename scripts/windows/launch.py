@@ -15,7 +15,9 @@ from urllib.request import urlopen
 from urllib.error import URLError
 import webbrowser
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[2]))
+if not getattr(sys, 'frozen', False):
+    sys.path.insert(0, str(ROOT))
 PORTS = (7474, 7687, 8000, 8001, 8002)
 
 
@@ -44,6 +46,9 @@ def runtime_path(value, pattern, marker):
 
 
 def configuration(args):
+    if getattr(sys, 'frozen', False):
+        from portable import configuration as portable_configuration
+        return portable_configuration(args)
     from dotenv import dotenv_values
 
     # Resolve D/B settings from the same server/.env as Settings.from_env.
@@ -108,9 +113,15 @@ class Supervisor:
             options = dict(creationflags=subprocess.CREATE_NEW_CONSOLE,
                            startupinfo=startup, stdin=subprocess.DEVNULL)
         try:
-            process = subprocess.Popen(command, cwd=ROOT, env=self.env,
-                                       stdout=stream, stderr=subprocess.STDOUT,
-                                       **options)
+            from native import external_dll_search
+            # Only Neo4j is external; bundled Python services retain their DLLs.
+            if name == 'neo4j':
+                with external_dll_search():
+                    process = subprocess.Popen(command, cwd=ROOT, env=self.env,
+                                               stdout=stream, stderr=subprocess.STDOUT, **options)
+            else:
+                process = subprocess.Popen(command, cwd=ROOT, env=self.env,
+                                           stdout=stream, stderr=subprocess.STDOUT, **options)
         finally:
             stream.close()
         self.children.append((name, process))
@@ -132,7 +143,10 @@ class Supervisor:
                 if not synced or result.get('graph_sync', {}).get('state') == 'synced':
                     return result
                 if result.get('graph_sync', {}).get('state') == 'error':
-                    raise RuntimeError('Graph synchronization failed; inspect D log and /api/health.')
+                    diagnostic = self.logs / 'graph-sync-error.json'
+                    diagnostic.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
+                    code = result.get('graph_sync', {}).get('error', {}).get('code', 'unknown')
+                    raise RuntimeError(f'Graph synchronization failed ({code}); diagnostic: {diagnostic}')
             except (URLError, TimeoutError, OSError, ValueError):
                 pass
             time.sleep(1)
@@ -149,7 +163,9 @@ class Supervisor:
                 try:
                     if name == 'neo4j':
                         result = subprocess.run(
-                            [sys.executable, str(Path(__file__).with_name('console_stop.py')), str(process.pid)],
+                            ([sys.executable, '--console-stop', str(process.pid)]
+                             if getattr(sys, 'frozen', False) else
+                             [sys.executable, str(Path(__file__).with_name('console_stop.py')), str(process.pid)]),
                             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                             creationflags=subprocess.CREATE_NO_WINDOW, timeout=10, check=False)
                         if result.returncode:
@@ -185,32 +201,44 @@ def main():
     supervisor = None
     try:
         env, neo = configuration(args)
-        print(f'Python: {sys.executable}\nExisting data: {ROOT / "data/windows-preview"}')
+        print(f'Runtime: {sys.executable}\nData: {Path(env["D_USER_STORE"]).parent}')
         if args.check:
             print('Preflight passed. No services started; credentials not verified against Neo4j.')
             return 0
         # Prompt each time for this developer preview; do not persist a password.
-        password = getpass.getpass('Existing local Neo4j password (hidden): ')
+        password = (env.get('NEO4J_PASSWORD') if getattr(sys, 'frozen', False) else
+                    getpass.getpass('Existing local Neo4j password (hidden): '))
         if not password:
             raise RuntimeError('Password was empty; nothing started.')
-        logs = ROOT / '.cache/windows-launcher' / time.strftime('%Y%m%d-%H%M%S')
+        log_root = (Path(sys.executable).parent / 'user-data/logs'
+                    if getattr(sys, 'frozen', False) else ROOT / '.cache/windows-launcher')
+        logs = log_root / time.strftime('%Y%m%d-%H%M%S')
         logs.mkdir(parents=True, exist_ok=False)
         print(f'Logs: {logs}\nKeep this terminal open. Ctrl+C stops this run.')
-        supervisor = Supervisor(env, logs)
+        supervisor = Supervisor(dict(env), logs)
         # Neo4j itself does not need the client password in its environment.
         supervisor.env.pop('NEO4J_PASSWORD', None)
-        supervisor.start('neo4j', ['cmd.exe', '/d', '/c', str(neo / 'bin/neo4j.bat'), 'console'])
+        if getattr(sys, 'frozen', False):
+            from native import neo4j_command
+            neo_command = neo4j_command(neo, 'console')
+        else:
+            neo_command = ['cmd.exe', '/d', '/c', str(neo / 'bin/neo4j.bat'), 'console']
+        supervisor.start('neo4j', neo_command)
         supervisor.wait('http://127.0.0.1:7474/', timeout=120)
         supervisor.env = dict(env, NEO4J_PASSWORD=password)
-        supervisor.start('C', [sys.executable, '-m', 'server.run_c'])
+        from server.process_command import module_command
+        supervisor.start('C', module_command('server.run_c'))
         supervisor.wait('http://127.0.0.1:8002/api/health')
         # Only C requires the database password.
         supervisor.env = dict(env)
-        supervisor.start('A', [sys.executable, '-m', 'server.run_a'])
+        supervisor.env.pop('NEO4J_PASSWORD', None)
+        supervisor.start('A', module_command('server.run_a'))
         supervisor.wait('http://127.0.0.1:8000/health')
-        supervisor.start('D', [sys.executable, '-c',
+        d_command = ([sys.executable, '--internal-module', 'server.run']
+                     if getattr(sys, 'frozen', False) else [sys.executable, '-c',
             "import mimetypes,runpy; mimetypes.add_type('application/javascript','.js'); "
             "runpy.run_module('server.run',run_name='__main__')"])
+        supervisor.start('D', d_command)
         supervisor.wait('http://127.0.0.1:8001/api/health', synced=True, timeout=300)
         print('Ready: http://127.0.0.1:8001/research/papers?tab=overview')
         if not args.no_browser:
