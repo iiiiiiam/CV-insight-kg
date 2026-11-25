@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 from native import external_dll_search, neo4j_command, redacted_output
+from storage import state_directory, prepare_neo4j_config
 
 
 def load_credentials(path):
@@ -41,12 +42,13 @@ def configuration(args):
     occupied = [port for port in PORTS if not free_port(port)]
     if occupied:
         raise RuntimeError(f'Ports already in use: {occupied}. Stop existing services first.')
-    state = home / 'user-data'
+    external = getattr(args, 'data_dir', None)
+    state = state_directory(home, external)
     credential_path = state / 'credentials.json'
     if args.check and not credential_path.exists():
         raise RuntimeError('First run not initialized. Run without --check once; no changes made by check.')
     if not args.check:
-        state.mkdir(exist_ok=True)
+        state.mkdir(parents=True, exist_ok=True)
     credentials = load_credentials(credential_path)
     # Do not inherit a developer machine's data locations, proxy service tokens
     # or Python settings. Preserve Windows and PyInstaller loader environment.
@@ -56,6 +58,14 @@ def configuration(args):
     env = {key: value for key, value in os.environ.items()
            if not key.startswith(prefixes) and key not in excluded}
     data = state / 'application'
+    neo_data = state / 'neo4j/data' if external else neo / 'data'
+    if external:
+        conf = state / 'neo4j/conf'
+        if not args.check:
+            conf = prepare_neo4j_config(neo, state)
+        elif not (conf / 'neo4j.conf').is_file():
+            raise RuntimeError('External Neo4j configuration is missing; no changes made by check.')
+        env['NEO4J_CONF'] = str(conf)
     env.update(credentials)
     env.update(JAVA_HOME=str(java), NEO4J_HOME=str(neo), NEO4J_URI='bolt://127.0.0.1:7687',
                NEO4J_USER='neo4j', NEO4J_DATABASE='neo4j', ADMIN_USERNAME='admin',
@@ -72,7 +82,7 @@ def configuration(args):
     if not args.check:
         marker = state / 'neo4j-initialized.json'
         if not marker.exists():
-            if (neo / 'data/databases').exists() and any((neo / 'data/databases').iterdir()):
+            if (neo_data / 'databases').exists() and any((neo_data / 'databases').iterdir()):
                 raise RuntimeError('Neo4j data exists without initialization marker; no password reset attempted.')
             # Neo4j's supported initial-password command accepts the password
             # as an argument. Never print this command or its captured output.

@@ -38,11 +38,11 @@ def extract_runtime(archive, destination, *, neo4j=False):
                 shutil.copyfileobj(source, output)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--java-zip', type=Path, required=True)
     parser.add_argument('--neo4j-zip', type=Path, required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if sys.platform != 'win32':
         parser.error('Build on Windows x64 with the dedicated build Python.')
     if sys.version_info[:2] != (3, 11):
@@ -90,11 +90,21 @@ def main():
     extract_runtime(neo_zip, home / 'runtime/neo4j', neo4j=True)
     if not (home / 'runtime/java/bin/java.exe').is_file() or not (home / 'runtime/neo4j/bin/neo4j.bat').is_file():
         raise RuntimeError('ZIP runtime layout is not the expected Windows layout')
+    # A separate small windowed entry keeps the proven console supervisor and
+    # service signal behavior intact. It contains Tk, not another app/runtime.
+    subprocess.run([
+        sys.executable, '-m', 'PyInstaller', '--noconfirm', '--onedir', '--windowed',
+        '--name', 'ResearchInsightControl', '--distpath', str(home),
+        '--workpath', str(work / 'control-work'), '--specpath', str(work),
+        '--paths', str(Path(__file__).parent),
+        str(Path(__file__).with_name('controller_entry.py')),
+    ], cwd=ROOT, check=True)
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     dirty = bool(subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=normal'], cwd=ROOT))
     packages = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'], text=True)
     (home / 'build-requirements.txt').write_text(packages, encoding='utf-8')
     manifest = {'built_at': stamp, 'base_commit': revision, 'uncommitted_changes': dirty,
+                'launcher_capabilities': ['external-data-dir', 'stop-entry-v1', 'desktop-control-v1'],
                 'python': sys.version, 'platform': 'Windows x64',
                 'seed': 'B: tracked week1 baseline (20 papers); A: baseline + 60 tracked supplemental samples',
                 'runtime_archives': {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
@@ -114,6 +124,7 @@ def main():
         '本版不含独立安装间的云端反馈同步。\n', encoding='utf-8-sig')
     print(f'Candidate ready (not yet runtime-validated): {home}')
     print('First test locally in this fresh folder. Keep an unused copy for the second machine.')
+    return home
 
 
 if __name__ == '__main__':

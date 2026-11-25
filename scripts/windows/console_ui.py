@@ -63,12 +63,13 @@ def pause_on_failure(code, stream=None, input_fn=input):
             pass
 
 
-def run_console(callback, home=None):
+def run_console(callback, home=None, data_dir=None):
     home = Path(home) if home is not None else Path(sys.executable).parent
     original_out, original_err = sys.stdout, sys.stderr
     code = 1
     try:
-        directory = home / 'user-data/logs'
+        from storage import state_directory
+        directory = state_directory(home, data_dir) / 'logs'
         directory.mkdir(parents=True, exist_ok=True)
         path = directory / f'launcher-{datetime.now():%Y%m%d-%H%M%S}-{os.getpid()}.log'
         with path.open('x', encoding='utf-8', buffering=1) as logfile:

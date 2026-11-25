@@ -99,6 +99,7 @@ def configuration(args):
 class Supervisor:
     def __init__(self, env, logs):
         self.env, self.logs, self.children = env, logs, []
+        self.stop_signal = None
 
     def start(self, name, command):
         stream = (self.logs / f'{name}.log').open('wb')
@@ -130,6 +131,8 @@ class Supervisor:
     def wait(self, url, *, synced=False, timeout=180):
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
+            if self.stop_signal:
+                self.stop_signal.check()
             for name, process in self.children:
                 if process.poll() is not None:
                     raise RuntimeError(f'{name} exited; inspect its log.')
@@ -195,11 +198,15 @@ def main():
     parser.add_argument('--neo4j-home')
     parser.add_argument('--check', action='store_true', help='Check configuration only; start nothing.')
     parser.add_argument('--no-browser', action='store_true')
+    parser.add_argument('--data-dir', help='Frozen runtime only: absolute user data directory.')
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('This launcher supports Windows only.')
     supervisor = None
+    stop_signal = None
     try:
+        if args.data_dir and not getattr(sys, 'frozen', False):
+            raise RuntimeError('--data-dir is supported only by the packaged executable.')
         env, neo = configuration(args)
         print(f'Runtime: {sys.executable}\nData: {Path(env["D_USER_STORE"]).parent}')
         if args.check:
@@ -210,12 +217,16 @@ def main():
                     getpass.getpass('Existing local Neo4j password (hidden): '))
         if not password:
             raise RuntimeError('Password was empty; nothing started.')
-        log_root = (Path(sys.executable).parent / 'user-data/logs'
+        log_root = (Path(env['D_USER_STORE']).parent.parent / 'logs'
                     if getattr(sys, 'frozen', False) else ROOT / '.cache/windows-launcher')
         logs = log_root / time.strftime('%Y%m%d-%H%M%S')
         logs.mkdir(parents=True, exist_ok=False)
         print(f'Logs: {logs}\nKeep this terminal open. Ctrl+C stops this run.')
         supervisor = Supervisor(dict(env), logs)
+        if getattr(sys, 'frozen', False):
+            from control import StopSignal
+            stop_signal = StopSignal(Path(env['D_USER_STORE']).parent.parent)
+            supervisor.stop_signal = stop_signal
         # Neo4j itself does not need the client password in its environment.
         supervisor.env.pop('NEO4J_PASSWORD', None)
         if getattr(sys, 'frozen', False):
@@ -244,6 +255,8 @@ def main():
         if not args.no_browser:
             webbrowser.open('http://127.0.0.1:8001/research/papers?tab=overview')
         while True:
+            if stop_signal:
+                stop_signal.check()
             for name, process in supervisor.children:
                 if process.poll() is not None:
                     raise RuntimeError(f'{name} exited unexpectedly; inspect logs.')
@@ -261,6 +274,8 @@ def main():
     finally:
         if supervisor:
             supervisor.stop()
+        if stop_signal:
+            stop_signal.close()
 
 
 if __name__ == '__main__':

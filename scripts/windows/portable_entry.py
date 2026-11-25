@@ -24,7 +24,18 @@ def main():
     if '--check' in sys.argv:
         return launch()  # Preserve read-only preflight behavior.
     from console_ui import run_console
-    return run_console(launch)
+    import argparse
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('--data-dir')
+    parser.add_argument('--stop', action='store_true')
+    options, _ = parser.parse_known_args()
+    if options.stop:
+        from pathlib import Path
+        from storage import state_directory
+        from control import request_stop
+        request_stop(state_directory(Path(sys.executable).parent, options.data_dir))
+        return 0
+    return run_console(launch, data_dir=options.data_dir)
 
 
 if __name__ == '__main__':
