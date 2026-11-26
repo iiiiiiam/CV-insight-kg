@@ -13,6 +13,27 @@ from app.models import database,Job
 
 
 class PresentationTests(unittest.TestCase):
+    def test_demo_history_rolls_without_writing_dates(self):
+        from datetime import timedelta
+        from unittest.mock import patch
+        from app.models import now,Paper
+        from app.data_activity import additions
+        with tempfile.TemporaryDirectory() as temporary:
+            path=Path(temporary)/'preview.db'
+            create_demo(path)
+            factory=database('sqlite:///'+str(path))
+            try:
+                with factory() as db:
+                    original={p.id:p.first_seen_at for p in db.scalars(select(Paper))}
+                    future=now()+timedelta(days=40)
+                    with patch('app.models.now',return_value=future),patch('app.data_overview.now',return_value=future):
+                        report=dashboard(db,14)
+                        self.assertTrue(all(p['added_papers']>0 for p in report['trend']))
+                        for point in report['trend']:
+                            self.assertEqual(point['added_papers'],sum(p['first_seen_at'].date().isoformat()==point['date'] for p in additions(db)))
+                    self.assertEqual(original,{p.id:p.first_seen_at for p in db.scalars(select(Paper))})
+            finally:factory.kw['bind'].dispose()
+
     def test_prepare_balanced_batches_and_withdraw_one_without_losing_history(self):
         with tempfile.TemporaryDirectory() as temporary:
             path=Path(temporary)/'preview.db'

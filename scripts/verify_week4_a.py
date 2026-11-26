@@ -106,15 +106,20 @@ def main():
                             time.sleep(.1)
                         raise RuntimeError('Import timed out')
                     def send(document, key):
-                        created = request(browser, 'POST', web + '/api/admin/handoffs',
-                            dict(request_key=key, batch_id=document['batch_id'],
-                                 expected_revision=document['batch_revision'], acknowledge_switch=True))
-                        return wait(created['id'], 'handoffs')
+                        for _ in range(300):
+                            listing = request(browser, 'GET', web + '/api/admin/handoffs?page_size=100')
+                            task = next((t for t in listing['items'] if t['batch_id']==document['batch_id']
+                                         and t['batch_revision']==document['batch_revision']), None)
+                            if task:
+                                return wait(task['id'], 'handoffs')
+                            time.sleep(.1)
+                        raise RuntimeError('Automatic handoff was not created')
+                    assert browser.post(web+'/api/admin/handoffs',json={}).status_code==405
                     first = ingest('week4-first', records[:20])
                     r1 = send(first, 'first-send')
                     assert r1['result']['b_paper_count'] == 20
                     same = send(first, 'repeat-send')
-                    assert same['result']['b_paper_count'] == 20 and same['result']['b_status'] == 'unchanged'
+                    assert same['result']['b_paper_count'] == 20 and same['id'] == r1['id']
                     second = ingest('week4-second', records[10:])
                     r2 = send(second, 'second-send')
                     assert r2['result']['b_paper_count'] == 30
@@ -188,12 +193,27 @@ def main():
                             expect(page.locator('.formal-controls').get_by_text('B 撤回通知：已确认', exact=False)).to_be_visible(timeout=60000)
                             page.reload()
                             expect(page.locator('.formal-controls').get_by_text('B 撤回通知：已确认', exact=False)).to_be_visible(timeout=30000)
+                            page.goto(web + '/admin/handoffs?task_id=' + r4['id'])
+                            expect(page.get_by_role('heading', name='自动交接与版本状态', exact=True)).to_be_visible(timeout=30000)
+                            expect(page.get_by_role('button', name='一键交接给 B', exact=True)).to_have_count(0)
+                            expect(page.get_by_role('heading', name='自动交接与对账', exact=True)).to_be_visible()
+                            page.goto(web + '/admin/reports?task_id=' + report['id'])
+                            expect(page.get_by_role('link', name='下载完整 ZIP', exact=True)).to_be_visible(timeout=30000)
+                            with page.expect_download() as old_report_download:
+                                page.get_by_role('link', name='下载完整 ZIP', exact=True).click()
+                            assert Path(old_report_download.value.path()).read_bytes()==download.content
+                            page.get_by_role('radio', name='仅 A：当前有效论文、来源和数据质量', exact=True).check()
+                            page.get_by_role('button', name='创建报告任务', exact=True).click()
+                            page.wait_for_url(lambda url: 'task_id=' in url and report['id'] not in url, timeout=30000)
+                            ui_task_id=page.url.split('task_id=')[1].split('&')[0]
+                            expect(page.get_by_role('link', name='下载完整 ZIP', exact=True)).to_have_attribute('href','/api/admin/reports/'+ui_task_id+'/download',timeout=60000)
+                            assert request(browser,'GET',web+'/api/admin/reports/'+ui_task_id)['result']['paper_count']==0
                             assert not js_errors, js_errors
                             browser_verified = True
                             browser_ui.close()
                     result = dict(actual_http=True, real_papers=True, input_source=str(args.input),
-                        b_paper_counts=[20, 30, 20, 0], withdrawal_browser_retry=browser_verified, automatic_withdrawal_notification=True,
-                        repeated_withdrawal_same_task=True, b_native_report_tags_quality=True, stale_knowledge_rejected=True, repeated_delivery='unchanged',
+                        b_paper_counts=[20, 30, 20, 0], withdrawal_browser_retry=browser_verified, workflow_center_browser=browser_verified, automatic_withdrawal_notification=True,
+                        repeated_withdrawal_same_task=True, b_native_report_tags_quality=True, stale_knowledge_rejected=True, repeated_delivery='same automatic task', no_manual_handoff=True,
                         report_papers=30, post_withdrawal_report_papers=20, historical_report_unchanged=True,
                         manifest_checksums_verified=True, zip_header_verified=True, b_section_included=True,
                         c_publication='not_run', pipeline= pipeline)

@@ -54,6 +54,9 @@ def latest_version(db,paper_id,exclude=None):
 def freeze_content(db,paper,batch_key):
     sources=db.scalars(select(PaperSource).where(PaperSource.paper_id==paper.id).order_by(PaperSource.source,PaperSource.source_id)).all()
     evidence=[{'source':s.source,'source_id':s.source_id,'source_url':s.source_url,'raw':json.loads(s.raw_json)} for s in sources]
+    for saved, source in zip(evidence, sources):
+        if source.source=='openalex' and 'topics' in saved['raw'] and 'keywords' in saved['raw']:
+            saved['retrieved_at']=source.retrieved_at.isoformat() if source.retrieved_at else None
     b_input=None
     for source in sources:
         if source.source=='openalex':
@@ -135,7 +138,8 @@ def process_batch(db,job):
                     identity.active=True
                     content=freeze_content(db,paper,ledger.batch_key)
                     # Scope-local dataset_id and retrieval metadata do not make identical papers updates.
-                    fingerprint=digest({'paper':content['paper'],'sources':content['sources']})
+                    fingerprint=digest({'paper':content['paper'],'sources':[
+                        {k:v for k,v in source.items() if k!='retrieved_at'} for source in content['sources']]})
                     version=db.get(BatchPaperVersion,(job.id,paper.id))
                     previous=latest_version(db,paper.id,exclude=job.id)
                     old=before_json if previous is None else canonical(json.loads(previous.content_json)['paper'])
@@ -161,6 +165,11 @@ def process_batch(db,job):
         if job.attempted%250==0:print(f'{code(job.id)}: {job.attempted} source records processed',flush=True)
     job.status='partial' if job.failed else 'succeeded';job.stage='done';job.error=f'{job.failed} records failed' if job.failed else None;job.active_key=None;job.finished_at=now()
     db.add(JobEvent(job_id=job.id,stage='done',level='info',message=f'Formal batch complete: {job.succeeded} succeeded, {job.failed} failed'))
+    from .auto_handoff import enabled, queue_delivery, schedule_import_retry
+    schedule_import_retry(job,db)
+    if enabled() and job.status=='succeeded':
+        db.flush()
+        queue_delivery(db,batch_manifest(db,job.id))
     db.commit()
     return batch_manifest(db,job.id)
 
@@ -182,7 +191,7 @@ def batch_manifest(db,job_id):
     if ledger is None:raise LookupError('Formal batch not found')
     versions=db.scalars(select(BatchPaperVersion).where(BatchPaperVersion.job_id==job_id).order_by(BatchPaperVersion.paper_id)).all()
     changes={'added':[],'duplicate':[],'updated':[],'withdrawn':[],'failed':[]}
-    items=[];excluded=[];stable_papers=[]
+    items=[];excluded=[];stable_papers=[];source_annotations=[]
     for version in versions:
         identity=db.get(StablePaper,version.paper_id);content=json.loads(version.content_json)
         stable_papers.append({'paper_id':identity.stable_id,'openalex_id':content['paper']['openalex_id'],'content_sha256':version.content_sha256,
@@ -191,11 +200,19 @@ def batch_manifest(db,job_id):
         if ledger.withdrawn:
             surviving=db.scalars(select(BatchPaperVersion.job_id).join(BatchLedger,BatchLedger.job_id==BatchPaperVersion.job_id).where(BatchPaperVersion.paper_id==version.paper_id,BatchLedger.withdrawn.is_(False)).order_by(BatchPaperVersion.job_id)).all()
             changes['withdrawn'].append({'paper_id':identity.stable_id,'still_effective':identity.active,'remaining_batches':[code(j) for j in surviving],'remaining_batch_keys':[db.get(BatchLedger,j).batch_key for j in surviving],'baseline_effective':identity.baseline_json is not None})
-        if content['input'] is not None:items.append(content['input'])
+        if content['input'] is not None:
+            items.append(content['input'])
+            from src.knowledge_builder.extraction import fingerprint
+            for source in content['sources']:
+                raw=source.get('raw',{})
+                if source['source']=='openalex' and 'topics' in raw and 'keywords' in raw:
+                    source_annotations.append({'paper_id':content['input']['openalex_id'],
+                        'record':{'source':'openalex','url':'https://api.openalex.org/works/'+raw['id'].rsplit('/',1)[-1],
+                            'fetched_at':source.get('retrieved_at'),'payload':raw,'digest':fingerprint(raw)}})
         else:excluded.append({'paper_id':version.paper_id,'title':content['paper']['title'],'stable_id':identity.stable_id,'paper':content['paper'],'sources':content['sources'],'reason':'No verified OpenAlex PaperInput; original source metadata is retained'})
     for record in db.scalars(select(JobRecord).where(JobRecord.job_id==job_id,JobRecord.status=='failed')):
         changes['failed'].append({'source':record.source,'source_id':record.source_id,'reason':record.error,'attempts':record.attempts})
-    return {'format_version':'a-paperinput/1','batch_id':job_id,'batch_code':code(job_id),'dataset_id':ledger.batch_key,'batch_key':ledger.batch_key,
+    result={'format_version':'a-paperinput/1','batch_id':job_id,'batch_code':code(job_id),'dataset_id':ledger.batch_key,'batch_key':ledger.batch_key,
         'input_revision':ledger.input_sha256,'state':'withdrawn' if ledger.withdrawn else 'active','status':job.status,
         'withdrawal_reason':ledger.withdrawal_reason,'withdrawn_at':ledger.withdrawn_at.isoformat() if ledger.withdrawn_at else None,
         'total_papers':len(versions),'exported_papers':len(items),'excluded_papers':len(excluded),'items':items,'excluded':excluded,
@@ -203,6 +220,8 @@ def batch_manifest(db,job_id):
         'batch_revision':digest({'input':ledger.input_sha256,'withdrawn':ledger.withdrawn,'content':[(v.paper_id,v.content_sha256) for v in versions],'failed':changes['failed']}),
         'changes':changes,'stable_papers':stable_papers,
         **batch_labels(job)}
+    if source_annotations:result['source_annotations']=source_annotations
+    return result
 
 
 def withdraw_batch(db,job_id,reason):

@@ -16,7 +16,7 @@ SOURCES = {
     "ICCV": "S4363607764",
 }
 FIELDS = "id,display_name,publication_year,doi,authorships,abstract_inverted_index,cited_by_count,primary_location,type"
-ANNOTATION_FIELDS = "primary_topic,topics,keywords"
+ANNOTATION_FIELDS = "primary_topic,topics,keywords,ids,locations,best_oa_location"
 
 def fetch_batch(venue: str, year: int, output: Path, retries: int = 5, page_size: int = 100, *, with_annotations: bool = False) -> dict:
     if venue not in SOURCES:
@@ -142,6 +142,7 @@ if __name__ == "__main__":
     parser.add_argument("venue", choices=SOURCES)
     parser.add_argument("year", type=int)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--with-annotations", action="store_true", help="Also retain OpenAlex topics and keywords")
+    parser.add_argument("--with-annotations", action="store_true", default=True, help="Retain B report/source fields (default)")
+    parser.add_argument("--without-annotations", dest="with_annotations", action="store_false", help="Read only the original base fields")
     args = parser.parse_args()
     print(json.dumps(fetch_batch(args.venue, args.year, args.output, with_annotations=args.with_annotations), ensure_ascii=False))

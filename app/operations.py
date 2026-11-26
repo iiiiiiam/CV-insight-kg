@@ -91,7 +91,13 @@ def create_operations_router(db_session,admin):
         try:manifest=batch_manifest(db,job_id)
         except LookupError as exc:raise HTTPException(404,str(exc))
         values=db.scalars(select(HandoffReceipt).where(HandoffReceipt.job_id==job_id).order_by(HandoffReceipt.id.desc())).all()
-        return {'batch_revision':manifest['batch_revision'],'state':manifest['state'],'items':[{'recipient':v.recipient,'status':v.status,'message':v.message,'snapshot_revision':v.snapshot_revision,'updated_at':v.updated_at,'batch_revision':v.revision,'current':v.revision==manifest['batch_revision']} for v in values]}
+        from .models import WorkflowTask
+        from .workflow_tasks import view
+        from sqlalchemy.orm import defer
+        automatic=db.scalar(select(WorkflowTask).options(defer(WorkflowTask.payload_json)).where(
+            WorkflowTask.kind=='handoff',WorkflowTask.batch_id==job_id,WorkflowTask.batch_revision==manifest['batch_revision'])
+            .order_by(WorkflowTask.created_at.desc()).limit(1))
+        return {'batch_revision':manifest['batch_revision'],'state':manifest['state'],'automatic_task':view(automatic) if automatic else None,'items':[{'recipient':v.recipient,'status':v.status,'message':v.message,'snapshot_revision':v.snapshot_revision,'updated_at':v.updated_at,'batch_revision':v.revision,'current':v.revision==manifest['batch_revision']} for v in values]}
     @router.post('/formal/batches/{job_id}/receipts')
     def receive(job_id:int,body:ReceiptInput,db=Depends(db_session)):
         try:manifest=batch_manifest(db,job_id)

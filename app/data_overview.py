@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from collections import Counter
+from types import SimpleNamespace
 from dataclasses import asdict
 from datetime import datetime, time, timedelta
 
@@ -62,6 +63,9 @@ def dashboard(db: Session, days: int = 7) -> dict:
     from .data_activity import activity_summary
     added,added_modes,withdrawn,withdrawn_batches=activity_summary(db)
     papers = db.execute(select(Paper.id,Paper.venue,Paper.first_seen_at,(func.length(func.trim(func.coalesce(Paper.abstract,'')))>0).label('abstract')).where(research_paper_scope()).order_by(Paper.first_seen_at.desc(), Paper.id.desc())).all()
+    from .data_activity import demonstration_dates
+    demo_dates=demonstration_dates(db)
+    papers=sorted((SimpleNamespace(**(dict(p._mapping)|{"first_seen_at":demo_dates.get(p.id,p.first_seen_at)})) for p in papers),key=lambda p:(p.first_seen_at,p.id),reverse=True)
     latest_papers = db.scalars(select(Paper).where(Paper.id.in_([p.id for p in papers[:20]])).order_by(Paper.first_seen_at.desc(),Paper.id.desc())).all()
     paper_map = {p.id: p for p in papers}
     by_day = Counter(p.first_seen_at.date() for p in papers if start <= p.first_seen_at < end)

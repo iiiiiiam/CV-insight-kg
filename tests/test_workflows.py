@@ -22,7 +22,7 @@ class WorkflowTests(unittest.TestCase):
     def setUp(self):
         test_formal_api.FormalApiTests.setUp(self)
         self.temp = tempfile.TemporaryDirectory()
-        self.artifacts = patch.dict(os.environ, {'A_REPORT_ROOT': self.temp.name})
+        self.artifacts = patch.dict(os.environ, {'A_REPORT_ROOT': self.temp.name, 'A_AUTO_HANDOFF':'false'})
         self.artifacts.start()
 
     def tearDown(self):
@@ -213,6 +213,7 @@ class WorkflowTests(unittest.TestCase):
     def test_all_new_endpoints_require_auth_and_invalid_ids_stay_isolated(self):
         for route in ('reports', 'handoffs'):
             self.assertEqual(self.client.get(f'/api/admin/{route}').status_code, 401)
+        for route in ('reports',):
             self.assertEqual(self.client.post(f'/api/admin/{route}', json={}).status_code, 401)
             self.assertEqual(self.client.get(f'/api/admin/{route}/unknown', headers=self.auth).status_code, 404)
         self.assertEqual(self.client.get('/api/admin/reports?status=bad', headers=self.auth).status_code, 422)
@@ -221,9 +222,10 @@ class WorkflowTests(unittest.TestCase):
         batch = self.ingest('first', [record(1)])
         revision = self.client.get(f'/api/admin/formal/batches/{batch}', headers=self.auth).json()['batch_revision']
         body = dict(batch_id=batch, expected_revision=revision, acknowledge_switch=True, request_key='send')
-        response = self.client.post('/api/admin/handoffs', headers=self.auth, json=body)
-        self.assertEqual(response.status_code, 202, response.text)
-        identifier = response.json()['id']
+        from app.auto_handoff import queue_delivery
+        from app.formal_batches import batch_manifest
+        with self.factory() as db:
+            identifier=queue_delivery(db,batch_manifest(db,batch))['id'];db.commit()
         with patch.dict(os.environ, {'B_API_BASE_URL': ''}):
             run_one(self.factory)
         self.assertEqual(self.detail(identifier, 'handoffs')['status'], 'failed')
@@ -232,8 +234,7 @@ class WorkflowTests(unittest.TestCase):
             withdraw_batch(db, batch, 'changed before sending')
         run_one(self.factory)
         self.assertIn('批次已更新或撤回', self.detail(identifier, 'handoffs')['error'])
-        self.assertEqual(self.client.post('/api/admin/handoffs', headers=self.auth,
-            json={**body, 'request_key': 'new'}).status_code, 409)
+        self.assertEqual(self.client.post('/api/admin/handoffs', headers=self.auth, json=body).status_code,405)
 
     def test_queue_handles_two_tasks_then_is_empty_and_schema_persists(self):
         a, b = self.create(request_key='a'), self.create(request_key='b')
@@ -307,8 +308,10 @@ class WorkflowTests(unittest.TestCase):
     def test_withdrawal_notification_is_durable_idempotent_and_retryable(self):
         batch = self.ingest('withdraw-notify', [record(1)])
         revision = self.client.get(f'/api/admin/formal/batches/{batch}', headers=self.auth).json()['batch_revision']
-        sent = self.client.post('/api/admin/handoffs', headers=self.auth, json={
-            'batch_id': batch, 'expected_revision': revision, 'acknowledge_switch': True}).json()
+        from app.auto_handoff import queue_delivery
+        from app.formal_batches import batch_manifest
+        with self.factory() as db:
+            sent=queue_delivery(db,batch_manifest(db,batch));db.commit()
         with patch('app.delivery.send', return_value={'received': True}):
             run_one(self.factory)
         withdrawn = self.client.post(f'/api/admin/jobs/{batch}/withdraw', headers=self.auth,

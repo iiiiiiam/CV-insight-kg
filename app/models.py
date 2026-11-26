@@ -48,6 +48,8 @@ class Job(Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime)
     events: Mapped[list[JobEvent]] = relationship(back_populates="job", cascade="all, delete-orphan")
+    retry_attempts: Mapped[int] = mapped_column(Integer, default=0, server_default='0')
+    next_retry_at: Mapped[datetime | None] = mapped_column(DateTime)
 
 
 class CvfRecord(Base):
@@ -222,6 +224,87 @@ class WorkflowTask(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime)
+    automatic: Mapped[bool] = mapped_column(Boolean, default=False, server_default='0')
+    retryable: Mapped[bool] = mapped_column(Boolean, default=False, server_default='0')
+    max_attempts: Mapped[int] = mapped_column(Integer, default=5, server_default='5')
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class HandoffReconciliation(Base):
+    __tablename__ = 'a_handoff_reconciliation'
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    checked_at: Mapped[datetime | None] = mapped_column(DateTime)
+    next_check_at: Mapped[datetime | None] = mapped_column(DateTime)
+    failures: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(24), default='waiting')
+    error: Mapped[str | None] = mapped_column(Text)
+    summary_json: Mapped[str] = mapped_column(Text().with_variant(LONGTEXT(), 'mysql'), default='{}')
+
+
+class OnlineCollection(Base):
+    __tablename__='a_online_collections'
+    job_id: Mapped[int]=mapped_column(ForeignKey('jobs.id'),primary_key=True)
+    request_key: Mapped[str]=mapped_column(String(64),unique=True)
+    request_sha256: Mapped[str]=mapped_column(String(64))
+    requested_count: Mapped[int]=mapped_column(Integer)
+    keyword: Mapped[str]=mapped_column(String(200),default='')
+    next_page: Mapped[int]=mapped_column(Integer,default=1)
+    scanned_count: Mapped[int]=mapped_column(Integer,default=0)
+    existing_count: Mapped[int]=mapped_column(Integer,default=0)
+    skipped_count: Mapped[int]=mapped_column(Integer,default=0)
+    exhausted: Mapped[bool]=mapped_column(Boolean,default=False)
+    records_json: Mapped[str]=mapped_column(Text().with_variant(LONGTEXT(),'mysql'),default='[]')
+
+
+class CollectionSchedule(Base):
+    __tablename__ = 'a_collection_schedules'
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    instance_key: Mapped[str] = mapped_column(String(32))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    config_json: Mapped[str] = mapped_column(Text)
+    next_run_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
+
+
+class CollectionRun(Base):
+    __tablename__ = 'a_collection_runs'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    schedule_id: Mapped[str] = mapped_column(ForeignKey('a_collection_schedules.id'), index=True)
+    due_at: Mapped[datetime] = mapped_column(DateTime)
+    trigger: Mapped[str] = mapped_column(String(20), default='scheduled')
+    config_json: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(24), default='queued')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime)
+    __table_args__ = (UniqueConstraint('schedule_id','due_at',name='uq_collection_slot'),)
+
+
+class CollectionTask(Base):
+    __tablename__ = 'a_collection_tasks'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    run_id: Mapped[int] = mapped_column(ForeignKey('a_collection_runs.id'), index=True)
+    venue: Mapped[str] = mapped_column(String(20))
+    year: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(24), default='pending')
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    retry_round: Mapped[int] = mapped_column(Integer, default=0, server_default='0')
+    generation: Mapped[int] = mapped_column(Integer, default=1)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime)
+    job_id: Mapped[int | None] = mapped_column(ForeignKey('jobs.id'))
+    collected_records: Mapped[int] = mapped_column(Integer, default=0)
+    unchanged_records: Mapped[int] = mapped_column(Integer, default=0)
+    error: Mapped[str | None] = mapped_column(Text)
+    capture_dir: Mapped[str | None] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
+    __table_args__ = (UniqueConstraint('run_id','venue','year',name='uq_collection_task'),)
+
+
+class CollectionRuntime(Base):
+    __tablename__ = 'a_collection_runtime'
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime)
+    state: Mapped[str] = mapped_column(String(20), default='running')
+    error: Mapped[str | None] = mapped_column(Text)
 
 
 def database(url: str):
@@ -252,6 +335,19 @@ def _prepare_database(engine):
         with engine.connect() as connection:connection.exec_driver_sql('PRAGMA journal_mode=WAL')
     from . import operations  # Register A receipt tables for API and worker alike.
     Base.metadata.create_all(engine)
+    if 'retry_round' not in {c['name'] for c in inspect(engine).get_columns('a_collection_tasks')}:
+        with engine.begin() as connection:
+            connection.execute(text('ALTER TABLE a_collection_tasks ADD COLUMN retry_round INTEGER NOT NULL DEFAULT 0'))
+    for table, columns in (
+        ('jobs', [('retry_attempts', 'INTEGER NOT NULL DEFAULT 0'), ('next_retry_at', 'DATETIME NULL')]),
+        ('a_workflow_tasks', [('automatic', 'BOOLEAN NOT NULL DEFAULT 0'),
+            ('retryable', 'BOOLEAN NOT NULL DEFAULT 0'), ('max_attempts', 'INTEGER NOT NULL DEFAULT 5'),
+            ('next_attempt_at', 'DATETIME NULL')]),
+    ):
+        for name, definition in columns:
+            if name not in {c['name'] for c in inspect(engine).get_columns(table)}:
+                with engine.begin() as connection:
+                    connection.execute(text(f'ALTER TABLE {table} ADD COLUMN {name} {definition}'))
     workflow_columns = {c['name'] for c in inspect(engine).get_columns('a_workflow_tasks')}
     changed = False
     for name, definition in (('title', 'VARCHAR(200) NULL'), ('batch_id', 'INTEGER NULL'),

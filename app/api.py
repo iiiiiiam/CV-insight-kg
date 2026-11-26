@@ -137,6 +137,7 @@ def job_data(job: Job) -> dict:
             "venue": job.venue, "year": job.year, "source": job.source, "status": job.status, "stage": job.stage,
             "attempted": job.attempted, "succeeded": job.succeeded, "failed": job.failed, "skipped": job.skipped,
             "error": job.error, "created_at": job.created_at, "updated_at": job.updated_at,
+            "next_retry_at":job.next_retry_at,"retry_attempts":job.retry_attempts,
             "started_at": job.started_at, "finished_at": job.finished_at,**batch_labels(job)}
 
 
@@ -551,6 +552,8 @@ def retry_job(job_id: int, db: Session = Depends(db_session)):
     if active:
         raise HTTPException(409, f"Job {active.id} is already active")
     job.status = "queued"
+    job.next_retry_at = None
+    job.retry_attempts = 0
     job.active_key = f"{job.venue}:{job.year}"
     job.stage = "queued"
     from .pipeline import saved_progress
@@ -577,3 +580,8 @@ app.include_router(create_workflow_router(db_session, admin))
 
 from .operations import create_operations_router
 app.include_router(create_operations_router(db_session,admin))
+
+from .scheduler_api import create_scheduler_router
+app.include_router(create_scheduler_router(db_session,admin))
+from .online_collection import create_online_router
+app.include_router(create_online_router(db_session,admin))

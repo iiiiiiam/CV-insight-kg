@@ -2,8 +2,9 @@
 import hashlib
 import json
 import uuid
+from datetime import timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, or_, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import defer
 
@@ -24,6 +25,8 @@ def view(task):
                 status=task.status, stage=task.stage, progress=task.progress, attempts=task.attempts,
                 created_at=task.created_at, updated_at=task.updated_at, finished_at=task.finished_at,
                 error=task.error, result=json.loads(task.result_json) if task.result_json else None,
+                automatic=task.automatic, retryable=task.retryable, max_attempts=task.max_attempts,
+                next_attempt_at=task.next_attempt_at,
                 events=json.loads(task.events_json))
 
 
@@ -69,13 +72,15 @@ def enqueue(db, kind, request_key, request, payload, *, commit=True):
 def retry(db, task):
     result = db.execute(update(WorkflowTask).where(WorkflowTask.id == task.id,
         WorkflowTask.status == 'failed').values(status='queued', stage='queued', progress=0,
-        error=None, finished_at=None, updated_at=now()))
+        error=None, finished_at=None, updated_at=now(), next_attempt_at=None,
+        max_attempts=task.attempts+5 if task.kind=='handoff' else task.max_attempts,
+        retryable=task.kind=='handoff'))
     if not result.rowcount:
         db.rollback()
         raise ValueError('只能重试失败任务；运行中或已完成的任务保持原状态')
     db.commit()
     db.refresh(task, attribute_names=['status', 'stage', 'progress', 'attempts', 'error',
-        'finished_at', 'updated_at', 'events_json', 'result_json'])
+        'finished_at', 'updated_at', 'events_json', 'result_json', 'next_attempt_at', 'max_attempts', 'retryable'])
     return task
 
 
@@ -90,13 +95,16 @@ def recover(factory):
 def run_one(factory):
     """CAS-claim a task; callers hold A's existing worker lock."""
     with factory() as db:
-        identifier = db.scalar(select(WorkflowTask.id).where(WorkflowTask.status == 'queued')
-                               .order_by(WorkflowTask.created_at, WorkflowTask.id).limit(1))
+        eligible = or_(WorkflowTask.status=='queued', and_(WorkflowTask.status=='failed',
+            WorkflowTask.automatic.is_(True), WorkflowTask.retryable.is_(True),
+            WorkflowTask.next_attempt_at<=now(), WorkflowTask.attempts<WorkflowTask.max_attempts))
+        identifier = db.scalar(select(WorkflowTask.id).where(eligible)
+                               .order_by(WorkflowTask.created_at, WorkflowTask.batch_id, WorkflowTask.id).limit(1))
         if identifier is None:
             return False
         claimed = db.execute(update(WorkflowTask).where(WorkflowTask.id == identifier,
-            WorkflowTask.status == 'queued').values(status='running', attempts=WorkflowTask.attempts + 1,
-            updated_at=now(), error=None))
+            eligible).values(status='running', attempts=WorkflowTask.attempts + 1,
+            updated_at=now(), error=None, next_attempt_at=None))
         db.commit()
         if not claimed.rowcount:
             return False
@@ -127,6 +135,10 @@ def run_one(factory):
             task.error = ('接收服务连接失败，请检查服务后重试' if isinstance(exc, requests.RequestException)
                           else safe_error(exc))
             task.status, task.finished_at = 'failed', now()
+            task.retryable = task.kind=='handoff' and getattr(exc, 'retryable',
+                not isinstance(exc, (KeyError, TypeError)))
+            task.next_attempt_at = (now()+timedelta(seconds=min(300,30*2**min(task.attempts-1,4)))
+                if task.automatic and task.retryable and task.attempts<task.max_attempts else None)
             event(task, 'failed', task.progress, task.error)
             db.commit()
         return True

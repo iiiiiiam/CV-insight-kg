@@ -34,6 +34,8 @@ export interface JobInfo {
   succeeded: number
   failed: number
   error: string | null
+  next_retry_at?:string|null
+  retry_attempts?:number
   created_at: string
   updated_at: string
   started_at: string | null
@@ -129,7 +131,7 @@ export function withdrawImportBatch(id:number,reason:string){return requestJson<
 export function updateSource(name:string,value:{enabled:boolean;page_size:number;max_retries:number}){return requestJson(`/api/admin/sources/${encodeURIComponent(name)}`,writeInit('PUT',value))}
 export interface QualityData {total_papers:number;issue_count:number;issues:{id:number;title:string;venue:string;year:number;missing:string[]}[];coverage:Record<string,any>[]}
 export function getQuality(){return requestJson<QualityData>('/api/admin/quality',{signal:AbortSignal.timeout(30000)})}
-export interface ReceiptData {batch_revision:string;state:string;items:{recipient:string;status:string;message:string;snapshot_revision:string|null;updated_at:string;current:boolean}[]}
+export interface ReceiptData {automatic_task?:import('./workflows.ts').WorkflowTask|null;batch_revision:string;state:string;items:{recipient:string;status:string;message:string;snapshot_revision:string|null;updated_at:string;current:boolean}[]}
 export function getReceipts(id:number){return requestJson<ReceiptData>(`/api/admin/formal/batches/${id}/receipts`)}
 
 export interface TaskRecords {total:number;page:number;page_size:number;items:{id:number;source:string;source_id:string;status:string;stage:string;attempts:number|null;error:string|null}[]}

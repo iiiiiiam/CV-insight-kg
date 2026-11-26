@@ -27,6 +27,9 @@ def main():
         raise SystemExit('请先配置 server/.env 的 A_ADMIN_TOKEN；本入口不启用A免鉴权模式。')
     os.environ['LOCAL_DEMO'] = '0'
     os.environ['ADMIN_TOKEN'] = settings.a_admin_token
+    from server.application.knowledge_batches import batch_registry
+    os.environ.setdefault('A_B_TRANSPORT','local')
+    os.environ.setdefault('B_BATCH_REGISTRY',str(batch_registry(settings).path))
     os.environ.setdefault('B_API_BASE_URL', 'http://127.0.0.1:8001')
     os.environ.setdefault('B_ADMIN_USERNAME', settings.username)
     os.environ.setdefault('B_ADMIN_PASSWORD', settings.password)

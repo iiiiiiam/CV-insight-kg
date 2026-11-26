@@ -9,7 +9,19 @@ from .models import BatchLedger,BatchPaperVersion,BatchWithdrawalAudit,Job,JobEv
 from .paper_quality import research_metadata_scope
 
 
+def demonstration_dates(db):
+    """Roll initial demo history forward without changing persisted import dates."""
+    from datetime import timedelta
+    from .models import now
+    rows=db.execute(select(PaperBatch.paper_id,PaperBatch.imported_at).join(Job,Job.id==PaperBatch.job_id)
+        .where(Job.kind=='demo').order_by(Job.id)).all()
+    if not rows:return {}
+    offset=max(0,(now().date()-max(row.imported_at.date() for row in rows)).days)
+    return {row.paper_id:row.imported_at+timedelta(days=offset) for row in rows}
+
+
 def additions(db):
+    demo_dates=demonstration_dates(db)
     papers={p.id:p for p in db.execute(select(Paper.id,Paper.title,Paper.venue,Paper.year,Paper.first_seen_at).where(research_metadata_scope()))}
     primary={}
     for paper_id,source in db.execute(select(PaperSource.paper_id,PaperSource.source).order_by(PaperSource.source,PaperSource.id)):
@@ -23,6 +35,7 @@ def additions(db):
         if paper is None or (change!='added' if change is not None else membership.is_new is False):continue
         if change is None and paper.id in seen:continue
         when=membership.imported_at if change is not None or job.kind=='demo' else paper.first_seen_at
+        if job.kind=='demo':when=demo_dates.get(paper.id,when)
         values.append({'id':paper.id,'title':paper.title,'venue':paper.venue,'year':paper.year,
             'first_seen_at':when,'batch_id':job.id,**batch_labels(job),'source':primary.get(paper.id,'unknown')})
         seen.add(paper.id)

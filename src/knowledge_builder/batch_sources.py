@@ -32,19 +32,33 @@ def input_key(paper):
 
 class BatchSources:
     def __init__(self, registry_path, *, corpus_path=None, cache_path=None, offline=False):
+        self.registry_path = Path(registry_path)
         self.directory = Path(registry_path).parent / "sources"
         self.corpus_path = Path(corpus_path) if corpus_path else None
         self.cache_path = Path(cache_path) if cache_path else Path(__file__).resolve().parents[2] / "data/knowledge_builder/source_cache"
         self.offline = offline
 
     def _seeds(self, vocabulary):
-        if not self.corpus_path:
-            return {}
         try:
-            papers, records, _ = load_reading_corpus(self.corpus_path, [], vocabulary)
-            return {input_key(p): records[p.openalex_id] for p in papers}
+            result = {}
+            if self.corpus_path:
+                papers, records, _ = load_reading_corpus(self.corpus_path, [], vocabulary)
+                result = {input_key(p): records[p.openalex_id] for p in papers}
+            from .upstream_openalex import registry_seeds
+            for key, records in registry_seeds(self.registry_path, vocabulary).items():
+                merged = {r['source']: r for r in result.get(key, [])}
+                merged.update({r['source']: r for r in records})
+                result[key] = list(merged.values())
+            return result
         except (ValueError, KeyError, TypeError, OSError) as exc:
             raise BatchSourcesInvalid("原有来源语料无法校验，未使用无效缓存") from exc
+
+    def _merged_records(self, paper, stored, seeds):
+        merged = {r['source']: r for r in (stored['records'] if stored else seeds.get(input_key(paper), []))}
+        # A's selected frozen batch wins over a source cache from another batch.
+        for record in seeds.get(input_key(paper), []):
+            if record['source']=='openalex':merged['openalex']=record
+        return list(merged.values())
 
     def _read(self, paper, vocabulary):
         path = self.directory / (input_key(paper) + ".json")
@@ -68,7 +82,7 @@ class BatchSources:
         result = {}
         for paper in papers:
             stored = self._read(paper, vocabulary)
-            records = stored["records"] if stored else seeds.get(input_key(paper), [])
+            records = self._merged_records(paper, stored, seeds)
             analyze_sources(paper, vocabulary, records, fallback=True)
             result[paper.openalex_id] = deepcopy(records)
         return result
@@ -79,7 +93,7 @@ class BatchSources:
         counts = dict(total=len(papers), completed=0, pending=0, with_sources=0, partial=0)
         for paper in papers:
             stored = self._read(paper, vocabulary)
-            records = stored["records"] if stored else seeds.get(input_key(paper), [])
+            records = self._merged_records(paper, stored, seeds)
             sources = {r["source"] for r in records}
             if stored is not None or sources == {"openalex", "paperswithcode"}:
                 counts["completed"] += 1
@@ -118,7 +132,7 @@ class BatchSources:
             seeds = self._seeds(vocabulary)
             for paper in papers:
                 stored = self._read(paper, vocabulary)
-                previous = stored["records"] if stored else seeds.get(input_key(paper), [])
+                previous = self._merged_records(paper, stored, seeds)
                 records = {r["source"]: deepcopy(r) for r in previous}
                 errors = []
                 for source, fetch in (("openalex", client.openalex), ("paperswithcode", client.papers_with_code)):

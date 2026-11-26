@@ -37,9 +37,11 @@ export const router=createRouter({
     {path:'/admin/sources',component:()=>import('./views/SourceSettingsView.vue'),meta:{title:'来源配置',requiresAuth:true}},
     {path:'/admin/quality',component:()=>import('./views/DataQualityView.vue'),meta:{title:'数据质量',requiresAuth:true}},
     {path:'/admin/overview',component:()=>import('./views/DataOverviewView.vue'),meta:{title:'数据管理概览',requiresAuth:true}},
-    {path:'/admin/datasets',component:()=>import('./views/DataManagementView.vue'),meta:{title:'数据集',requiresAuth:true}},
+    {path:'/admin/datasets',redirect:'/admin/overview'},
     {path:'/admin/imports',component:()=>import('./views/DataManagementView.vue'),meta:{title:'论文导入',requiresAuth:true}},
     {path:'/admin/jobs',component:()=>import('./views/DataManagementView.vue'),meta:{title:'导入记录',requiresAuth:true}},
+    {path:'/admin/handoffs',component:()=>import('./views/WorkflowCenterView.vue'),meta:{title:'自动交接与版本状态',requiresAuth:true}},
+    {path:'/admin/reports',component:()=>import('./views/WorkflowCenterView.vue'),meta:{title:'报告生成与下载',requiresAuth:true}},
     // 旧 confirmed-only 审核入口不再属于公共发布流程；保留地址兼容并导向反馈处理。
     {path:'/admin/reviews',redirect:'/admin/knowledge-feedback'},
     {path:'/admin/reviews/edit',redirect:'/admin/knowledge-feedback'},

@@ -144,7 +144,10 @@ def collect_scope(venue,year,directory,*,with_annotations=False,require_all_sour
 def main():
     parser=argparse.ArgumentParser(description='Collect official conference scopes with frozen coverage denominators')
     parser.add_argument('scopes',nargs='+',help='Explicit scope such as CVPR:2025')
-    parser.add_argument('--output',type=Path,required=True);parser.add_argument('--with-annotations',action='store_true');parser.add_argument('--review-coverage',action='store_true')
+    parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--with-annotations',action='store_true',default=True)
+    parser.add_argument('--without-annotations',dest='with_annotations',action='store_false')
+    parser.add_argument('--review-coverage',action='store_true')
     args=parser.parse_args();results=[]
     for scope in args.scopes:
         venue,year=scope.upper().split(':');result=collect_scope(venue,int(year),args.output/f'{venue.lower()}_{year}',with_annotations=args.with_annotations);results.append(result)

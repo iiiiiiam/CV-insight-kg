@@ -4,8 +4,10 @@ import httpx
 
 from fastapi import Depends, HTTPException, Query, Request, Response
 
-from app.workflow_api import HandoffCreate, ReportCreate
+from app.workflow_api import ReportCreate
 from app.formal_api import FormalInput
+from app.scheduler_api import ScheduleUpdate
+from app.online_collection import OnlineInput
 from server.domain.auth import require_admin, require_admin_write
 
 
@@ -33,6 +35,32 @@ async def read_b_readiness(app, request):
 
 
 def register_workflows(app, call_a, read_effective):
+    @app.post('/api/admin/online-collections',status_code=202)
+    async def online_collect(body:OnlineInput,_session=Depends(require_admin_write)):
+        return await call_a('POST','/api/admin/online-collections',body=body.model_dump())
+
+    @app.get('/api/admin/online-collections/{identifier}')
+    async def online_collection(identifier:int,_session=Depends(require_admin)):
+        return await call_a('GET',f'/api/admin/online-collections/{identifier}')
+
+    @app.get('/api/admin/formal/schedules')
+    async def schedules(request: Request, _session=Depends(require_admin)):
+        return await call_a('GET', '/api/admin/formal/schedules', params=dict(request.query_params))
+
+    @app.put('/api/admin/formal/schedules/{identifier}')
+    async def save_schedule(identifier: str, body: ScheduleUpdate, _session=Depends(require_admin_write)):
+        from urllib.parse import quote
+        return await call_a('PUT', '/api/admin/formal/schedules/'+quote(identifier, safe=''), body=body.model_dump())
+
+    @app.post('/api/admin/formal/schedules/{identifier}/run', status_code=202)
+    async def run_schedule(identifier: str, _session=Depends(require_admin_write)):
+        from urllib.parse import quote
+        return await call_a('POST', '/api/admin/formal/schedules/'+quote(identifier, safe='')+'/run')
+
+    @app.post('/api/admin/formal/collection-runs/{identifier}/retry', status_code=202)
+    async def retry_collection(identifier: int, _session=Depends(require_admin_write)):
+        return await call_a('POST', f'/api/admin/formal/collection-runs/{identifier}/retry')
+
     @app.post('/api/admin/formal/batches', status_code=201)
     async def formal_import(body: FormalInput, _session=Depends(require_admin_write)):
         return await call_a('POST', '/api/admin/formal/batches', body=body.model_dump())
@@ -72,9 +100,9 @@ def register_workflows(app, call_a, read_effective):
         from urllib.parse import quote
         return await download(f'/api/admin/reports/{identifier}/files/{quote(filename, safe="")}')
 
-    @app.post('/api/admin/handoffs', status_code=202)
-    async def handoff(body: HandoffCreate, _session=Depends(require_admin_write)):
-        return await call_a('POST', '/api/admin/handoffs', body=body.model_dump())
+    @app.get('/api/admin/handoff-sync')
+    async def handoff_sync(_session=Depends(require_admin)):
+        return await call_a('GET', '/api/admin/handoff-sync')
 
     @app.get('/api/admin/handoffs')
     async def handoffs(request: Request, _session=Depends(require_admin)):

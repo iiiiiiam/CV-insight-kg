@@ -30,9 +30,10 @@ def test_report_and_delivery_write_routes_require_admin_csrf(client, monkeypatch
     monkeypatch.setattr(AServiceClient, 'request', request)
     assert client.get('/api/admin/reports').status_code == 401
     login(client)
-    for route in ('reports', 'handoffs'):
-        assert client.post('/api/admin/'+route, json={}).status_code == 403
-        assert client.post('/api/admin/'+route+'/unknown/retry').status_code == 403
+    assert client.post('/api/admin/reports',json={}).status_code==403
+    assert client.post('/api/admin/handoffs',json={}).status_code==405
+    for route in ('reports','handoffs'):
+        assert client.post('/api/admin/'+route+'/unknown/retry').status_code==403
 
 
 def test_creation_validation_and_report_download_preserve_attachment_and_checksum(client, monkeypatch):

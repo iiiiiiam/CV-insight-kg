@@ -73,7 +73,8 @@ def batch_router(settings):
             return dict(revision=state["revision"], managed=bool(state["batches"]),
                 paper_count=snapshot["paper_count"], snapshot_revision=snapshot["revision"],
                 source_enrichment={**batch_sources(settings).summary(papers), **job},
-                batches=[dict(batch_code=b["batch_code"], active=b["active"],
+                batches=[dict(batch_id=b["batch_id"], batch_code=b["batch_code"], active=b["active"],
+                    handoff_digest=b["handoff_digest"], a_batch_revision=b["document"].get("batch_revision"),
                     paper_count=len(b["papers"]), receipt=b["receipt"]) for b in reversed(state["batches"])],
                 failures=[e for e in reversed(state["events"]) if e["action"] == "ingest_failed"][:10])
         return call(read)

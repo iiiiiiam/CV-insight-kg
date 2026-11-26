@@ -39,13 +39,6 @@ class ReportCreate(BaseModel):
     sections: list[ReportSection] = Field(default_factory=list, max_length=2)
 
 
-class HandoffCreate(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    request_key: str = Field(default_factory=lambda: uuid4().hex, min_length=1, max_length=180)
-    batch_id: int = Field(ge=1)
-    expected_revision: str = Field(pattern='^[0-9a-f]{64}$')
-    acknowledge_switch: Literal[True]
-
 
 def create_workflow_router(db_session, admin):
     router = APIRouter(prefix='/api/admin', dependencies=[Depends(admin)])
@@ -140,24 +133,10 @@ def create_workflow_router(db_session, admin):
     def report_file(identifier: str, filename: str, db=Depends(db_session)):
         return download(db, identifier, filename)
 
-    @router.post('/handoffs', status_code=202)
-    def handoff_create(body: HandoffCreate, db=Depends(db_session)):
-        from .delivery import batch_document
-        request = body.model_dump()
-        try:
-            task = existing(db, 'handoff', body.request_key, request)
-            if task:
-                return dict(**view(task), replay=True)
-            document = batch_document(db, body.batch_id)
-            if document['batch_revision'] != body.expected_revision:
-                raise ValueError('批次版本已变化，请刷新后再交接')
-            task, replay = enqueue(db, 'handoff', body.request_key, request,
-                dict(batch_id=body.batch_id, batch_revision=body.expected_revision, document=document))
-            return dict(**view(task), replay=replay)
-        except LookupError as exc:
-            raise HTTPException(404, str(exc)) from exc
-        except ValueError as exc:
-            raise HTTPException(409, str(exc)) from exc
+    @router.get('/handoff-sync')
+    def handoff_sync(db=Depends(db_session)):
+        from .auto_handoff import reconciliation_view
+        return reconciliation_view(db)
 
     @router.get('/handoffs')
     def handoffs(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),

@@ -55,9 +55,14 @@ def main():
 def work(check_owner=None):
     seed_sources()
     recover_jobs()
+    last_maintenance = None
     while True:
         if check_owner:
             check_owner()
+        if last_maintenance is None or time.monotonic()-last_maintenance>=15:
+            from .auto_handoff import maintain
+            maintain(SessionLocal)
+            last_maintenance = time.monotonic()
         from .workflow_tasks import run_one
         handled = run_one(SessionLocal)
         job_id = claim_job()
@@ -68,7 +73,11 @@ def work(check_owner=None):
         with SessionLocal() as db:
             job = db.get(Job, job_id)
             try:
-                if job.kind=='formal':
+                from .models import OnlineCollection
+                if db.get(OnlineCollection,job.id) is not None:
+                    from .online_collection import process_online
+                    process_online(db,job)
+                elif job.kind=='formal':
                     from .formal_batches import process_batch
                     process_batch(db,job)
                 else:
@@ -79,6 +88,8 @@ def work(check_owner=None):
                 job = db.get(Job, job_id)
                 if job:
                     job.status = 'failed'; job.active_key = None; job.finished_at = now()
+                    from .auto_handoff import schedule_import_retry
+                    schedule_import_retry(job,db)
                     job.error = safe_error(exc)
                     db.add(JobEvent(job_id=job_id,stage='failed',level='error',message=job.error))
                     db.commit()

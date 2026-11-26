@@ -83,6 +83,11 @@ def _prepare(document):
             errors.append(dict(index=index, reason=str(exc)[:300]))
     if errors:
         raise BatchInputInvalid(errors)
+    try:
+        from .upstream_openalex import annotations
+        annotations(document, [PaperInput(**p) for p in unique.values()], vocabulary)
+    except (ValueError, KeyError, TypeError, AttributeError) as exc:
+        raise BatchInputInvalid([dict(index=None, reason='Invalid upstream OpenAlex annotations')]) from exc
     return [unique[k] for k in sorted(unique)], repeated
 
 
