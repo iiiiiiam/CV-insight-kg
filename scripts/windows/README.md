@@ -116,7 +116,7 @@ Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object 
 
 `.cache`、`dist`、运行库及用户数据不上传 Git。源码运行入口 `launch.py` 仍供已经配置好本机开发环境的人使用；上述便携包构建不要求先走这条旧入口。
 
-## 八、安装版准备：独立数据目录（待实机验证）
+## 八、安装版：独立数据目录
 
 新构建的 exe 增加可选参数 `--data-dir`，供后续安装快捷方式使用。省略参数仍是原来的便携模式。
 
@@ -130,7 +130,7 @@ Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object 
 
 实现依据：[Neo4j 官方文件位置说明](https://neo4j.com/docs/operations-manual/current/configuration/file-locations/)，使用 `NEO4J_CONF` 及目录设置。外部配置首次生成后保留，升级 Neo4j 时另行检查兼容性。
 
-## 九、构建安装版（候选，尚待编译与实机验证）
+## 九、构建安装版（基础安装及启停已验证，其他设备仍需验证）
 
 在打包电脑安装 [Inno Setup 6](https://jrsoftware.org/isdl.php)。目标用户电脑不需要安装它。构建环境及 Java/Neo4j ZIP 沿用前文，首次仍需安装前端依赖。
 
@@ -157,3 +157,19 @@ Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object 
 安装测试需覆盖：首次安装及启动 → 停止入口及端口释放 → 重启 → 卸载保留数据 → 重装时选回同一数据目录。升级前停止并备份数据，数据库或依赖升级仍须单独评估迁移。新 Python 依赖、资源文件或服务加入时，维护依赖与打包清单后再用同一流程；不能保证任意代码更新都无需适配。
 
 小控制窗口使用 Python 自带的 Tk，打包电脑的 Python 需包含可用的 tkinter/Tcl/Tk；打包后用户无须另装。构建时会额外生成 `ResearchInsightControl/` 子目录，请完整保留。命令行入口与控制窗口分开打包，以保留现有服务的停止机制。
+
+## 十、验证已运行的本地安装版
+
+在源码仓库根目录，使用安装了项目 API 测试依赖的 Python 执行；先由操作者启动软件，脚本不会启动或停止服务。`--state` 必须对应当前运行实例的数据目录，`--output` 必须是不存在的新目录。例如：
+
+```powershell
+& 'D:\Anaconda\envs\insight-prototype\python.exe' -B scripts/windows/verify_runtime.py --state 'D:\RI-btest-20261126\Data' --output '.cache\runtime-evidence\本次唯一编号'
+```
+
+请替换解释器、数据目录和输出目录。默认访问 `http://127.0.0.1:8001`，可用 `--base-url` 指定其他本机回环 HTTP 地址；禁止远程地址和重定向，避免把本地凭据发往其他主机。
+
+检查范围：匿名导出拒绝、管理员登录、有效知识/报告/作者标签及版本头一致、错误 revision 拒绝、作者 ID 筛选。脚本读取本地 `credentials.json` 创建管理员会话，不提交反馈或修改知识；输出包含知识和报告数据，分享前检查内容，不分享凭据文件。
+
+如需验证撤回状态，先人工撤回一条反馈并重启同一数据目录，再附加 `--withdrawn-feedback-id '实际反馈编号'`。未提供编号时该项记为 NOT RUN；没有适用作者时记为 NO SAMPLE，不把它们当成通过。脚本不会自行证明你已完成重启。
+
+结果包含本机时区的起止时间、检查列表、数据 revision 和 JSON 证据；失败返回非零退出码。旧的 2026-11-26 测试证据保持原样，新版脚本的实机检查需操作者另行执行，不能直接沿用旧版通过结论。
