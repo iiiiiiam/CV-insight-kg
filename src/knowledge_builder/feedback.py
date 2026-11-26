@@ -252,7 +252,7 @@ class KnowledgeFeedback:
         from .effective_export import build_effective_export
         return build_effective_export(self, expected_revision=expected_revision)
 
-    def submit(self, paper_id, revision, message, *, candidate_id=None, term=None, owner_token=None):
+    def submit(self, paper_id, revision, message, *, candidate_id=None, term=None, owner_token=None, completed_ids=()):
         message = _text(message, "问题描述")
         owner_digest = _owner_digest(owner_token)
         if bool(candidate_id) == bool(term):
@@ -278,7 +278,7 @@ class KnowledgeFeedback:
                 requested = term
                 context = dict(field=field, quote=match.group(), start=match.start(), end=match.end())
             for request in data["requests"]:
-                if (request["status"] == "open" and request["paper_id"] == paper_id
+                if (request["id"] not in completed_ids and request["status"] == "open" and request["paper_id"] == paper_id
                     and request["candidate_id"] == candidate_id
                     and (request["term"] or "").casefold() == (requested or "").casefold()
                     and request["input_fingerprint"] == result.input_fingerprint

@@ -4,6 +4,9 @@ import os
 
 from dotenv import load_dotenv
 
+DEFAULT_CLOUD_FEEDBACK_URL = ('https://ri-feedback-test-d3esfokfbb4ed58-1539629210.'
+                             'ap-shanghai.app.tcloudbase.com/feedback')
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -27,6 +30,10 @@ class Settings:
     graph_sync_interval_seconds: int = 30
     c_sync_timeout_seconds: int = 240
     user_store: str | None = None
+    cloud_feedback_url: str = ''
+    cloud_feedback_pilot_token: str = ''
+    cloud_feedback_admin_token: str = ''
+    cloud_feedback_store: str | None = None
 
     @classmethod
     def from_env(cls):
@@ -54,6 +61,8 @@ class Settings:
             graph_sync_interval_seconds=max(10, int(os.getenv('GRAPH_SYNC_INTERVAL_SECONDS', '30'))),
             c_sync_timeout_seconds=max(60, int(os.getenv('C_SYNC_TIMEOUT_SECONDS', '240'))),
             user_store=os.getenv('D_USER_STORE') or None,
+            cloud_feedback_url=os.getenv('CLOUD_FEEDBACK_URL', DEFAULT_CLOUD_FEEDBACK_URL),
+            cloud_feedback_store=os.getenv('CLOUD_FEEDBACK_STORE') or None,
             b_vocabulary_path=os.getenv('B_VOCABULARY_PATH') or None,
             b_source_corpus=os.getenv('B_SOURCE_CORPUS') or None,
             b_batch_registry=os.getenv('B_BATCH_REGISTRY') or None,

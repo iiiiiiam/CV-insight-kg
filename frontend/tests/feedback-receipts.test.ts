@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {feedbackOwner,readReceipts,saveReceipt} from '../src/services/feedback-receipts.ts'
+import {feedbackOwner,readReceipts,saveReceipt,feedbackDisplayStatus,refreshReceipts} from '../src/services/feedback-receipts.ts'
 import {getFeedbackStatus,withdrawFeedback} from '../src/services/knowledge-feedback.ts'
 import type {LocalStoragePort} from '../src/services/personal-knowledge.ts'
 function memory():LocalStoragePort{
@@ -35,4 +35,36 @@ test('withdrawal sends proof in POST body, while status lookup never sends proof
     assert.equal(calls[1]!.url,'/api/knowledge/feedback/r1')
     assert.equal(calls[1]!.init?.body,undefined)
   }finally{globalThis.fetch=previous}
+})
+test('cloud reply cache updates without duplicating receipt or losing original message',()=>{
+  const storage=memory(),receipt={id:'local-1',message:'original',status:'open' as const,created_at:'now'}
+  saveReceipt(storage,'W1',receipt)
+  saveReceipt(storage,'W1',{...receipt,cloud:{delivery:'sent',feedback:{id:'cloud-1',status:'resolved',processing_note:'团队回复',state_revision:1,created_at:'now',updated_at:'later'}}})
+  const saved=readReceipts(storage,'W1')
+  assert.equal(saved.length,1)
+  assert.equal(saved[0]!.message,'original')
+  assert.equal(saved[0]!.status,'open')
+  assert.equal(saved[0]!.cloud!.feedback!.processing_note,'团队回复')
+  assert.equal(feedbackDisplayStatus(saved[0]!), 'resolved')
+  assert.equal(feedbackDisplayStatus({...receipt,cloud:{delivery:'pending',feedback:null}}),'open')
+})
+
+test('one failed status preserves its reply and does not discard other refreshed receipts',async()=>{
+ const items=[{id:'old',message:'old record',status:'open' as const,created_at:'now',cloud:{delivery:'sent' as const,feedback:{id:'cloud-old',status:'resolved' as const,processing_note:'saved reply',state_revision:1,created_at:'now',updated_at:'now'}}},
+ {id:'new',message:'new record',status:'open' as const,created_at:'now'}]
+ const result=await refreshReceipts(items,async id=>{if(id==='old')throw new Error('record unavailable');return {status:'dismissed' as const}})
+ assert.equal(result.length,2)
+ assert.equal(result[0]!.cloud!.feedback!.processing_note,'saved reply')
+ assert.equal(result[0]!.refresh_error,'record unavailable')
+ assert.equal(result[1]!.status,'dismissed')
+ assert.equal(result[1]!.refresh_error,'')
+})
+
+test('missing withdrawn history remains visible without reporting an active submission error',async()=>{
+ const record={id:'withdrawn-history',message:'old',status:'withdrawn' as const,created_at:'old'}
+ const error=Object.assign(new Error('未找到反馈'),{status:404})
+ const result=await refreshReceipts([record],async()=>{throw error})
+ assert.equal(result[0]!.archived,true)
+ assert.equal(result[0]!.refresh_error,'')
+ assert.equal(result[0]!.status,'withdrawn')
 })

@@ -32,7 +32,7 @@ const originalSelected=computed(()=>originals.value.find(item=>item.candidate_id
 const unhidden=computed(()=>base.value?applyPersonal(base.value,{...draft.value,hidden:[]}):null)
 const hiddenItems=computed(()=>draft.value.hidden.map(id=>[...(unhidden.value?.entities??[]),...(unhidden.value?.relations??[])].find(item=>item.candidate_id===id)).filter(item=>!!item))
 const collection=ref<'entities'|'relations'>('entities'),form=ref<'item'|'missing'|null>(null)
-const message=ref(''),term=ref(''),saving=ref(false),notice=ref('')
+const message=ref(''),term=ref(''),saving=ref(false),notice=ref(''),submitError=ref('')
 const problemType=ref('信息不准确')
 let generation=0,controller:AbortController|undefined
 const items=computed(()=>view.value?.[collection.value]??[])
@@ -134,7 +134,7 @@ window.addEventListener('storage',syncLocal)
 window.addEventListener(PERSONAL_CHANGE_EVENT,syncLocal)
 async function openForm(mode:'item'|'missing'){
   form.value=mode;editor.value=null;message.value='';term.value='';notice.value=''
-  problemType.value=selected.value&&'source' in selected.value.content?'关联不合适':'信息不准确'
+  submitError.value='';problemType.value=selected.value&&'source' in selected.value.content?'关联不合适':'信息不准确'
   await nextTick();feedbackForm.value?.scrollIntoView({block:'nearest'});feedbackForm.value?.querySelector('input,textarea')?.scrollIntoView({block:'nearest'})
 }
 async function submit(){
@@ -142,18 +142,20 @@ async function submit(){
   const paperId=props.paperId,revision=base.value.revision,current=generation
   const description=(form.value==='missing'?'遗漏名称：'+term.value.trim():problemType.value)+(message.value.trim()?'；'+message.value.trim():'')
   const target=form.value==='missing'?{term:term.value}:{candidate_id:originalSelected.value?.candidate_id}
-  saving.value=true;error.value=''
+  saving.value=true;submitError.value=''
   try{
     const ownerToken=feedbackOwner(window.localStorage,auth.session?.feedback_token)
     const result=await sendFeedback({paper_id:paperId,revision,message:description,owner_token:ownerToken,...target})
     let saved=true
-    try{saveReceipt(window.localStorage,paperId,{id:result.id,message:description,status:'open',created_at:new Date().toISOString()})}
+    try{saveReceipt(window.localStorage,paperId,{id:result.id,message:result.message??description,status:result.status,created_at:new Date().toISOString(),cloud:result.cloud})}
     catch{saved=false}
     if(current!==generation)return
-    notice.value=`${result.duplicate?'该内容已有待处理反馈':'反馈已提交'}，编号 ${result.id}。`;form.value=null
+    notice.value=result.duplicate?'同一条目已有待处理反馈，已显示原记录，本次没有新增。':'反馈已保存，可在下方“我的反馈”查看。';form.value=null
+    if(result.cloud)notice.value+=result.cloud.delivery==='sent'?' 团队已收到反馈。':' 已保存到本机；下方可手动发送给团队。'
+    if(result.cloud_error)notice.value+=' '+result.cloud_error
     if(saved)feedbackVersion.value++
     else notice.value+=' 浏览器未能保存反馈回执，请记下编号；反馈本身已提交。'
-  }catch(e){if(current===generation)error.value=e instanceof Error?e.message:'提交失败，请稍后重试'}
+  }catch(e){if(current===generation){submitError.value=e instanceof Error?e.message:'提交失败，请稍后重试';await nextTick();feedbackForm.value?.scrollIntoView({block:'center',behavior:'smooth'})}}
   finally{saving.value=false}
 }
 onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener('storage',syncLocal);window.removeEventListener(PERSONAL_CHANGE_EVENT,syncLocal)})
@@ -269,6 +271,27 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
             <p v-if="selectedHidden" class="privacy-note" role="status">此项已从你的列表和图中隐藏，详情保留在这里，可随时恢复。</p>
           </template>
           <p v-else>选择图节点或列表条目，查看依据并调整。</p>
+          <section v-if="!selectedDirection" class="feedback-entry">
+            <h5>反馈公共内容问题</h5>
+            <p class="privacy-note">仅在你主动提交后，后台才会收到问题。</p>
+            <div class="item-actions">
+              <button v-if="originalSelected" class="action-button" :disabled="saving" @click="openForm('item')">反馈当前条目</button>
+              <button class="action-button" :disabled="saving" @click="openForm('missing')">反馈遗漏名称</button>
+            </div>
+          </section>
+          <form v-if="form" ref="feedbackForm" class="edit-form" @submit.prevent="submit">
+            <p v-if="submitError" class="inline-error" role="alert">{{submitError}}</p>
+            <h4>{{form==='missing'?'反馈遗漏的名称':'反馈条目信息'}}</h4>
+            <p v-if="form==='item'&&originalSelected&&base">反馈对象：{{itemName(originalSelected,base)}}</p>
+            <p class="privacy-note">{{form==='missing'?'填写标题或摘要里实际出现的名称。':'反馈指向公共原始条目，不包含你的其他个人调整。'}}</p>
+            <label v-if="form==='missing'">原文名称<input v-model="term" class="form-input" maxlength="200" required :disabled="saving"/></label>
+            <label v-if="form==='item'">问题类型<select v-model="problemType" class="form-input" :disabled="saving"><option>信息不准确</option><option>名称不对</option><option>关联不合适</option><option>重复内容</option><option>其他问题</option></select></label>
+            <label>补充说明（选填）<textarea v-model="message" maxlength="1700" rows="2" placeholder="不必重复填写论文名或条目，系统会附带对应信息和证据。" :disabled="saving"></textarea></label>
+            <div class="item-actions">
+              <button class="action-button primary-action" :disabled="saving||(form==='missing'&&!term.trim())">{{saving?'提交中…':'提交反馈'}}</button>
+              <button type="button" class="action-button" :disabled="saving" @click="form=null">取消</button>
+            </div>
+          </form>
           <form v-if="editor" class="edit-form" @submit.prevent="saveEdit">
             <h4>{{editor==='add'?'补充个人条目':'修改个人显示名称'}}</h4>
             <p class="privacy-note">仅改变自己的视图，不发送反馈。</p>
@@ -294,36 +317,18 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
             <template v-if="proof">
               <p v-if="proof.field!=='metadata'&&'name' in selected.content&&proof.quote!==selected.content.name" class="privacy-note">原文写法：{{proof.quote}} → 当前显示名称：{{selected.content.name}}</p>
               <blockquote>{{proofQuote(proof)}}</blockquote>
-              <p v-if="excerpt" class="source-text">{{excerpt.before}}<mark>{{excerpt.quote}}</mark>{{excerpt.after}}</p>
+              <details v-if="excerpt" class="source-context"><summary>展开原文上下文</summary><p class="source-text">{{excerpt.before}}<mark>{{excerpt.quote}}</mark>{{excerpt.after}}</p></details>
               <p v-else-if="proof.field==='metadata'" class="privacy-note">依据来自文献来源中的{{proofLabel(proof)}}，可打开来源核对。</p>
               <p v-else class="inline-error">这条依据与当前原文不一致。</p>
               <a v-if="safeSourceUrl(proof.source_url)" :href="safeSourceUrl(proof.source_url)??undefined" target="_blank" rel="noopener noreferrer" class="source-link">查看来源 ↗</a>
             </template>
             <p v-if="!selected.evidence.length" class="privacy-note">这是个人补充，没有自动提取的原文依据。</p>
           </template>
-          <details v-if="!selectedDirection" class="feedback-entry">
-            <summary>需要修正公共内容？</summary>
-            <p class="privacy-note">仅在你主动提交后，后台才会收到问题。</p>
-            <div class="item-actions">
-              <button v-if="originalSelected" class="action-button" :disabled="saving" @click="openForm('item')">反馈当前条目</button>
-              <button class="action-button" :disabled="saving" @click="openForm('missing')">反馈遗漏名称</button>
-            </div>
-          </details>
-          <form v-if="form" ref="feedbackForm" class="edit-form" @submit.prevent="submit">
-            <h4>{{form==='missing'?'反馈遗漏的名称':'反馈条目信息'}}</h4>
-            <p v-if="form==='item'&&originalSelected&&base">反馈对象：{{itemName(originalSelected,base)}}</p>
-            <p class="privacy-note">{{form==='missing'?'填写标题或摘要里实际出现的名称。':'反馈指向公共原始条目，不包含你的其他个人调整。'}}</p>
-            <label v-if="form==='missing'">原文名称<input v-model="term" class="form-input" maxlength="200" required :disabled="saving"/></label>
-            <label v-if="form==='item'">问题类型<select v-model="problemType" class="form-input" :disabled="saving"><option>信息不准确</option><option>名称不对</option><option>关联不合适</option><option>重复内容</option><option>其他问题</option></select></label>
-            <label>补充说明（选填）<textarea v-model="message" maxlength="1700" rows="2" placeholder="不必重复填写论文名或条目，系统会附带对应信息和证据。" :disabled="saving"></textarea></label>
-            <div class="item-actions">
-              <button class="action-button primary-action" :disabled="saving||(form==='missing'&&!term.trim())">{{saving?'提交中…':'提交反馈'}}</button>
-              <button type="button" class="action-button" :disabled="saving" @click="form=null">取消</button>
-            </div>
-          </form>
-          <MyKnowledgeFeedback :paper-id="paperId" :refresh-version="feedbackVersion"/>
+
         </section>
       </div>
+      <p v-if="notice" class="inline-success" role="status">{{notice}}</p>
+      <MyKnowledgeFeedback :paper-id="paperId" :refresh-version="feedbackVersion"/>
     </template>
   </section>
 </template>
@@ -365,7 +370,7 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
 .knowledge-item strong{display:block;font-size:15px;line-height:1.6}
 .knowledge-item small{font-size:13px;color:#607d79}
 .active{background:#e7f5ed;border-color:#71a68d}
-.proof-panel{padding:20px;scroll-margin:150px 0 20px;outline:none}
+.feedback-entry{margin:18px 0;padding:16px;border:1px solid #c9ded3;border-radius:10px;background:#f5faf7}.feedback-entry h5{margin:0;font-size:16px}.source-context{margin:16px 0}.source-context summary{cursor:pointer;color:#2d7461;padding:8px 0}.proof-panel{padding:24px;scroll-margin:150px 0 20px;outline:none}
 .proof-panel:focus-visible{box-shadow:0 0 0 3px #9bc9b5}
 .panel-label{font-size:13px;color:#607e78;margin:0 0 5px}
 .proof-panel h4{font-size:20px;margin:0 0 14px;line-height:1.6;overflow-wrap:anywhere}
@@ -373,7 +378,7 @@ onBeforeUnmount(()=>{generation++;controller?.abort();window.removeEventListener
 .proof-panel label{display:block;margin:16px 0;font-size:14px;font-weight:500}
 .proof-panel .form-input{font-size:15px;margin-top:6px}
 blockquote{margin:16px 0;border-left:3px solid #69a38d;padding:12px;background:#f1f8f4;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px}
-.source-text{max-height:300px;overflow:auto;font-size:15px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}
+.source-text{font-size:15px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}
 mark{background:#ffdf79}
 .source-link{display:inline-block;font-size:14px;padding:8px 0;color:#2d7461}
 .edit-form{margin:16px 0;padding:16px;background:#f6faf8;border:1px solid #c9ded3;border-radius:8px;scroll-margin-top:150px}
@@ -383,7 +388,7 @@ textarea{display:block;width:100%;margin-top:8px;padding:10px;border:1px solid #
 summary{cursor:pointer;font-size:14px;padding:8px 0}
 @container (min-width:850px){
   .knowledge-workspace{grid-template-columns:minmax(0,1.1fr) minmax(340px,.9fr)}
-  .proof-panel{position:sticky;top:100px;max-height:calc(100vh - 125px);overflow:auto}
+  .proof-panel{position:static;max-height:none;overflow:visible}
 }
 @container (max-width:480px){
   .section-heading{align-items:flex-start}

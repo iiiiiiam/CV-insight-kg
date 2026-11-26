@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timezone
 from pathlib import Path
 import secrets
+import mimetypes
 from typing import Literal
 from urllib.parse import quote
 
@@ -31,6 +32,7 @@ from server.domain.auth import (AuthService, Session, require_admin, require_adm
                                 require_authenticated, require_session_write)
 from server.api.knowledge_feedback import feedback_router
 from src.knowledge_builder.feedback import FeedbackConflict
+from server.application.cloud_feedback import CloudFeedback
 
 
 def session_data(session: Session):
@@ -56,6 +58,10 @@ def upstream_response(upstream):
 
 def create_app(settings: Settings | None = None):
     settings = settings or Settings.from_env()
+    # Windows registry associations can report .js as text/plain. Browsers reject
+    # module scripts with that MIME under nosniff; override in this process only.
+    mimetypes.add_type('text/javascript', '.js')
+    mimetypes.add_type('text/javascript', '.mjs')
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -452,8 +458,10 @@ def create_app(settings: Settings | None = None):
                 'graph_sync': dict(app.state.graph_sync_status)}
 
     @app.post('/api/admin/sessions')
-    async def login(body: LoginRequest, request: Request):
-        return session_data(app.state.auth.login_admin(request, body.username, body.password))
+    def login(body: LoginRequest, request: Request):
+        cloud = CloudFeedback(settings)
+        return session_data(app.state.auth.login_admin(request, body.username, body.password,
+            cloud_auth=cloud.login if cloud.enabled and not cloud.admin else None))
 
     @app.post('/api/users', status_code=201)
     async def register_user(body: UserRegistrationRequest, request: Request):

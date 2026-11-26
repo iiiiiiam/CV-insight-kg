@@ -27,6 +27,7 @@ export interface ReadingKnowledge {
 export interface FeedbackRecord {
   id:string;paper_id:string;paper_title:string;candidate_id:string|null;term:string|null;message:string
   status:'open'|'resolved'|'dismissed'|'withdrawn';created_at:string;updated_at:string
+  cloud?:{id:string;revision:number;reply:string;delivery:string;can_apply:boolean;warning:string;local_id:string|null;can_reopen:boolean}
   context:Record<string,unknown>
   resolution:null|{action:string;reason:string;reviewer:string;occurred_at:string;before:unknown;after:unknown}
   processing_history?:Array<{resolution:NonNullable<FeedbackRecord['resolution']>;reopened_by:string;reopened_at:string}>
@@ -35,6 +36,10 @@ export interface FeedbackQueue {
   revision:number;requests:FeedbackRecord[];counts:Record<Exclude<FeedbackRecord['status'],'withdrawn'>,number>
   terms:Array<{term:{name:string;kind:string;aliases:string[]};source_url:string;created_at:string}>
 }
+export interface CloudFeedbackRecord {
+  id:string;status:FeedbackRecord['status'];processing_note:string;state_revision:number;created_at:string;updated_at:string
+}
+export interface CloudReceipt {delivery:'pending'|'sent';feedback:CloudFeedbackRecord|null}
 export const RELATION_NAMES:Record<string,string>={has_author:'作者',affiliated_with:'机构关联',published_in:'发表于',mentions_topic:'提及主题',mentions_method:'提及方法',mentions_task:'提及任务',mentions_dataset:'提及数据集'}
 export const KIND_NAMES:Record<string,string>={paper:'论文',author:'作者',institution:'机构',venue:'会议/期刊',topic:'主题',method:'方法',task:'任务',dataset:'数据集'}
 export function itemName(item:KnowledgeItem,view:ReadingKnowledge):string {
@@ -56,13 +61,36 @@ export function getReadingDirections(signal?:AbortSignal){
   })
 }
 export function sendFeedback(body:{paper_id:string;revision:string;message:string;candidate_id?:string;term?:string;owner_token?:string}){
-  return requestJson<{id:string;status:string;duplicate:boolean}>('/api/knowledge/feedback',{
+  return requestJson<{id:string;status:FeedbackRecord['status'];message?:string;duplicate:boolean;cloud?:CloudReceipt;cloud_error?:string}>('/api/knowledge/feedback',{
     method:'POST',body:JSON.stringify(body),signal:AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),
   })
 }
-export function getFeedbackStatus(id:string){
-  return requestJson<{id:string;status:FeedbackRecord['status'];updated_at:string}>(`/api/knowledge/feedback/${encodeURIComponent(id)}`,{
+export function getFeedbackStatus(id:string,owner?:string){
+  return requestJson<{id:string;status:FeedbackRecord['status'];updated_at:string;cloud?:CloudReceipt|null}>(`/api/knowledge/feedback/${encodeURIComponent(id)}`,{
+    ...(owner?{headers:{'X-Feedback-Owner':owner}}:{}),
     signal:AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),
+  })
+}
+export function exchangeCloudFeedback(id:string,owner_token:string,operation:'send'|'refresh'){
+  return requestJson<CloudReceipt>(`/api/knowledge/feedback/${encodeURIComponent(id)}/cloud/${operation}`,{
+    method:'POST',body:JSON.stringify({owner_token}),signal:AbortSignal.timeout(20000),
+  })
+}
+export function getCloudFeedbackConfig(){return requestJson<{enabled:boolean;team_enabled:boolean;account_management:boolean;team_username:string|null}>('/api/admin/knowledge/cloud-feedback/config')}
+export interface TeamAccount {username:string;role:'owner'|'admin';enabled:boolean;revision:number;created_at:string;updated_at:string}
+function teamAccountRequest<T>(path:string,body:unknown,csrf:string){return requestJson<T>('/api/admin/knowledge/cloud-feedback/'+path,{
+  method:'POST',headers:{'X-CSRF-Token':csrf},...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(20000),
+})}
+export function listTeamAccounts(csrf:string){return teamAccountRequest<{accounts:TeamAccount[];current_username:string}>('accounts/refresh',undefined,csrf)}
+export function createTeamAccount(body:{username:string;password:string;role:'owner'|'admin'},csrf:string){return teamAccountRequest<{account:TeamAccount}>('accounts/create',body,csrf)}
+export function updateTeamAccount(username:string,body:{expected_revision:number;role?:'owner'|'admin';enabled?:boolean;new_password?:string},csrf:string){return teamAccountRequest<{account:TeamAccount}>(`accounts/${encodeURIComponent(username)}/update`,body,csrf)}
+export function changeTeamPassword(body:{current_password:string;new_password:string},csrf:string){return teamAccountRequest<{account:TeamAccount}>('password',body,csrf)}
+export function refreshCloudFeedback(csrf:string){return requestJson<{requests:Array<CloudFeedbackRecord&{payload:Record<string,string>}>}>('/api/admin/knowledge/cloud-feedback/refresh',{
+  method:'POST',headers:{'X-CSRF-Token':csrf},signal:AbortSignal.timeout(20000),
+})}
+export function replyCloudFeedback(id:string,body:{status:string;processing_note:string;expected_revision:number},csrf:string){
+  return requestJson<CloudFeedbackRecord>(`/api/admin/knowledge/cloud-feedback/${encodeURIComponent(id)}/reply`,{
+    method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify(body),signal:AbortSignal.timeout(20000),
   })
 }
 export function withdrawFeedback(id:string,ownerToken:string){
@@ -73,14 +101,14 @@ export function withdrawFeedback(id:string,ownerToken:string){
 export function getFeedbackQueue(){return requestJson<FeedbackQueue>('/api/admin/knowledge/feedback',{
   signal:AbortSignal.timeout(FEEDBACK_READ_TIMEOUT),
 })}
-export function resolveFeedback(id:string,body:{revision:number;action:string;reason:string;name?:string;kind?:string;source_url?:string;aliases?:string[]},csrf:string){
-  return requestJson(`/api/admin/knowledge/feedback/${id}`,{
+export function resolveFeedback(id:string,body:{revision:number;cloud_revision?:number;action:string;reason:string;name?:string;kind?:string;source_url?:string;aliases?:string[]},csrf:string){
+  return requestJson<{message?:string;reply_delivery?:string}>(`/api/admin/knowledge/feedback/${encodeURIComponent(id)}`,{
     method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify(body),signal:AbortSignal.timeout(FEEDBACK_WRITE_TIMEOUT),
   })
 }
-export function reopenFeedback(id:string,revision:number,csrf:string){
-  return requestJson<{id:string;status:'open'}>(`/api/admin/knowledge/feedback/${encodeURIComponent(id)}/reopen`,{
-    method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify({revision}),signal:AbortSignal.timeout(FEEDBACK_WRITE_TIMEOUT),
+export function reopenFeedback(id:string,revision:number,csrf:string,cloud_revision?:number){
+  return requestJson<{id:string;status:'open';message?:string;reply_delivery?:string}>(`/api/admin/knowledge/feedback/${encodeURIComponent(id)}/reopen`,{
+    method:'POST',headers:{'X-CSRF-Token':csrf},body:JSON.stringify({revision,cloud_revision}),signal:AbortSignal.timeout(FEEDBACK_WRITE_TIMEOUT),
   })
 }
 
@@ -96,3 +124,6 @@ export async function downloadEffectiveKnowledge(){
   if(!response.headers.get('Content-Type')?.includes('application/json')||!/^[0-9a-f]{64}$/.test(revision))throw new Error('导出响应不完整，请重新导出。')
   return {blob:await response.blob(),filename:`effective-${revision.slice(0,12)}.json`}
 }
+
+export function refreshTeamFeedback(csrf:string){return requestJson<FeedbackQueue>("/api/admin/knowledge/feedback/team-refresh",{method:"POST",headers:{"X-CSRF-Token":csrf},signal:AbortSignal.timeout(20000)})}
+export function retryTeamReply(id:string,csrf:string){return requestJson<{message:string}>(`/api/admin/knowledge/feedback/${encodeURIComponent(id)}/reply-retry`,{method:"POST",headers:{"X-CSRF-Token":csrf},signal:AbortSignal.timeout(20000)})}

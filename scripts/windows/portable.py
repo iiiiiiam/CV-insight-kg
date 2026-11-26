@@ -52,7 +52,7 @@ def configuration(args):
     credentials = load_credentials(credential_path)
     # Do not inherit a developer machine's data locations, proxy service tokens
     # or Python settings. Preserve Windows and PyInstaller loader environment.
-    prefixes = ('A_', 'B_', 'C_', 'D_', 'GRAPH_', 'NEO4J_', 'ADMIN_', 'SESSION_', 'PYTHON')
+    prefixes = ('A_', 'B_', 'C_', 'D_', 'GRAPH_', 'NEO4J_', 'ADMIN_', 'SESSION_', 'PYTHON', 'CLOUD_FEEDBACK_')
     excluded = {'DATABASE_URL', 'LOCAL_DEMO', 'SAMPLE_DIR', 'KNOWLEDGE_WORKBENCH_DATA',
                 'COOKIE_SECURE', 'ALLOWED_ORIGINS', 'AUTO_GRAPH_SYNC'}
     env = {key: value for key, value in os.environ.items()

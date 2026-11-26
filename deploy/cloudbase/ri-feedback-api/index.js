@@ -2,6 +2,7 @@
 
 const http = require('node:http');
 const { createHash, timingSafeEqual } = require('node:crypto');
+const { createTeamAccounts } = require('./accounts');
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TOKEN = /^[0-9a-f]{64}$/;
@@ -84,15 +85,19 @@ function createHandler({ env = process.env, fetchImpl = globalThis.fetch, clock 
   const envId = env.CLOUDBASE_ENV_ID || '';
   const pilotToken = env.RI_FEEDBACK_PILOT_TOKEN || '';
   const adminToken = env.RI_FEEDBACK_ADMIN_TOKEN || '';
+  const publicEnabled = env.RI_FEEDBACK_PUBLIC_ENABLED === 'true';
+  const signingKey = env.RI_FEEDBACK_SESSION_SECRET || adminToken;
+  const loginWindow = { start: 0, count: 0 };
+  const publicWindow = { start: 0, count: 0 };
   const databaseConfigured = Boolean(apiKey && /^[a-z0-9-]+$/.test(envId));
   const pilotConfigured = TOKEN.test(pilotToken) && !equalSecret(pilotToken, apiKey);
   const adminConfigured = TOKEN.test(adminToken) && !equalSecret(adminToken, pilotToken) && !equalSecret(adminToken, apiKey);
   const base = `https://${envId}.api.tcloudbasegateway.com/v1/rdb/rest/ri_feedback_requests`;
 
-  async function database(method, query, data, prefer) {
+  async function database(method, query, data, prefer, resource='ri_feedback_requests', scalar=false) {
     requireValue(databaseConfigured, 503, 'DATABASE_NOT_CONFIGURED');
     try {
-      const response = await fetchImpl(`${base}?${new URLSearchParams(query)}`, {
+      const response = await fetchImpl(`${base.replace(/ri_feedback_requests$/,resource)}?${new URLSearchParams(query)}`, {
         method, redirect: 'error', signal: AbortSignal.timeout(1100),
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json',
           ...(prefer ? { Prefer: prefer } : {}) },
@@ -101,7 +106,7 @@ function createHandler({ env = process.env, fetchImpl = globalThis.fetch, clock 
       // Never return raw database errors or authorization headers to callers/logs.
       requireValue(response.ok, 503, 'DATABASE_UNAVAILABLE');
       const rows = await response.json();
-      requireValue(Array.isArray(rows), 503, 'DATABASE_UNAVAILABLE');
+      requireValue(scalar ? object(rows) : Array.isArray(rows), 503, 'DATABASE_UNAVAILABLE');
       return rows;
     } catch (error) {
       if (error instanceof ApiError) throw error;
@@ -109,12 +114,16 @@ function createHandler({ env = process.env, fetchImpl = globalThis.fetch, clock 
     }
   }
   function authorizePilot(request) {
+    if (publicEnabled) return;
     requireValue(pilotConfigured, 503, 'PILOT_NOT_CONFIGURED');
     requireValue(equalSecret(request.headers.get('x-ri-pilot-token'), pilotToken), 401, 'UNAUTHORIZED');
   }
-  function authorizeAdmin(request) {
-    requireValue(adminConfigured, 503, 'ADMIN_NOT_CONFIGURED');
-    requireValue(equalSecret(request.headers.get('authorization'), `Bearer ${adminToken}`), 401, 'UNAUTHORIZED');
+  const accounts = createTeamAccounts({database,readJson,json,clock,signingKey,
+    legacyToken:adminToken,legacyEnabled:adminConfigured,requireValue,equalSecret,digest});
+  function limit(window, maximum) {
+    const now = clock().getTime();
+    if (now - window.start >= 60000) { window.start = now; window.count = 0; }
+    requireValue(++window.count <= maximum, 429, 'RATE_LIMITED');
   }
   return async function handle(request) {
     try {
@@ -122,12 +131,20 @@ function createHandler({ env = process.env, fetchImpl = globalThis.fetch, clock 
       const path = url.pathname.replace(/\/$/, '') || '/';
       requireValue(!url.search, 400, 'QUERY_NOT_SUPPORTED');
       if (request.method === 'GET' && (path === '/' || path === '/health')) {
-        return json(200, { service: 'ri-feedback-api', version: '0.1.0', status: 'ok',
+        return json(200, { service: 'ri-feedback-api', version: '0.3.0', status: 'ok',
           database_configured: databaseConfigured, pilot_configured: pilotConfigured,
-          admin_configured: adminConfigured }); // Readiness only; no database query.
+          admin_configured: adminConfigured || signingKey.length >= 32,
+          public_enabled: publicEnabled }); // Readiness only; no database query.
       }
+      if (request.method === 'POST' && path === '/sessions') {
+        limit(loginWindow, 12);
+        return await accounts.login(request);
+      }
+      if (path === '/account' || path === '/account/password' || path === '/admin/accounts'
+          || path.startsWith('/admin/accounts/')) return await accounts.route(request,path);
       if (request.method === 'POST' && path === '/requests') {
         authorizePilot(request);
+        if (publicEnabled) limit(publicWindow, 10);
         const row = submission(await readJson(request));
         let rows = await database('POST', { on_conflict: 'installation_id,local_feedback_id', select: PRIVATE_FIELDS },
           row, 'resolution=ignore-duplicates,return=representation');
@@ -142,6 +159,7 @@ function createHandler({ env = process.env, fetchImpl = globalThis.fetch, clock 
       const ownerMatch = path.match(/^\/requests\/([0-9a-f-]+)$/i);
       if (request.method === 'GET' && ownerMatch) {
         authorizePilot(request);
+        if (publicEnabled) limit(publicWindow, 30);
         requireValue(UUID.test(ownerMatch[1]), 400, 'INVALID_ID');
         const token = (request.headers.get('authorization') || '').replace(/^Bearer /, '');
         requireValue(TOKEN.test(token), 401, 'UNAUTHORIZED');
@@ -150,13 +168,13 @@ function createHandler({ env = process.env, fetchImpl = globalThis.fetch, clock 
         return json(200, { feedback: publicRecord(rows[0]) });
       }
       if (request.method === 'GET' && path === '/admin/requests') {
-        authorizeAdmin(request);
+        await accounts.authorize(request);
         const rows = await database('GET', { select: `${PUBLIC_FIELDS},payload`, order: 'created_at.desc', limit: '20' });
         return json(200, { feedback: rows.map(row => ({ ...publicRecord(row), payload: row.payload })) });
       }
       const adminMatch = path.match(/^\/admin\/requests\/([0-9a-f-]+)$/i);
       if (request.method === 'PATCH' && adminMatch) {
-        authorizeAdmin(request);
+        await accounts.authorize(request);
         requireValue(UUID.test(adminMatch[1]), 400, 'INVALID_ID');
         const body = await readJson(request);
         requireValue(Object.keys(body).every(key => ['status', 'processing_note', 'expected_revision'].includes(key)),
@@ -187,7 +205,7 @@ function start() {
     try {
       const chunks = [];
       let size = 0;
-      req.setTimeout(1500, () => req.destroy());
+      req.setTimeout(2500, () => req.destroy());
       for await (const chunk of req) {
         size += chunk.length;
         if (size > BODY_LIMIT) {

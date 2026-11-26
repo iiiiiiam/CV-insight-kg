@@ -20,6 +20,10 @@ class Session:
     expires: float
     user_id: str | None = None
     feedback_token: str | None = None
+    cloud_feedback_token: str | None = None
+    cloud_feedback_expires: int = 0
+    cloud_feedback_role: str | None = None
+    cloud_feedback_username: str | None = None
 
 
 class AuthService:
@@ -71,13 +75,25 @@ class AuthService:
         """Compatibility wrapper for the existing administrator login."""
         return self.login_admin(request, username, password)
 
-    def login_admin(self, request: Request, username: str, password: str):
+    def login_admin(self, request: Request, username: str, password: str, cloud_auth=None):
         client = self._check_rate_limit(request)
         valid_user = secrets.compare_digest(username.encode(), self.settings.username.encode())
-        if not (valid_user and self.hasher.verify(password, self.password_hash)):
+        local_valid = valid_user and self.hasher.verify(password, self.password_hash)
+        cloud_session = None
+        if cloud_auth:
+            try:
+                cloud_session = cloud_auth(username, password)
+            except ValueError:
+                pass  # Local administrator login still works offline.
+        if not (local_valid or cloud_session):
             self.failures[client].append(time.time())
             raise HTTPException(401, '账号或密码不正确。')
-        return self._start(request, username=username, role='admin', display_name=username)
+        session = self._start(request, username=username, role='admin', display_name=username)
+        if cloud_session:
+            session.cloud_feedback_token, session.cloud_feedback_expires = cloud_session[:2]
+            session.cloud_feedback_role = cloud_session[2] if len(cloud_session)>2 else 'admin'
+            session.cloud_feedback_username = cloud_session[3] if len(cloud_session)>3 else username
+        return session
 
     def login_user(self, request: Request, username: str, password: str):
         client = self._check_rate_limit(request)

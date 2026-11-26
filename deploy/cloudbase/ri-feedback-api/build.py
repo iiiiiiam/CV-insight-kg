@@ -26,7 +26,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, default=SOURCE.parents[2] / '.cache/cloudbase/delivery')
     args = parser.parse_args()
-    package(args.output / 'ri-feedback-api-upload.zip', ['index.js', 'package.json', 'scf_bootstrap'])
+    package(args.output / 'ri-feedback-api-upload.zip', ['index.js', 'accounts.js', 'package.json', 'scf_bootstrap'])
     package(args.output / 'ri-feedback-client.zip', ['client.py', 'CLIENT.md'])
 
 

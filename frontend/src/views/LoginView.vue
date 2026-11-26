@@ -21,10 +21,10 @@ async function submit(){
 </script>
 <template>
   <section class="login-page">
-    <div class="login-intro"><div class="eyebrow">ADMIN WORKSPACE</div><h1>为数据管理建立<br><em>清晰的访问边界。</em></h1><p>研究探索保持开放。管理员会话用于保护数据导入和维护操作。</p><ul><li><AppIcon name="check"/>后台校验账号与权限</li><li><AppIcon name="check"/>Cookie携带会话标识</li><li><AppIcon name="check"/>退出后原会话失效</li></ul><div class="login-pattern" aria-hidden="true"><span></span><span></span><span></span><i></i><i></i></div></div>
+    <div class="login-intro"><div class="eyebrow">ADMIN WORKSPACE</div><h1>为数据管理建立<br><em>清晰的访问边界。</em></h1><p>研究探索保持开放。管理员会话用于保护数据导入和维护操作。</p><ul><li><AppIcon name="check"/>后台校验账号与权限</li><li><AppIcon name="check"/>登录后进入管理工作区</li><li><AppIcon name="check"/>退出后原会话失效</li></ul><div class="login-pattern" aria-hidden="true"><span></span><span></span><span></span><i></i><i></i></div></div>
     <div class="login-card">
       <span class="login-shield"><AppIcon name="shield" :size="28"/></span>
-      <h2>管理员登录</h2><p class="muted">使用你的本地管理员账号继续。</p>
+      <h2>管理员登录</h2><p class="muted">使用分配给你的管理员账号继续。</p>
       <template v-if="auth.session?.role==='admin'"><div class="inline-success"><AppIcon name="check"/>你已以 {{auth.session.username}} 身份登录。</div><RouterLink :to="destination" class="button button-primary full-width">进入管理工作区<AppIcon name="arrow"/></RouterLink></template>
       <form v-else @submit.prevent="submit">
         <p v-if="auth.session?.role==='user'" class="inline-error">当前登录的是普通用户 {{auth.session.display_name}}。验证管理员账号后将切换会话。</p>
@@ -33,7 +33,7 @@ async function submit(){
         <div v-if="error" class="inline-error" role="alert"><AppIcon name="info" :size="16"/><span>{{error}}</span></div>
         <button class="button button-primary full-width login-submit" type="submit" :disabled="busy"><span v-if="busy" class="spinner small"></span>{{busy?'正在验证…':'登录工作区'}}<AppIcon v-if="!busy" name="arrow"/></button>
       </form>
-      <div class="login-bottom"><AppIcon name="shield" :size="14"/><span>登录凭据由本地后台校验</span></div>
+      <div class="login-bottom"><AppIcon name="shield" :size="14"/><span>请妥善保管你的账号与密码</span></div>
       <button v-if="auth.backend==='offline'" class="text-button health-retry" @click="refreshSession(true)"><AppIcon name="refresh" :size="14"/>重新检测后台连接</button>
       <RouterLink to="/research/papers" class="back-to-research">返回只读研究工作台</RouterLink>
       <RouterLink to="/login" class="back-to-research">普通用户登录或注册</RouterLink>
