@@ -16,7 +16,9 @@ from src.knowledge_builder.models import Entity, Relation
 @pytest.fixture
 def context(tmp_path):
     settings = Settings(username='D-admin-program-test', password='UnitTest-Password-2026!',
-                        secret='review-api-test-' * 5, b_reviews_directory=str(tmp_path))
+                        secret='review-api-test-' * 5, b_reviews_directory=str(tmp_path),
+                        auto_graph_sync=False, b_source_offline=True,
+                        user_store=str(tmp_path / 'users.json'))
     snapshot = KnowledgeSnapshot(reviews_directory=tmp_path)
     identifier = snapshot.papers[0].openalex_id
     items = snapshot.sessions[identifier].items

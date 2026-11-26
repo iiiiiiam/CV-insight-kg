@@ -34,7 +34,8 @@ def test_adapter_uses_actual_b_results_and_preserves_inputs():
 
 def test_knowledge_is_protected_read_only_and_rejects_unknown_papers(tmp_path):
     settings = Settings(username='admin', password='UnitTest-Password-2026!', secret='k-test-' * 10,
-                        b_reviews_directory=str(tmp_path))
+                        b_reviews_directory=str(tmp_path), auto_graph_sync=False,
+                        b_source_offline=True, user_store=str(tmp_path / 'users.json'))
     with TestClient(create_app(settings)) as client:
         assert client.get('/api/admin/knowledge/snapshot').status_code == 401
         assert client.post('/api/admin/sessions', json={'username': settings.username, 'password': settings.password}).status_code == 200
@@ -48,7 +49,8 @@ def test_knowledge_is_protected_read_only_and_rejects_unknown_papers(tmp_path):
 
 def test_http_reads_reload_archives_and_reject_stale_revision(tmp_path):
     settings = Settings(username='admin', password='UnitTest-Password-2026!', secret='refresh-test-' * 8,
-                        b_reviews_directory=str(tmp_path))
+                        b_reviews_directory=str(tmp_path), auto_graph_sync=False,
+                        b_source_offline=True, user_store=str(tmp_path / 'users.json'))
     with TestClient(create_app(settings)) as client:
         client.post('/api/admin/sessions', json={'username': settings.username, 'password': settings.password})
         before = client.get('/api/admin/knowledge/snapshot').json()
@@ -72,7 +74,8 @@ def test_invalid_archives_do_not_disable_auth_or_silently_reset_reviews(tmp_path
     body = b'{invalid-json'
     path.write_bytes(body)
     settings = Settings(username='admin', password='UnitTest-Password-2026!', secret='invalid-test-' * 8,
-                        b_reviews_directory=str(tmp_path))
+                        b_reviews_directory=str(tmp_path), auto_graph_sync=False,
+                        b_source_offline=True, user_store=str(tmp_path / 'users.json'))
     with TestClient(create_app(settings)) as client:
         assert client.get('/api/health').status_code == 200
         assert client.get('/api/admin/knowledge/snapshot').status_code == 401
