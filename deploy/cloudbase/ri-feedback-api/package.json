@@ -1,0 +1,12 @@
+{
+  "name": "ri-feedback-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Closed-pilot feedback receiver; credentials supplied by cloud environment only",
+  "main": "index.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test index.test.js"
+  }
+}
