@@ -65,5 +65,17 @@ async function changePassword(){
   </section>
 </template>
 <style scoped>
-.team-accounts{margin-top:20px}.team-accounts details{padding:20px;border:1px solid #dce8e5;border-radius:12px}.team-accounts summary{font-size:17px}.team-accounts form{margin-top:20px;max-width:560px}.team-accounts h3{margin:24px 0 16px}.team-accounts .button{font-size:14px;min-height:40px}.team-accounts label{font-size:14px}.team-accounts input,.team-accounts select{margin-top:8px;background:#fff;min-height:44px}.team-accounts details{margin:16px 0}.team-accounts summary{cursor:pointer;font-weight:600}.team-accounts label{display:block;margin:12px 0}.team-accounts input,.team-accounts select{display:block;max-width:100%;width:360px;padding:10px;border:1px solid #cedfd7;border-radius:6px;font:inherit}.team-accounts article{margin:12px 0;padding:12px;border:1px solid #dce8e5;border-radius:8px;overflow-wrap:anywhere}.team-accounts article button{margin:6px;padding:8px;font:inherit;cursor:pointer}.team-accounts p{line-height:1.8}
+.team-accounts{margin-top:20px;font-size:14px;line-height:1.7}
+.team-accounts details{margin:16px 0;padding:18px 20px;border:1px solid #dce8e5;border-radius:10px}
+.team-accounts summary{cursor:pointer;font-size:16px;font-weight:600;line-height:1.5}
+.team-accounts form{margin-top:20px;max-width:560px}
+.team-accounts h3{margin:24px 0 16px;font-size:16px;line-height:1.5}
+.team-accounts label{display:block;margin:16px 0;font-size:14px}
+.team-accounts input,.team-accounts select{display:block;box-sizing:border-box;width:100%;max-width:100%;min-height:44px;margin-top:8px;padding:10px 12px;background:#fff;border:1px solid #cedfd7;border-radius:8px;color:inherit;font:inherit;line-height:1.5}
+.team-accounts .button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 16px;font-size:14px;line-height:1.5}
+.team-accounts article{margin:12px 0;padding:16px;border:1px solid #dce8e5;border-radius:8px;overflow-wrap:anywhere}
+.team-accounts article .button{margin:6px 0 6px 8px}
+.team-accounts p{margin:12px 0;font-size:14px;line-height:1.8}
+.team-accounts [role=alert]{color:#a34137}.team-accounts [role=status]{color:#35694e}
+@media(max-width:600px){.team-accounts details{padding:16px}.team-accounts article .button{margin:8px 8px 0 0}}
 </style>

@@ -43,5 +43,19 @@ async function leave(){
 </template>
 
 <style scoped>
-.security-card{margin-top:24px;padding:28px;max-width:880px}.security-card>p{color:#648075;line-height:1.8;margin:12px 0}.account-page{max-width:980px}.account-card{max-width:680px;padding:28px}.account-avatar{display:grid;place-items:center;width:62px;height:62px;border-radius:18px;background:#eaf5f1;color:#398d79;margin-bottom:18px}.account-card h2{margin:12px 0 4px;font-size:25px}.username{color:#8297a0}.account-card .definition-list{grid-template-columns:90px 1fr;margin:28px 0}.permission-note{padding:13px;background:#f4f8f6;border:1px solid #deebe6;border-radius:8px;font-size:12px;line-height:1.8;color:#5e776e}.account-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:22px}.signed-out{text-align:center}.signed-out>svg{color:#88a6a1}.signed-out p{margin:12px 0 24px;color:#789098}.signed-out>div{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap}
+.account-page{max-width:980px;font-size:15px;line-height:1.7}
+.account-card,.security-card{width:100%;max-width:none;box-sizing:border-box;padding:28px}
+.security-card{margin-top:24px}
+.account-card h2,.security-card h2{font-size:20px;line-height:1.5;margin:0 0 8px}
+.account-avatar{display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:#eaf5f1;color:#398d79;margin-bottom:16px}
+.account-card h2{margin:12px 0 4px;font-size:24px}
+.username{color:#789098;margin:0;font-size:14px}
+.security-card>p{color:#648075;margin:8px 0 0;font-size:14px;line-height:1.7}
+.account-card .definition-list{grid-template-columns:100px minmax(0,1fr);gap:12px 20px;margin:24px 0;font-size:14px;line-height:1.7}
+.account-card .definition-list dt,.account-card .definition-list dd{margin:0;overflow-wrap:anywhere}
+.permission-note{padding:12px;background:#f4f8f6;border:1px solid #deebe6;border-radius:8px;font-size:13px;line-height:1.8;color:#5e776e}
+.account-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:24px}
+.account-actions .button,.account-actions .text-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 16px;box-sizing:border-box;font-size:14px;line-height:1.5}
+.signed-out{text-align:center}.signed-out>svg{color:#88a6a1}.signed-out p{margin:12px 0 24px;color:#789098}.signed-out>div{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap}
+@media(max-width:600px){.account-card,.security-card{padding:20px}.account-card .definition-list{grid-template-columns:80px minmax(0,1fr);gap:12px}.account-actions .button{flex:1 1 auto}}
 </style>
