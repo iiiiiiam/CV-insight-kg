@@ -233,6 +233,34 @@ class CloudIntegrationTests(unittest.TestCase):
         self.assertEqual(self.client.post(path + '/cloud/send', json={'owner_token': self.owner}).status_code, 409)
         self.assertEqual(len(self.calls), 1)  # No re-send after local withdrawal.
 
+    def test_team_login_unavailable_is_not_bad_password_or_failure_count(self):
+        from server.application.cloud_feedback import CloudFeedbackError
+        settings=replace(self.settings,cloud_feedback_admin_token='',cloud_feedback_pilot_token='')
+        app=create_app(settings)
+        with TestClient(app) as client:
+            with patch('server.application.cloud_feedback.send_request',side_effect=CloudFeedbackError('timeout',503)) as transport:
+                for _ in range(6):
+                    response=client.post('/api/admin/sessions',json={'username':'team-admin','password':'valid-team-password'})
+                    self.assertEqual(response.status_code,503,response.text)
+                self.assertEqual(transport.call_args.kwargs['timeout'],12)
+                self.assertEqual(sum(len(value) for value in app.state.auth.failures.values()),0)
+            response=client.post('/api/admin/sessions',json={'username':'team-admin','password':'valid-team-password'})
+            self.assertEqual(response.status_code,200,response.text)
+
+    def test_team_bad_password_still_401_and_rate_limit_stays_429(self):
+        from server.application.cloud_feedback import CloudFeedbackError
+        settings=replace(self.settings,cloud_feedback_admin_token='',cloud_feedback_pilot_token='')
+        app=create_app(settings)
+        with TestClient(app) as client:
+            with patch('server.application.cloud_feedback.send_request',side_effect=CloudFeedbackError('rate limited',429)):
+                response=client.post('/api/admin/sessions',json={'username':'team-admin','password':'wrong'})
+                self.assertEqual(response.status_code,429,response.text)
+                self.assertEqual(sum(len(value) for value in app.state.auth.failures.values()),0)
+            with patch('server.application.cloud_feedback.send_request',side_effect=CloudFeedbackError('unauthorized',401)):
+                response=client.post('/api/admin/sessions',json={'username':'team-admin','password':'wrong'})
+                self.assertEqual(response.status_code,401,response.text)
+                self.assertEqual(sum(len(value) for value in app.state.auth.failures.values()),1)
+
     def test_cloud_admin_uses_existing_login_and_no_shared_secrets(self):
         settings = replace(self.settings, cloud_feedback_pilot_token='', cloud_feedback_admin_token='',
                            cloud_feedback_store=None)

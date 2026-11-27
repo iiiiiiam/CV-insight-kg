@@ -83,8 +83,14 @@ class AuthService:
         if cloud_auth:
             try:
                 cloud_session = cloud_auth(username, password)
-            except ValueError:
-                pass  # Local administrator login still works offline.
+            except ValueError as exc:
+                # An unavailable identity service is not a rejected password.
+                # Keep the local administrator fallback usable while offline.
+                if not local_valid and getattr(exc, 'status', 401) != 401:
+                    status = 429 if getattr(exc, 'status', None) == 429 else 503
+                    message = ('登录请求过于频繁，请稍后再试。' if status == 429 else
+                               '团队登录服务暂时未响应，请稍后重试；这不表示账号或密码错误。')
+                    raise HTTPException(status, message) from None
         if not (local_valid or cloud_session):
             self.failures[client].append(time.time())
             raise HTTPException(401, '账号或密码不正确。')

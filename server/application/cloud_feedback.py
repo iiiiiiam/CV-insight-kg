@@ -116,8 +116,8 @@ class CloudFeedback:
                 headers['x-ri-pilot-token'] = self.pilot  # Legacy independent pilot only.
             if receipt:
                 headers['Authorization'] = 'Bearer ' + receipt
-        if path == '/sessions' and self.transport is send_request:
-            result = self.transport(method, self.url + path, headers, body, timeout=3)
+        if path == '/sessions':
+            result = self.transport(method, self.url + path, headers, body, timeout=12)
         else:
             result = self.transport(method, self.url + path, headers, body)
         if not isinstance(result, dict):

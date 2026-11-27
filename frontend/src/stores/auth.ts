@@ -23,7 +23,7 @@ export function refreshSession(force=false):Promise<void>{
 }
 export async function adminLogin(username:string,password:string){
   generation++
-  auth.session=await requestJson<AccountSession>('/api/admin/sessions',{method:'POST',body:JSON.stringify({username,password})})
+  auth.session=await requestJson<AccountSession>('/api/admin/sessions',{method:'POST',body:JSON.stringify({username,password}),signal:AbortSignal.timeout(20000)})
   auth.backend='online';auth.error='';auth.loaded=true
 }
 export const login=adminLogin
