@@ -95,3 +95,5 @@ node --experimental-strip-types --test frontend/tests/feedback-receipts.test.ts
 登录兼容补充：本机云登录客户端等待 12 秒，浏览器管理员登录等待 20 秒；服务故障提示 503，限流为 429，仅凭据错误为 401。网络故障不记为输错密码，不自动重试。CF-10 说明及检查结果见 BUGFIXES.md。
 
 账号并发保护：账号写事务通过守卫行锁串行化，事务内重查操作者有效性与版本，并保护最后一位启用的 owner。不要使用真实互相停用来做日常验证；真实数据库并发仍未验收，回归复用说明见 BUGFIXES.md。
+
+Windows 打包审查：本次沿用原 build_release 流程，server 子模块及 frontend/dist 已在原收集范围内，无新增第三方 Python 依赖或本机服务。已补 scripts/windows/README.md 第十一节，区分桌面安装包与云函数 ZIP，列出候选包和最小检查范围。尚未实际构建新版 Windows 候选。
