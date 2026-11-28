@@ -177,7 +177,7 @@ class ReportAPITests(unittest.TestCase):
         login = self.client.get("/api/admin/session").json()
         headers = {"X-CSRF-Token": login["csrf_token"]}
         with patch("src.knowledge_builder.batch_sources.BatchSources.prepare", side_effect=OSError("test interruption")):
-            with self.assertLogs("server.api.knowledge_batches", level="ERROR"):
+            with self.assertLogs("server.application.source_preparation", level="ERROR"):
                 self.assertEqual(self.client.post("/api/admin/knowledge/batches/enrich", headers=headers).status_code, 200)
         interrupted = self.client.get(path).json()
         self.assertEqual(interrupted["source_enrichment"]["state"], "interrupted")

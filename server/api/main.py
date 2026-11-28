@@ -33,6 +33,7 @@ from server.domain.auth import (AuthService, Session, require_admin, require_adm
 from server.api.knowledge_feedback import feedback_router
 from src.knowledge_builder.feedback import FeedbackConflict
 from server.application.cloud_feedback import CloudFeedback
+from server.application.source_preparation import SourcePreparation
 
 
 def session_data(session: Session):
@@ -63,8 +64,13 @@ def create_app(settings: Settings | None = None):
     mimetypes.add_type('text/javascript', '.js')
     mimetypes.add_type('text/javascript', '.mjs')
 
+    source_preparation = SourcePreparation(settings)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        app.state.source_preparation = source_preparation
+        if settings.auto_source_enrichment:
+            source_preparation.start()
         app.state.auth = AuthService(settings)
         app.state.a_service = AServiceClient(settings)
         app.state.c_service = CServiceClient(settings)
@@ -84,6 +90,7 @@ def create_app(settings: Settings | None = None):
         try:
             yield
         finally:
+            source_preparation.close()
             if task is not None:
                 task.cancel()
                 with suppress(asyncio.CancelledError):
@@ -651,7 +658,7 @@ def create_app(settings: Settings | None = None):
     async def withdraw_import(job_id:int,body:FormalWithdrawalRequest,_session:Session=Depends(require_admin_write)):
         return await call_a('POST',f'/api/admin/jobs/{job_id}/withdraw',body=body.model_dump())
 
-    app.include_router(feedback_router(settings))
+    app.include_router(feedback_router(settings, source_preparation))
     from server.api.workflows import register_workflows
     register_workflows(app, call_a, read_effective_knowledge)
 

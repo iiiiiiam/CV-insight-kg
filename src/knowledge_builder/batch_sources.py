@@ -121,7 +121,7 @@ class BatchSources:
             if temporary is not None:
                 temporary.unlink(missing_ok=True)
 
-    def prepare(self, papers, vocabulary=None, *, client=None):
+    def prepare(self, papers, vocabulary=None, *, client=None, stop_event=None):
         """Fetch missing sources once per job. Retry never discards valid sources."""
         if client is None:
             from dotenv import load_dotenv
@@ -131,11 +131,15 @@ class BatchSources:
         with _prepare_lock:
             seeds = self._seeds(vocabulary)
             for paper in papers:
+                if stop_event is not None and stop_event.is_set():
+                    break
                 stored = self._read(paper, vocabulary)
                 previous = self._merged_records(paper, stored, seeds)
                 records = {r["source"]: deepcopy(r) for r in previous}
                 errors = []
                 for source, fetch in (("openalex", client.openalex), ("paperswithcode", client.papers_with_code)):
+                    if stop_event is not None and stop_event.is_set():
+                        break
                     if source in records:
                         continue
                     try:

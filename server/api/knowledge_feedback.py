@@ -80,11 +80,11 @@ class TeamPasswordChange(BaseModel):
     new_password: str = Field(min_length=12, max_length=256)
 
 
-def feedback_router(settings):
+def feedback_router(settings, source_preparation=None):
     router = APIRouter()
     cloud = CloudFeedback(settings)
     from server.api.knowledge_batches import batch_router
-    router.include_router(batch_router(settings))
+    router.include_router(batch_router(settings, source_preparation))
 
     def workspace():
         return reading_workspace(settings, snapshot_factory=KnowledgeSnapshot)

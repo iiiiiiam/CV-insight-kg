@@ -1,7 +1,5 @@
 """Small admin-only JSON handoff API; no A database or C graph mutations."""
 from typing import Any
-import logging
-import threading
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
@@ -26,33 +24,13 @@ class BatchWithdrawal(BaseModel):
     revision: int = Field(ge=0)
 
 
-def batch_router(settings):
+def batch_router(settings, source_preparation=None):
+    from server.application.source_preparation import SourcePreparation
+    preparation = source_preparation or SourcePreparation(settings)
     router = APIRouter(prefix="/api/admin/knowledge/batches")
-    job_lock = threading.Lock()
-    job = dict(running=False, error=None)
-
-    def prepare_sources():
-        try:
-            while True:
-                registry = batch_registry(settings)
-                snapshot = registry.snapshot()
-                batch_sources(settings).prepare([PaperInput(**p["input"]) for p in snapshot["papers"]])
-                with job_lock:
-                    # Catch a batch arriving while the previous snapshot was processed.
-                    if registry.snapshot()["revision"] == snapshot["revision"]:
-                        job["running"] = False
-                        return
-        except Exception:
-            logging.getLogger(__name__).exception("B batch source preparation stopped")
-            with job_lock:
-                job.update(running=False, error="来源补充中断，已有结果保留，可重新尝试补充")
 
     def schedule(tasks):
-        with job_lock:
-            if job["running"]:
-                return
-            job.update(running=True, error=None)
-            tasks.add_task(prepare_sources)
+        preparation.schedule(tasks.add_task)
 
     def call(operation):
         try:
@@ -72,7 +50,7 @@ def batch_router(settings):
             papers = [PaperInput(**p["input"]) for p in snapshot["papers"]]
             return dict(revision=state["revision"], managed=bool(state["batches"]),
                 paper_count=snapshot["paper_count"], snapshot_revision=snapshot["revision"],
-                source_enrichment={**batch_sources(settings).summary(papers), **job},
+                source_enrichment={**batch_sources(settings).summary(papers), **preparation.status()},
                 batches=[dict(batch_id=b["batch_id"], batch_code=b["batch_code"], active=b["active"],
                     handoff_digest=b["handoff_digest"], a_batch_revision=b["document"].get("batch_revision"),
                     paper_count=len(b["papers"]), receipt=b["receipt"]) for b in reversed(state["batches"])],
@@ -106,8 +84,7 @@ def batch_router(settings):
                 workspace = reading_workspace(settings)
                 document = workspace.export_effective(expected_revision=expected_revision)
                 sources = batch_sources(settings).summary(list(workspace.papers.values()), workspace.vocabulary)
-                with job_lock:
-                    process = dict(job)
+                process = preparation.status()
                 reading_effective(settings, expected_revision=document["revision"])
             except KnowledgeSnapshotInvalid as exc:
                 raise HTTPException(503, "知识存档暂不可用，不能确认结果可读取") from exc
