@@ -57,15 +57,15 @@ onBeforeUnmount(()=>{generation++})
     <p v-if="error" role="alert">{{error}}</p><p v-if="notice" role="status">{{notice}}</p>
     <article v-for="item in records" :key="item.id">
       <div class="feedback-heading"><strong>{{labels[feedbackDisplayStatus(item)]}}</strong><small v-if="item.cloud">{{item.cloud.delivery==='sent'?'已送达团队':'待发送'}}</small></div>
-      <p class="feedback-message">{{item.message}}</p><p v-if="item.archived" class="archive-note">已撤回的历史记录；当前后台已无此记录，仅保留浏览器存档。</p><p v-if="item.refresh_error" class="inline-error" role="alert">状态未更新：{{item.refresh_error}}</p>
+      <p class="feedback-message">{{item.message}}</p><p v-if="item.archived" class="archive-note">当前连接的软件数据中暂时无法关联这条历史反馈，可能使用了不同的数据目录或安装环境。这里保留浏览器保存的内容与上次回复，不代表团队删除了反馈。</p><p v-if="item.refresh_error" class="inline-error" role="alert">状态未更新：{{item.refresh_error}}</p>
       <div class="reply-content"><strong>团队回复</strong><p>{{item.cloud?.feedback?.processing_note||(feedbackDisplayStatus(item)==='open'?'暂无回复':'暂无文字回复')}}</p></div>
-      <div v-if="item.cloud" class="cloud-reply">
+      <div v-if="item.cloud&&!item.archived" class="cloud-reply">
         <button v-if="item.status!=='withdrawn'&&item.cloud.delivery!=='sent'" type="button" :disabled="busy" @click="cloudAction(item,'send')">发送给团队 / 重试</button>
         <button v-if="item.cloud.delivery==='sent'" type="button" :disabled="busy" @click="cloudAction(item,'refresh')">刷新回复</button>
       </div>
-      <button v-if="item.status==='open'&&item.cloud?.delivery!=='sent'" type="button" :disabled="busy" @click="withdraw(item)">撤回此反馈</button>
+      <button v-if="!item.archived&&item.status==='open'&&item.cloud?.delivery!=='sent'" type="button" :disabled="busy" @click="withdraw(item)">撤回此反馈</button>
       <details class="receipt-details"><summary>记录信息</summary><small>反馈编号：{{item.id}}</small><small v-if="item.cloud?.feedback">团队回执：{{item.cloud.feedback.id}}</small>
-        <template v-if="item.cloud?.delivery==='sent'&&item.status==='open'&&feedbackDisplayStatus(item)==='open'"><p>此操作只撤回本机记录，已送达团队的反馈仍会保留。</p><button type="button" :disabled="busy" @click="withdraw(item)">撤回本机记录</button></template>
+        <template v-if="!item.archived&&item.cloud?.delivery==='sent'&&item.status==='open'&&feedbackDisplayStatus(item)==='open'"><p>此操作只撤回本机记录，已送达团队的反馈仍会保留。</p><button type="button" :disabled="busy" @click="withdraw(item)">撤回本机记录</button></template>
       </details>
     </article>
   </section>

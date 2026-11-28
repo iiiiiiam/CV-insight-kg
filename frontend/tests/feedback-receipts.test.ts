@@ -68,3 +68,18 @@ test('missing withdrawn history remains visible without reporting an active subm
  assert.equal(result[0]!.refresh_error,'')
  assert.equal(result[0]!.status,'withdrawn')
 })
+
+
+test('unlinked history preserves cached replies and can reconnect on a later refresh',async()=>{
+ const record={id:'old-install',message:'original',status:'open' as const,created_at:'old',cloud:{delivery:'sent' as const,feedback:{id:'cloud',status:'resolved' as const,processing_note:'saved reply',state_revision:1,created_at:'old',updated_at:'old'}}}
+ const missing=Object.assign(new Error('未找到反馈'),{status:404})
+ const history=await refreshReceipts([record],async()=>{throw missing})
+ assert.equal(history[0]!.archived,true)
+ assert.equal(history[0]!.refresh_error,'')
+ assert.equal(history[0]!.cloud!.feedback!.processing_note,'saved reply')
+ const restored=await refreshReceipts(history,async()=>({status:'resolved'}))
+ assert.equal(restored[0]!.archived,false)
+ const denied=await refreshReceipts([record],async()=>{throw Object.assign(new Error('请重新登录'),{status:401})})
+ assert.equal(denied[0]!.archived,false)
+ assert.equal(denied[0]!.refresh_error,'请重新登录')
+})

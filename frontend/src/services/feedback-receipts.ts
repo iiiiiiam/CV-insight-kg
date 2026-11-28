@@ -33,6 +33,6 @@ export function saveReceipt(storage:LocalStoragePort,paperId:string,receipt:Feed
 export async function refreshReceipts(items:FeedbackReceipt[],lookup:(id:string)=>Promise<{status:FeedbackRecord['status'];cloud?:CloudReceipt|null}>){
   return Promise.all(items.map(async item=>{
     try{const result=await lookup(item.id);return {...item,status:result.status,cloud:result.cloud??item.cloud,refresh_error:'',archived:false}}
-    catch(e){if(item.status==='withdrawn'&&e instanceof Error&&'status' in e&&e.status===404)return {...item,refresh_error:'',archived:true};return {...item,archived:false,refresh_error:e instanceof Error?e.message:'状态读取失败，请稍后重试。'}}
+    catch(e){if(e instanceof Error&&'status' in e&&e.status===404)return {...item,refresh_error:'',archived:true};return {...item,archived:false,refresh_error:e instanceof Error?e.message:'状态读取失败，请稍后重试。'}}
   }))
 }
