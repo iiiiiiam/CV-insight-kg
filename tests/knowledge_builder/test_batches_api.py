@@ -48,6 +48,33 @@ class BatchAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()
 
+    def test_a_handoff_identity_and_missing_optional_source_do_not_block_export(self):
+        headers=self.login()
+        document=batch(1,1)
+        document['batch_revision']='a-revision-1'
+        payload=dict(id='https://openalex.org/W1',display_name='Image Segmentation',
+                     publication_year=2024,topics=[],keywords=[])
+        document['source_annotations']=[dict(paper_id=payload['id'],record=dict(source='openalex',
+            url='https://api.openalex.org/works/W1',fetched_at='2026-11-28T00:00:00Z',
+            payload=payload,digest=fingerprint(payload)))]
+        client=Mock(openalex=Mock(side_effect=AssertionError('Do not request supplied OpenAlex again')),
+                    papers_with_code=Mock(side_effect=SourceUnavailable('offline')))
+        with patch('src.knowledge_builder.batch_sources.SourceClient',return_value=client):
+            response=self.ingest(document,0,headers)
+            self.assertEqual(response.json()['status'],'accepted',response.text)
+        client.openalex.assert_not_called()
+        state=self.client.get(self.path).json()
+        identity=state['batches'][0]
+        self.assertEqual(identity['batch_id'],1)
+        self.assertEqual(identity['a_batch_revision'],'a-revision-1')
+        self.assertEqual(identity['handoff_digest'],fingerprint(document))
+        # These are additive fields: the old receipt/count contract is still present.
+        self.assertIn('receipt',identity)
+        self.assertEqual(self.export()['counts']['papers'],1)
+        readiness=self.client.get(self.path+'/readiness')
+        self.assertEqual(readiness.status_code,200,readiness.text)
+        self.assertTrue(readiness.json()['results']['available'])
+
     def test_auth_csrf_and_explicit_switch(self):
         self.assertEqual(self.client.get(self.path).status_code, 401)
         self.assertEqual(self.ingest(batch(1, 1), 0, {}).status_code, 401)

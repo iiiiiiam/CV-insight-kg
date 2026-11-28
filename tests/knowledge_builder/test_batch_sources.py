@@ -43,6 +43,46 @@ class BatchSourceTests(unittest.TestCase):
     def client(self):
         return Mock(openalex=Mock(return_value=self.records[0]), papers_with_code=Mock(return_value=self.records[1]))
 
+    def annotated_batch(self, number, topic):
+        document = self.batch(number)
+        payload = dict(id=self.paper.openalex_id, display_name=self.paper.title,
+                       publication_year=self.paper.year,
+                       topics=[dict(id='https://openalex.org/T1', display_name=topic, score=.9)], keywords=[])
+        annotation = record('openalex', payload)
+        annotation['url']='https://api.openalex.org/works/W123'
+        document['batch_revision']='revision-'+str(number)
+        document['source_annotations']=[dict(paper_id=self.paper.openalex_id,record=annotation)]
+        return document
+
+    def test_a_annotations_reused_without_fetch_and_restored_on_withdrawal(self):
+        first=self.annotated_batch(1,'Image segmentation')
+        self.assertEqual(self.registry.ingest(first)['status'],'accepted')
+        client=self.client()
+        client.openalex.side_effect=AssertionError('A already supplied OpenAlex')
+        client.papers_with_code.side_effect=SourceUnavailable('offline')
+        self.sources.prepare([self.paper],client=client)
+        client.openalex.assert_not_called()
+        old=self.sources.records([self.paper])[self.paper.openalex_id]
+        self.assertEqual(old[0]['payload']['topics'][0]['display_name'],'Image segmentation')
+        self.registry.ingest(self.annotated_batch(2,'Object detection'))
+        current=self.sources.records([self.paper])[self.paper.openalex_id]
+        self.assertEqual(current[0]['payload']['topics'][0]['display_name'],'Object detection')
+        self.registry.withdraw('B2')
+        restored=self.sources.records([self.paper])[self.paper.openalex_id]
+        self.assertEqual(restored,old)
+        # Shared-input cache remains on disk; withdrawing all batches removes its A seeds.
+        self.registry.withdraw('B1')
+        self.assertEqual(self.registry.snapshot()['paper_count'],0)
+
+    def test_bad_optional_a_annotations_do_not_block_usable_rule_results(self):
+        document=self.annotated_batch(1,'Image segmentation')
+        document['source_annotations'][0]['record']['digest']='0'*64
+        self.assertEqual(self.registry.ingest(document)['status'],'accepted')
+        self.assertEqual(self.sources.records([self.paper])[self.paper.openalex_id],[])
+        workspace=self.registry.workspace(self.directory/'feedback.json',source_store=self.sources)
+        self.assertIn('NewSet',{item['content']['name'] for item in workspace.view(self.paper.openalex_id)['entities']})
+        self.assertEqual(workspace.export_effective()['counts']['papers'],1)
+
     def test_same_pipeline_as_existing_reading_and_no_network_on_view_export(self):
         client = self.client()
         summary = self.sources.prepare([self.paper], client=client)
