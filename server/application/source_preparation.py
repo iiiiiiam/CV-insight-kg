@@ -14,6 +14,7 @@ from src.knowledge_builder.models import PaperInput
 class SourcePreparation:
     poll_seconds = 10
     retry_seconds = 300
+    max_retry_seconds = 3600
 
     def __init__(self, settings):
         self.settings = settings
@@ -23,6 +24,8 @@ class SourcePreparation:
         self.job = dict(running=False, error=None)
         self.last_revision = None
         self.next_attempt = 0
+        self.retry_count = 0
+        self.progress = None
 
     def status(self):
         with self.lock:
@@ -43,14 +46,24 @@ class SourcePreparation:
             submit(self.run)
 
     def run(self):
+        incomplete = True
         try:
             while not self.stop.is_set():
                 registry = batch_registry(self.settings)
                 snapshot = registry.snapshot()
                 papers = [PaperInput(**part['input']) for part in snapshot['papers']]
                 with self.lock:
+                    if self.last_revision != snapshot['revision']:
+                        self.retry_count = 0
+                        self.progress = None
                     self.last_revision = snapshot['revision']
-                batch_sources(self.settings).prepare(papers, stop_event=self.stop)
+                summary = batch_sources(self.settings).prepare(papers, stop_event=self.stop)
+                incomplete = bool(summary['pending'] or summary['partial'])
+                progress = (summary['completed'] - summary['partial'], summary['with_sources'])
+                with self.lock:
+                    if self.progress is not None and progress > self.progress:
+                        self.retry_count = 0
+                    self.progress = progress
                 if registry.snapshot()['revision'] == snapshot['revision']:
                     with self.lock:
                         self.last_revision = snapshot['revision']
@@ -62,7 +75,13 @@ class SourcePreparation:
         finally:
             with self.lock:
                 self.job['running'] = False
-                self.next_attempt = time.monotonic() + self.retry_seconds
+                if incomplete:
+                    delay = min(self.max_retry_seconds, self.retry_seconds * 2 ** min(self.retry_count, 4))
+                    self.retry_count = min(self.retry_count + 1, 4)
+                else:
+                    self.retry_count = 0
+                    delay = self.retry_seconds
+                self.next_attempt = time.monotonic() + delay
 
     def check(self):
         registry = batch_registry(self.settings)

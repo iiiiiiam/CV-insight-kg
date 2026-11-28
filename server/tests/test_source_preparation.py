@@ -130,3 +130,30 @@ def test_watcher_does_not_fetch_demo_corpus_without_managed_batches(tmp_path):
         job=SourcePreparation(settings(tmp_path))
         job.check()
         assert not job.status()['running']
+
+
+def test_retry_backoff_caps_and_resets_for_new_input_and_progress(tmp_path):
+    paper,document=sample()
+    registry=BatchRegistry(tmp_path/'ledger.json')
+    registry.ingest(document)
+    job=SourcePreparation(settings(tmp_path))
+    source=Mock(openalex=Mock(side_effect=AssertionError('Already supplied')),
+                papers_with_code=Mock(side_effect=SourceUnavailable('offline')))
+    with patch('src.knowledge_builder.batch_sources.SourceClient',return_value=source), patch('server.application.source_preparation.time.monotonic',return_value=100):
+        for delay in (300,600,1200,2400,3600,3600):
+            job.next_attempt=0
+            job.check()
+            assert job.next_attempt==100+delay
+        # A new batch revision bypasses the old input's long backoff.
+        newer={**document,'batch_id':document['batch_id']+1,'batch_code':document['batch_code']+'-new'}
+        registry.ingest(newer)
+        job.check()
+        assert job.next_attempt==400
+        assert job.retry_count==1
+        payload=dict(title=paper.title,authors=['Ada'],published='2024-01-01',tasks=[],datasets=[],methods=[])
+        source.papers_with_code.return_value=dict(source='paperswithcode',url='https://example.test/catalog',
+            fetched_at='2026-11-28T00:00:00Z',payload=payload,digest=fingerprint(payload))
+        source.papers_with_code.side_effect=None
+        job.next_attempt=0
+        job.check()
+        assert job.retry_count==0
